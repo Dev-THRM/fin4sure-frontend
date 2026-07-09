@@ -1,0 +1,88 @@
+/* ═══════════════════════════════════════════
+   Loans Redirect Page Stylesheet
+═══════════════════════════════════════════ */
+
+.loans-redirect-layout {
+  background: linear-gradient(180deg, #F8FBFF 0%, #EFF6FF 100%);
+  min-height: calc(100vh - var(--nav-h));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  box-sizing: border-box;
+}
+
+.loans-redirect-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #E6EEF8;
+  border-radius: 24px;
+  padding: 48px 32px;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  max-width: 500px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.loans-redirect-icon {
+  font-size: 3.5rem;
+  margin-bottom: 20px;
+  line-height: 1;
+}
+
+.loans-redirect-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.9rem;
+  color: var(--navy);
+  font-weight: 700;
+  margin-bottom: 12px;
+  line-height: 1.25;
+}
+
+.loans-redirect-sub {
+  font-size: .95rem;
+  color: #475569;
+  max-width: 420px;
+  margin-bottom: 32px;
+  line-height: 1.6;
+}
+
+.loans-redirect-btns {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+
+.loans-redirect-btns button,
+.loans-redirect-btns a {
+  flex: 1;
+  min-width: 180px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+@media (max-width: 576px) {
+  .loans-redirect-wrap {
+    padding: 32px 20px;
+  }
+  .loans-redirect-title {
+    font-size: 1.6rem;
+  }
+  .loans-redirect-btns {
+    flex-direction: column;
+  }
+  .loans-redirect-btns button,
+  .loans-redirect-btns a {
+    width: 100%;
+  }
+}

@@ -1,0 +1,155 @@
+/* ═══════════════════════════════════════════
+   Live ROI Ticker Stylesheet
+═══════════════════════════════════════════ */
+
+.roi-ticker {
+  width: 100%;
+  margin: 0;
+  display: flex;
+  align-items: stretch;
+  background: linear-gradient(90deg, #0A1F4D, #0D2B6B 50%, #0E4A5C);
+  border-bottom: 1px solid rgba(56, 189, 248, .25);
+  box-shadow: 0 4px 16px rgba(13, 43, 107, .18);
+  position: relative;
+  z-index: 29;
+  overflow: hidden;
+  height: 40px;
+}
+
+.roi-ticker-global {
+  width: 100%;
+  margin: 0;
+  position: sticky;
+  top: 124px;
+  z-index: 90;
+}
+
+.roi-ticker-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 0 16px;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  color: #fff;
+  background: linear-gradient(135deg, #D97706, #B45309);
+  position: relative;
+  z-index: 2;
+  box-shadow: 4px 0 12px rgba(0, 0, 0, .25);
+}
+
+.roi-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4ADE80;
+  box-shadow: 0 0 0 0 rgba(74, 222, 128, .7);
+  animation: roiPulse 1.6s infinite;
+}
+
+.roi-ticker-viewport {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.roi-ticker-viewport::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  background: linear-gradient(90deg, transparent, #0E4A5C);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.roi-ticker-track {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  white-space: nowrap;
+  will-change: transform;
+  animation: roiScroll 60s linear infinite;
+}
+
+.roi-ticker:hover .roi-ticker-track {
+  animation-play-state: paused;
+}
+
+.roi-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 18px;
+  font-size: .78rem;
+  border-right: 1px solid rgba(255, 255, 255, .08);
+}
+
+.roi-name {
+  color: rgba(255, 255, 255, .92);
+  font-weight: 700;
+}
+
+.roi-type {
+  color: #FCD34D;
+  font-weight: 600;
+  font-size: .7rem;
+  background: rgba(252, 211, 77, .14);
+  border: 1px solid rgba(252, 211, 77, .3);
+  padding: 1px 7px;
+  border-radius: 8px;
+}
+
+.roi-val {
+  color: #67E8F9;
+  font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.roi-arrow {
+  font-size: .7rem;
+  font-weight: 700;
+}
+
+.roi-arrow.up {
+  color: #4ADE80;
+}
+
+.roi-arrow.down {
+  color: #F87171;
+}
+
+@keyframes roiScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .roi-ticker-global {
+    top: 102px;
+  }
+  .roi-ticker {
+    height: 36px;
+  }
+  .roi-ticker-label {
+    padding: 0 11px;
+    font-size: .62rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .roi-ticker-global {
+    top: 94px;
+  }
+}

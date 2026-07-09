@@ -8,6 +8,9 @@ import Login from "../pages/Login";
 import Signup from "../pages/Signup";
 import Calculator from "../pages/Calculator";
 import BrokerRegistration from "../pages/BrokerRegister";
+import About from "../pages/About";
+import PartnerInfo from "../pages/PartnerInfo";
+import LoansRedirect from "../pages/LoansRedirect";
 import BrokerDashboard  from "../pages/Brokerdashboard";
 import AdminDashboard from "../pages/AdminDashboard";  // You'll create this
 import ClientDashboard from "../pages/ClientDashboard"; // You'll create this
@@ -26,6 +29,9 @@ export default function AppRoutes() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/EMI-calculator" element={<Calculator />} />
         <Route path="/broker-register" element={<BrokerRegistration />} />
+        <Route path="/partner" element={<PartnerInfo />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/loans" element={<LoansRedirect />} />
 
         {/* Protected dashboard routes */}
         <Route

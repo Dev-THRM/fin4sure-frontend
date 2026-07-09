@@ -1,33 +1,43 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { LOAN_PRODUCTS } from "../utils/constants";
 import { useAuth } from "../context/AuthContext";
-import { states } from "../components/Statedata";
-import { districtsByState } from "../components/Statedata";
-
+import { states, districtsByState } from "../components/Statedata";
+import "./styles/apply.css";
 
 export default function Apply() {
   const [searchParams] = useSearchParams();
   const productId = searchParams.get("product");
+  const navigate = useNavigate();
 
   const { isAuthenticated, user } = useAuth();
 
+  // Form Fields State
   const [product, setProduct] = useState(productId || "");
   const [pan, setPan] = useState("");
+  const [dob, setdob] = useState("");
+  const [address, setaddress] = useState("");
+  const [pincode, setpincode] = useState("");
+  const [state, setstate] = useState("");
+  const [district, setdistrict] = useState("");
+
+  // UI Status State
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [dob, setdob] = useState('');
-  const [address, setaddress] = useState('');
   const [loading, setLoading] = useState(false);
-  const [pincode, setpincode] = useState('')
-  const [state, setstate] = useState('');
-  const [district, setdistrict] = useState('');
-
-  const selectedProduct = LOAN_PRODUCTS.find(
-    (item) => item.id === product
-  );
 
   const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+
+  // Pre-fill profile data on login status
+  useEffect(() => {
+    if (user) {
+      setdob(user.dob || "");
+      setaddress(user.address || "");
+      setpincode(user.pincode || "");
+      setstate(user.state || "");
+      setdistrict(user.district || "");
+    }
+  }, [user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,10 +48,14 @@ export default function Apply() {
       return;
     }
 
-    const cleanPAN = pan.trim().toUpperCase();
+    if (!dob || !address || !state || !district || !pincode) {
+      setError("Please fill out all address and contact details.");
+      return;
+    }
 
+    const cleanPAN = pan.trim().toUpperCase();
     if (!PAN_REGEX.test(cleanPAN)) {
-      setError("Enter valid PAN (ABCDE1234F)");
+      setError("Enter valid PAN (e.g. ABCDE1234F).");
       return;
     }
 
@@ -51,7 +65,7 @@ export default function Apply() {
       setLoading(true);
 
       const res = await fetch(
-        "https://fin4sure-backend.onrender.com/api/client/apply-loan",
+        "http://localhost:5000/api/client/apply-loan",
         {
           method: "POST",
           credentials: "include",
@@ -60,12 +74,12 @@ export default function Apply() {
           },
           body: JSON.stringify({
             pan: cleanPAN,
-            product: product,
-            dob: dob,
-            address: address,
-            state: state,
-            district: district,
-            pincode: pincode
+            product,
+            dob,
+            address,
+            state,
+            district,
+            pincode,
           }),
         }
       );
@@ -78,285 +92,245 @@ export default function Apply() {
 
       setSuccess("Application submitted successfully!");
       setPan("");
+      
+      // Auto-navigate to dashboard to track application status
+      setTimeout(() => {
+        navigate("/client-dashboard");
+      }, 2500);
 
     } catch (err) {
       setError(err.message || "Network error");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  useEffect(
-    () => {
-      const load_data = async () => {
-    setdob(user?.dob);
-    setaddress(user?.address);
-    setpincode(user?.pincode)
-    setstate(user?.state);
-    setdistrict(user?.district);}
-    load_data()
-  },[user])
+  const selectedProduct = LOAN_PRODUCTS.find((item) => item.id === product);
 
   return (
-    <section className="bg-linear-to-b from-blue-50 via-white to-white min-h-screen">
-      <div className="max-w-3xl mx-auto px-6 py-16">
-
-        {/* Header */}
-        <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
-          Apply for a <span className="text-blue-700">Loan</span>
-        </h1>
-
-        <p className="mt-3 text-slate-600 max-w-xl">
-          Submit your PAN details to start your loan application.
-        </p>
-
-        {/* Selected Product Banner */}
-        {selectedProduct && (
-          <div className="mt-6 p-4 rounded-lg bg-blue-50 border border-blue-100 text-slate-700">
-            Applying for:
-            <span className="font-semibold text-slate-900 ml-2">
-              {selectedProduct.name}
-            </span>
+    <div className="apply-wrap">
+      {/* ═══ APPLY HERO HEADER ═══ */}
+      <div className="apply-header">
+        <div className="apply-header-inner">
+          <button className="apply-back-btn" onClick={() => navigate(-1)}>
+            ← Back
+          </button>
+          <div className="apply-eyebrow">✦ SECURE FORM</div>
+          <div className="apply-head-title">
+            <h1>Start your loan application</h1>
+            <p>
+              Submit your credit parameters and address info securely. We'll map your profile to 30+ lenders instantly.
+            </p>
           </div>
-        )}
+        </div>
+      </div>
 
-        {/* Not Logged In */}
+      {/* ═══ FORM CONTAINER ═══ */}
+      <div className="apply-body">
         {!isAuthenticated ? (
-          <div className="mt-10 bg-white p-6 rounded-xl border border-blue-100">
-            <div className="p-4 rounded-lg text-sm
-                            bg-[#d9a93d]/10 border border-[#d9a93d]/30
-                            text-[#8a6a1f]">
-              You must be logged in to submit a loan application.
-            </div>
-
-            <a
-              href="/login"
-              className="mt-4 inline-block px-5 py-2 rounded-lg font-medium text-white
-                         bg-linear-to-r from-blue-700 via-teal-600 to-emerald-500
-                         hover:from-blue-800 hover:via-teal-700 hover:to-emerald-600
-                         transition"
+          <div className="apply-panel" style={{ textAlign: "center" }}>
+            <div
+              className="login-loan-banner"
+              style={{ color: "#B45309", background: "#FFFBEB", borderColor: "#FDE68A", padding: "16px", borderRadius: "12px", marginBottom: "20px" }}
             >
+              ⚠️ You must be signed in to submit a loan application.
+            </div>
+            <Link to="/login" className="btn-primary" style={{ display: "inline-block", textDecoration: "none", width: "auto", padding: "12px 30px" }}>
               Login to Continue
-            </a>
+            </Link>
           </div>
-        ) : (
-
-          /* Form */
-          <form
-            onSubmit={handleSubmit}
-            className="mt-10 bg-white p-8 rounded-xl border border-blue-100 shadow-sm space-y-7"
-          >
-
-            {/* Alerts */}
-            {error && (
-              <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm">
-                {error}
-              </div>
-            )}
-
-            {success && (
-              <div className="p-3 bg-green-50 text-green-700 rounded-lg text-sm">
-                {success}
-              </div>
-            )}
-
-            {/* Autofill Card */}
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-5">
-              <h3 className="font-semibold text-slate-800 mb-4">
-                Applicant Details
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoField label="Full Name" value={user?.name} />
-                <InfoField label="Email" value={user?.email} />
-                <InfoField label="Mobile" value={user?.number} />
-          {/* dob */}
-          <input
-            type="date"
-            placeholder="enter your date of birth"
-            value={dob}
-            onChange={(e) => setdob(e.target.value)}
-            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-          />
-
-          
-
-          {/* ADDRESS */}
-<div className="flex flex-col">
-  <label className="text-sm font-medium text-slate-700 mb-1">
-    Address
-  </label>
-  <input
-    type="text"
-    placeholder="Enter your address"
-    value={address}
-    onChange={(e) => setaddress(e.target.value)}
-    className="w-full px-4 py-3 border border-slate-300 rounded-lg 
-               bg-white text-slate-800
-               focus:outline-none focus:ring-2 focus:ring-blue-600
-               transition duration-200"
-  />
-</div>
-
-{/* STATE & DISTRICT */}
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-  {/* STATE */}
-  <div className="flex flex-col">
-    <label className="text-sm font-medium text-slate-700 mb-1">
-      State
-    </label>
-    <div className="relative">
-      <select
-        name="state"
-        id="state"
-        value={state}
-        onChange={(e) => {
-          setstate(e.target.value);
-          setdistrict("");
-        }}
-        className="w-full appearance-none px-4 py-3 border border-slate-300 
-                   rounded-lg bg-white text-slate-700
-                   focus:outline-none focus:ring-2 focus:ring-blue-600
-                   transition duration-200"
-      >
-        <option value="">-- Select a State --</option>
-        {states.map((s) => (
-          <option key={s} value={s}>
-            {s}
-          </option>
-        ))}
-      </select>
-
-      {/* Dropdown Icon */}
-      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
-        ▼
-      </div>
-    </div>
-  </div>
-
-  {/* DISTRICT */}
-  <div className="flex flex-col">
-    <label className="text-sm font-medium text-slate-700 mb-1">
-      District
-    </label>
-    <div className="relative">
-      <select
-        name="District"
-        id="District"
-        value={district}
-        disabled={!state}
-        onChange={(e) => setdistrict(e.target.value)}
-        className={`w-full appearance-none px-4 py-3 border rounded-lg
-                    focus:outline-none focus:ring-2 focus:ring-blue-600
-                    transition duration-200
-                    ${
-                      !state
-                        ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                        : "bg-white text-slate-700 border-slate-300"
-                    }`}
-      >
-        <option value="">-- Select a District --</option>
-        {state &&
-          districtsByState[state]?.map((d) => (
-            <option key={d} value={d}>
-              {d}
-            </option>
-          ))}
-      </select>
-
-      {/* Dropdown Icon */}
-      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
-        ▼
-      </div>
-    </div>
-  </div>
-
-</div>
-
-{/* pincode */}
-          <input
-            type="text"
-            placeholder="enter your city pincode"
-            maxLength={6}
-            value={pincode}
-            onChange={(e) => setpincode(e.target.value.replace(/\D/g,""))}
-            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-          />
-              </div>
-            </div>
-
-            {/* Loan Selector */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700">
-                Loan Type <span className="text-red-500">*</span>
-              </label>
-
-              <select
-                value={product}
-                onChange={(e) => setProduct(e.target.value)}
-                className="mt-2 w-full px-4 py-3 border border-slate-300 rounded-lg
-                           focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
-              >
-                <option value="">Select a loan type</option>
-
-                {LOAN_PRODUCTS.map((loan) => (
-                  <option key={loan.id} value={loan.id}>
-                    {loan.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* PAN */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700">
-                PAN Number <span className="text-red-500">*</span>
-              </label>
-
-              <input
-                type="text"
-                placeholder="ABCDE1234F"
-                value={pan}
-                onChange={(e) =>
-                  setPan(e.target.value.toUpperCase())
-                }
-                maxLength={10}
-                className="mt-2 w-full px-4 py-3 border border-slate-300 rounded-lg
-                           focus:outline-none focus:ring-2 focus:ring-blue-600"
-              />
-              <p className="text-xs text-slate-500 mt-1">
-                Format: 5 letters + 4 numbers + 1 letter
+        ) : success ? (
+          <div className="apply-panel">
+            <div className="apply-success">
+              <div className="asx-icon">🎉</div>
+              <h3>Application Submitted!</h3>
+              <p>
+                Your application for <strong>{selectedProduct?.name || product}</strong> has been received successfully. We are redirecting you to your dashboard to track progress.
               </p>
             </div>
+          </div>
+        ) : (
+          <div className="apply-panel">
+            <div className="apply-h2">Application Form</div>
+            <div className="apply-sub">Provide your credentials below to initialize verification.</div>
 
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading || !product}
-              className="w-full py-3 rounded-lg font-medium text-white
-                         bg-linear-to-r from-blue-700 via-teal-600 to-emerald-500
-                         hover:from-blue-800 hover:via-teal-700 hover:to-emerald-600
-                         transition disabled:opacity-50"
-            >
-              {loading ? "Submitting..." : "Submit Application"}
-            </button>
+            {/* Error notifications */}
+            {error && (
+              <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm" style={{ marginBottom: "20px", border: "1px solid #FECACA" }}>
+                ⚠️ {error}
+              </div>
+            )}
 
-          </form>
+            {/* Applicant detail banner (autofilled) */}
+            <div className="apply-autofill-banner">
+              <h3>Primary Applicant Details</h3>
+              <div className="apply-autofill-grid">
+                <div className="apply-autofill-item">
+                  <span className="lbl">Name</span>
+                  <span className="val">{user?.name || "-"}</span>
+                </div>
+                <div className="apply-autofill-item">
+                  <span className="lbl">Mobile</span>
+                  <span className="val">{user?.number || "-"}</span>
+                </div>
+                <div className="apply-autofill-item">
+                  <span className="lbl">Email</span>
+                  <span className="val">{user?.email || "-"}</span>
+                </div>
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="apply-form">
+              {/* DOB & ADDRESS ROW */}
+              <div className="apply-form-row">
+                <div className="apply-form-group">
+                  <label htmlFor="dob">Date of Birth *</label>
+                  <div className="input-wrap">
+                    <span className="icon">📅</span>
+                    <input
+                      id="dob"
+                      type="date"
+                      value={dob}
+                      onChange={(e) => setdob(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="apply-form-group">
+                  <label htmlFor="pincode">City Pincode *</label>
+                  <div className="input-wrap">
+                    <span className="icon">📍</span>
+                    <input
+                      id="pincode"
+                      type="text"
+                      maxLength={6}
+                      placeholder="e.g. 110001"
+                      value={pincode}
+                      onChange={(e) => setpincode(e.target.value.replace(/\D/g, ""))}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Full Address */}
+              <div className="apply-form-group">
+                <label htmlFor="address">Residential Address *</label>
+                <div className="input-wrap">
+                  <span className="icon">🏠</span>
+                  <input
+                    id="address"
+                    type="text"
+                    placeholder="Flat / Building / Street name"
+                    value={address}
+                    onChange={(e) => setaddress(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* State & District Row */}
+              <div className="apply-form-row">
+                <div className="apply-form-group">
+                  <label htmlFor="state">State *</label>
+                  <div className="input-wrap" style={{ padding: "0 6px" }}>
+                    <select
+                      id="state"
+                      value={state}
+                      onChange={(e) => {
+                        setstate(e.target.value);
+                        setdistrict("");
+                      }}
+                      required
+                      style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".92rem", fontWeight: "600", color: "var(--navy)" }}
+                    >
+                      <option value="">Select State</option>
+                      {states.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="apply-form-group">
+                  <label htmlFor="district">District *</label>
+                  <div className="input-wrap" style={{ padding: "0 6px" }}>
+                    <select
+                      id="district"
+                      value={district}
+                      disabled={!state}
+                      onChange={(e) => setdistrict(e.target.value)}
+                      required
+                      style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".92rem", fontWeight: "600", color: "var(--navy)" }}
+                    >
+                      <option value="">Select District</option>
+                      {state &&
+                        districtsByState[state]?.map((d) => (
+                          <option key={d} value={d}>
+                            {d}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Product & PAN Row */}
+              <div className="apply-form-row">
+                <div className="apply-form-group">
+                  <label htmlFor="product">Requested Loan Asset *</label>
+                  <div className="input-wrap" style={{ padding: "0 6px" }}>
+                    <select
+                      id="product"
+                      value={product}
+                      onChange={(e) => setProduct(e.target.value)}
+                      required
+                      style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".92rem", fontWeight: "600", color: "var(--navy)" }}
+                    >
+                      <option value="">Select Asset Type</option>
+                      {LOAN_PRODUCTS.map((loan) => (
+                        <option key={loan.id} value={loan.id}>
+                          {loan.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="apply-form-group">
+                  <label htmlFor="pan">PAN Card Number *</label>
+                  <div className="input-wrap">
+                    <span className="icon">💳</span>
+                    <input
+                      id="pan"
+                      type="text"
+                      placeholder="ABCDE1234F"
+                      maxLength={10}
+                      value={pan}
+                      onChange={(e) => setPan(e.target.value.toUpperCase())}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary"
+                style={{ height: "46px", marginTop: "12px" }}
+              >
+                {loading ? "Submitting Application..." : "Submit Loan Application →"}
+              </button>
+            </form>
+          </div>
         )}
       </div>
-    </section>
-  );
-}
-
-/* Small reusable display field */
-function InfoField({ label, value }) {
-  return (
-    <div>
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-1 px-3 py-2 bg-white border border-slate-200 rounded-md text-slate-700">
-        {value || "-"}
-      </p>
     </div>
   );
 }
+export { Apply };

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import validator from "validator";
+import "./styles/login.css";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -15,24 +16,21 @@ export default function Signup() {
   const [refBy, setRefBy] = useState("self"); // referral default
   const [brokerId, setBrokerId] = useState(""); // if refBy is broker
 
-  
   // ---------------- UI STATES ----------------
   const [otpSent, setOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(""); // form-wide error
-  const [validateemail, setvalidateemail] = useState("")
+  const [validateemail, setvalidateemail] = useState("");
   const [otpError, setOtpError] = useState(""); // OTP-specific error
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [dob, setdob] = useState("");
-  const [address, setaddress] = useState("");
 
   // ---------------- OTP TIMER ----------------
   const [resendTimer, setResendTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
-  const API_BASE = "https://fin4sure-backend.onrender.com/api/auth";
+  const API_BASE = "http://localhost:5000/api/auth";
 
   // ---------------- RESEND TIMER LOGIC ----------------
   useEffect(() => {
@@ -61,14 +59,14 @@ export default function Signup() {
     valid: c.test(pw),
   }));
 
-  const validateEmail = (e) => {
-    setEmail(e.target.value);
-    if(validator.isEmail(email)) {
-      setvalidateemail("email is valid");
+  const handleEmailChange = (e) => {
+    const val = e.target.value;
+    setEmail(val);
+    if (validator.isEmail(val)) {
+      setvalidateemail("Email is valid");
+    } else {
+      setvalidateemail("Email is invalid");
     }
-    else{
-      setvalidateemail("email is invalid");
-    };
   };
 
   const isPasswordStrong = () => validatePassword(password).every((c) => c.valid);
@@ -161,11 +159,6 @@ export default function Signup() {
         password,
         role: "client",
         broker_id: refBy === "self" || !brokerId.trim() ? "self" : brokerId.trim(),
-        // dob,
-        // address,
-        // pincode,
-        // state,
-        // district
       };
 
       const res = await fetch(`${API_BASE}/signup`, {
@@ -186,330 +179,243 @@ export default function Signup() {
   };
 
   return (
-    <section className="bg-linear-to-b from-blue-50 via-white to-white min-h-screen flex items-center">
-      <div className="max-w-md mx-auto w-full bg-white p-6 rounded-xl border border-blue-100 shadow-sm">
-        <h1 className="text-2xl font-bold text-slate-900">
-          Create your <span className="text-blue-700">Finn4sure</span> account
-        </h1>
+    <div className="login-page-wrap">
+      <div className="login-page-content">
+        <div className="login-form-card">
+          <h2 style={{ fontFamily: "Playfair Display, serif", fontWeight: 700, color: "var(--navy)", fontSize: "1.45rem", marginBottom: "8px" }}>
+            Create Borrower Account
+          </h2>
+          <p style={{ fontSize: ".78rem", color: "var(--text2)", marginBottom: "22px", lineHeight: "1.4" }}>
+            Start your digital loan verification. Verification codes are submitted to your WhatsApp.
+          </p>
 
-        <p className="mt-2 text-sm text-slate-600">
-          Sign up to start your loan application journey. OTP will be sent to your WhatsApp number.
-        </p>
+          {error && (
+            <div className="login-loan-banner" style={{ background: "#FEE2E2", borderColor: "#FCA5A5", color: "#991B1B" }}>
+              ⚠️ {error}
+            </div>
+          )}
 
-        {error && (
-          <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
-
-        <div className="mt-6 space-y-5">
-          {/* NAME */}
-          <input
-            type="text"
-            placeholder="Your full name"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-          />
-
-          {/* EMAIL */}
-          <input
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={validateEmail}
-            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-          />
-           <p style={{ color: validator.isEmail(email) ? 'green' : 'red' }}>
-               {validateemail}
-           </p>
-
-          {/* PASSWORD */}
-          <div>
-            <p className="text-sm text-slate-500 mb-1">
-              Password must contain: 8+ chars, uppercase, number, special char, letters.
-            </p>
-            <div className="relative">
+          <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+            {/* FULL NAME */}
+            <div className="input-wrap">
+              <span className="icon">👤</span>
               <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Create a password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                type="text"
+                placeholder="Full Name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
-              >
-                {showPassword ? "Hide" : "Show"}
-              </button>
             </div>
 
-            {/* PASSWORD VALIDATION */}
-            <div className="mt-1 text-sm space-y-1">
-              {validatePassword(password).map((rule, i) => (
-                <p
-                  key={i}
-                  className={`${rule.valid ? "text-green-600" : "text-red-600"}`}
+            {/* EMAIL */}
+            <div>
+              <div className="input-wrap">
+                <span className="icon">📧</span>
+                <input
+                  type="email"
+                  placeholder="Email Address"
+                  value={email}
+                  onChange={handleEmailChange}
+                  required
+                />
+              </div>
+              {email && (
+                <div style={{ fontSize: ".7rem", marginTop: "3px", color: validator.isEmail(email) ? "green" : "red", fontWeight: 700 }}>
+                  {validateemail}
+                </div>
+              )}
+            </div>
+
+            {/* PASSWORD */}
+            <div>
+              <div className="input-wrap">
+                <span className="icon">🔒</span>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Create Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{ background: "none", border: "none", color: "var(--navy)", cursor: "pointer", fontSize: ".76rem", fontWeight: 700 }}
                 >
-                  {rule.valid ? "✔" : "✖"} {rule.message}
-                </p>
-              ))}
-            </div>
-          </div>
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
 
-          {/* CONFIRM PASSWORD */}
-          <div className="relative">
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Confirm password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-            />
+              {password && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "6px" }}>
+                  {validatePassword(password).map((rule, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        fontSize: ".64rem",
+                        padding: "2px 8px",
+                        borderRadius: "20px",
+                        border: "1px solid",
+                        borderColor: rule.valid ? "#A7F3D0" : "#FCA5A5",
+                        backgroundColor: rule.valid ? "#ECFDF5" : "#FEF2F2",
+                        color: rule.valid ? "#065F46" : "#991B1B",
+                      }}
+                    >
+                      {rule.message}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* CONFIRM PASSWORD */}
+            <div>
+              <div className="input-wrap">
+                <span className="icon">🔒</span>
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  style={{ background: "none", border: "none", color: "var(--navy)", cursor: "pointer", fontSize: ".76rem", fontWeight: 700 }}
+                >
+                  {showConfirmPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+              {confirmPassword && (
+                <div style={{ fontSize: ".74rem", marginTop: "3px", color: password === confirmPassword ? "green" : "red", fontWeight: 700 }}>
+                  {password === confirmPassword ? "✓ Passwords match" : "✗ Passwords do not match"}
+                </div>
+              )}
+            </div>
+
+            {/* PHONE NUMBER */}
+            <div className="input-wrap">
+              <span className="icon">📱</span>
+              <input
+                type="tel"
+                placeholder="WhatsApp Number"
+                value={number}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, "");
+                  if (!otpVerified && val.length <= 10) setNumber(val);
+                }}
+                disabled={otpVerified}
+                required
+              />
+            </div>
+
+            {/* REF BY */}
+            <div className="input-wrap" style={{ padding: "0 10px" }}>
+              <span className="icon">🔗</span>
+              <select
+                value={refBy}
+                onChange={(e) => setRefBy(e.target.value)}
+                disabled={otpVerified}
+                style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".88rem", fontWeight: 600, color: "var(--navy)" }}
+              >
+                <option value="self">Applying Directly</option>
+                <option value="broker">Applying Through Broker</option>
+              </select>
+            </div>
+
+            {/* BROKER ID */}
+            {refBy === "broker" && (
+              <div className="input-wrap animate-fade-up">
+                <span className="icon">🆔</span>
+                <input
+                  type="text"
+                  placeholder="Enter Broker ID"
+                  value={brokerId}
+                  onChange={(e) => setBrokerId(e.target.value)}
+                  disabled={otpVerified}
+                  required
+                />
+              </div>
+            )}
+
+            {/* SEND OTP TRIGGER */}
             <button
               type="button"
-              onClick={() => setShowConfirmPassword((prev) => !prev)}
-              className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+              className="btn-primary"
+              onClick={sendOTP}
+              disabled={loading || otpSent}
+              style={{ height: "44px" }}
             >
-              {showConfirmPassword ? "Hide" : "Show"}
+              {otpSent ? "OTP Sent Successfully" : "Send WhatsApp OTP"}
+            </button>
+
+            {/* OTP VERIFY SECTION */}
+            {otpSent && (
+              <div className="apply-autofill-banner" style={{ background: "#F0FDF4", borderColor: "#A7F3D0", padding: "14px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".76rem" }}>
+                  <span style={{ color: "#065F46", fontWeight: 700 }}>Enter WhatsApp code</span>
+                  {!canResend ? (
+                    <span style={{ color: "var(--text2)" }}>Resend in {resendTimer}s</span>
+                  ) : (
+                    <button type="button" onClick={sendOTP} style={{ background: "none", border: "none", color: "#0F766E", fontWeight: 700, cursor: "pointer", textDecoration: "underline" }}>
+                      Resend OTP
+                    </button>
+                  )}
+                </div>
+
+                <div className="input-wrap">
+                  <span className="icon">🔑</span>
+                  <input
+                    type="text"
+                    placeholder="4-digit OTP"
+                    maxLength={4}
+                    value={receivedOtp}
+                    onChange={(e) => setReceivedOtp(e.target.value.replace(/\D/g, ""))}
+                    disabled={otpVerified}
+                  />
+                </div>
+
+                {otpError && (
+                  <div style={{ color: "#B91C1C", fontSize: ".76rem", fontWeight: 700 }}>
+                    {otpError}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={verifyOTP}
+                  disabled={loading || otpVerified}
+                  style={{ background: otpVerified ? "#059669" : "var(--navy)", height: "38px" }}
+                >
+                  {otpVerified ? "✓ Verified" : "Verify OTP"}
+                </button>
+              </div>
+            )}
+
+            {/* SUBMIT BUTTON */}
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={submitForm}
+              disabled={loading || !otpVerified || !isPasswordStrong() || password !== confirmPassword}
+              style={{ marginTop: "8px", height: "46px" }}
+            >
+              Submit &amp; Register Account
             </button>
           </div>
 
-          {/* dob */}
-          {/* <input
-            type="date"
-            placeholder="enter your date of birth"
-            value={dob}
-            onChange={(e) => setdob(e.target.value)}
-            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-          /> */}
-
-          
-
-          {/* ADDRESS */}
-{/* <div className="flex flex-col">
-  <label className="text-sm font-medium text-slate-700 mb-1">
-    Address
-  </label>
-  <input
-    type="text"
-    placeholder="Enter your address"
-    value={address}
-    onChange={(e) => setaddress(e.target.value)}
-    className="w-full px-4 py-3 border border-slate-300 rounded-lg 
-               bg-white text-slate-800
-               focus:outline-none focus:ring-2 focus:ring-blue-600
-               transition duration-200"
-  />
-</div> */}
-
-{/* STATE & DISTRICT */}
-{/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
- */}
-  {/* STATE */}
-  {/* <div className="flex flex-col">
-    <label className="text-sm font-medium text-slate-700 mb-1">
-      State
-    </label>
-    <div className="relative">
-      <select
-        name="state"
-        id="state"
-        value={state}
-        onChange={(e) => {
-          setstate(e.target.value);
-          setdistrict("");
-        }}
-        className="w-full appearance-none px-4 py-3 border border-slate-300 
-                   rounded-lg bg-white text-slate-700
-                   focus:outline-none focus:ring-2 focus:ring-blue-600
-                   transition duration-200"
-      >
-        <option value="">-- Select a State --</option>
-        {states.map((s) => (
-          <option key={s} value={s}>
-            {s}
-          </option>
-        ))}
-      </select>
- */}
-      {/* Dropdown Icon */}
-      {/* <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
-        ▼
-      </div>
-    </div>
-  </div> */}
-
-  {/* DISTRICT */}
-  {/* <div className="flex flex-col">
-    <label className="text-sm font-medium text-slate-700 mb-1">
-      District
-    </label>
-    <div className="relative">
-      <select
-        name="District"
-        id="District"
-        value={district}
-        disabled={!state}
-        onChange={(e) => setdistrict(e.target.value)}
-        className={`w-full appearance-none px-4 py-3 border rounded-lg
-                    focus:outline-none focus:ring-2 focus:ring-blue-600
-                    transition duration-200
-                    ${
-                      !state
-                        ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                        : "bg-white text-slate-700 border-slate-300"
-                    }`}
-      >
-        <option value="">-- Select a District --</option>
-        {state &&
-          districtsByState[state]?.map((d) => (
-            <option key={d} value={d}>
-              {d}
-            </option>
-          ))}
-      </select>
- */}
-      {/* Dropdown Icon */}
-      {/* <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
-        ▼
-      </div>
-    </div>
-  </div>
-
-</div> */}
-
-{/* pincode */}
-          {/* <input
-            type="text"
-            placeholder="enter your city pincode"
-            maxLength={6}
-            value={pincode}
-            onChange={(e) => setpincode(e.target.value.replace(/\D/g,""))}
-            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-          /> */}
-
-          {/* PASSWORD MATCH FEEDBACK */}
-          {confirmPassword && (
-            <p
-              className={`text-sm mt-1 ${
-                password === confirmPassword ? "text-green-600" : "text-red-600"
-              }`}
-            >
-              {password === confirmPassword ? "Passwords match" : "Passwords do not match"}
-            </p>
-          )}
-
-          {/* MOBILE NUMBER */}
-          <input
-            type="tel"
-            placeholder="10-digit mobile number"
-            value={number}
-            onChange={(e) => {
-              const val = e.target.value.replace(/\D/g, "");
-              if (!otpVerified && val.length <= 10) setNumber(val);
-            }}
-            disabled={otpVerified} 
-            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-          />
-
-          {/* REFERRAL DROPDOWN */}
-          <select
-            value={refBy}
-            onChange={(e) => setRefBy(e.target.value)}
-            disabled={otpVerified}
-            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-          >
-            <option value="self">Applying Directly</option>
-            <option value="broker">Applying Through Broker</option>
-          </select>
-
-          {/* BROKER ID INPUT */}
-          {refBy === "broker" && (
-            <input
-              type="text"
-              placeholder="Enter Broker ID"
-              value={brokerId}
-              onChange={(e) => setBrokerId(e.target.value)}
-              disabled={otpVerified}
-              className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-            />
-          )}
-
-          {/* SEND OTP BUTTON */}
-          <button
-            type="button"
-            onClick={sendOTP}
-            disabled={loading || otpSent}
-            className="bg-black hover:bg-black/80 transition duration-500 h-12 w-full rounded-md text-white disabled:opacity-50"
-          >
-            {otpSent ? "OTP Sent" : "Send OTP"}
-          </button>
-
-          {/* OTP VERIFICATION */}
-          {otpSent && (
-            <>
-              <p className="text-sm text-slate-600 text-center">
-                OTP sent to your WhatsApp number
-              </p>
-              {!canResend ? (
-                <p className="text-sm text-center text-slate-500">
-                  Resend OTP in <span className="font-semibold">{resendTimer}s</span>
-                </p>
-              ) : (
-                <button
-                  type="button"
-                  onClick={sendOTP}
-                  className="text-sm text-blue-700 hover:underline text-center"
-                >
-                  Resend OTP
-                </button>
-              )}
-
-              <input
-                type="text"
-                placeholder="Verify OTP"
-                value={receivedOtp}
-                onChange={(e) => setReceivedOtp(e.target.value.replace(/\D/g, ""))}
-                disabled={otpVerified}
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-              />
-              {otpError && <p className="text-sm text-red-600 mt-1">{otpError}</p>}
-
-              <button
-                type="button"
-                onClick={verifyOTP}
-                disabled={loading || otpVerified}
-                className="bg-black hover:bg-black/80 transition duration-500 h-12 w-full rounded-md text-white disabled:opacity-50"
-              >
-                {otpVerified ? "Verified" : "Verify OTP"}
-              </button>
-            </>
-          )}
-
-          {/* SIGNUP BUTTON */}
-          <button
-            type="button"
-            onClick={submitForm}
-            disabled={loading || !otpVerified || !isPasswordStrong() || password !== confirmPassword}
-            className="w-full py-3 rounded-lg font-medium text-white
-                       bg-linear-to-r from-blue-700 via-teal-600 to-emerald-500
-                       hover:from-blue-800 hover:via-teal-700 hover:to-emerald-600
-                       transition disabled:opacity-50"
-          >
-            Submit
-          </button>
+          <p className="mt-4 text-sm text-slate-600 text-center" style={{ marginTop: "20px", fontSize: ".82rem", textAlign: "center" }}>
+            Already have an account?{" "}
+            <Link to="/login" style={{ color: "var(--teal2)", fontWeight: 700, textDecoration: "underline" }}>
+              Login here
+            </Link>
+          </p>
         </div>
-
-        <p className="mt-4 text-sm text-slate-600 text-center">
-          Already have an account?{" "}
-          <Link to="/login" className="text-blue-700 hover:underline">
-            Login here
-          </Link>
-        </p>
       </div>
-    </section>
+    </div>
   );
 }
+export { Signup };

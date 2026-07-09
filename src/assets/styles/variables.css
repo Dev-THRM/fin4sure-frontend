@@ -1,0 +1,47 @@
+/* ═══════════════════════════════════════════
+   Finn4sure Design Tokens
+   Extracted from loan-onboarding_23.html :root
+═══════════════════════════════════════════ */
+
+:root {
+  /* Primary: professional slate-blue */
+  --navy: #1E3A5F;
+  --navy2: #16304F;
+
+  /* Accent: clean sky-blue */
+  --teal: #0284C7;
+  --teal2: #0369A1;
+  --teal-lt: #E0F2FE;
+
+  /* Warm highlight */
+  --gold: #D97706;
+  --gold-lt: #FEF3C7;
+
+  /* Semantic */
+  --green: #059669;
+  --red: #DC2626;
+
+  /* Backgrounds — very light, airy */
+  --white: #FFFFFF;
+  --cream: #F0F9FF;
+  --slate: #475569;
+  --mist: #E2E8F0;
+  --smoke: #F1F5F9;
+
+  /* Partner accent — elegant emerald-teal */
+  --partner: #0D9488;
+  --partner2: #0F766E;
+  --partner-lt: #CCFBF1;
+
+  /* Typography */
+  --text: #0F172A;
+  --text2: #64748B;
+
+  /* Navigation height */
+  --nav-h: 108px;
+
+  /* Shadows — crisper, lighter */
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, .06), 0 1px 2px rgba(15, 23, 42, .04);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, .08), 0 2px 6px rgba(15, 23, 42, .04);
+  --shadow-lg: 0 12px 40px rgba(15, 23, 42, .12), 0 4px 12px rgba(15, 23, 42, .06);
+}

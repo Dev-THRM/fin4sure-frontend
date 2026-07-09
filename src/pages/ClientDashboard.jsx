@@ -6,99 +6,104 @@ import {
   IoMdCheckmarkCircle,
   IoMdCloseCircle,
 } from "react-icons/io";
-import { CgProfile } from "react-icons/cg";
+import { useAuth } from "../context/AuthContext";
 import { LOAN_PRODUCTS } from "../utils/constants";
 import { states, districtsByState } from "../components/Statedata";
+import "./styles/clientDashboard.css";
 
 export default function ClientDashboard() {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  // Local dashboard states
   const [user, setUser] = useState(null);
   const [leads, setLeads] = useState([]);
+  const [activeTab, setActiveTab] = useState("loans");
+  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [rewardTcOpen, setRewardTcOpen] = useState(false);
+
+  // Profile Form States
   const [editing, setEditing] = useState(false);
-  const [name, setname] = useState("");
-  const [email, setemail] = useState("");
-  const [address, setaddress] = useState("");
-  const [pincode, setpincode] = useState("");
-  const [district, setdistrict] = useState("");
-  const [state, setstate] = useState("");
-  const [number, setnumber] = useState("");
-  // const [pan_card, setpan_card] = useState("");
-  const [otp, setotp] = useState(""); // for phone updates
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
+  const [pincode, setPincode] = useState("");
+  const [state, setState] = useState("");
+  const [district, setDistrict] = useState("");
+  const [number, setNumber] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchProfile();
     fetchLeads();
   }, []);
 
-  // Fetch profile
-  const fetchProfile = async() => {
+  const fetchProfile = async () => {
     try {
-    const res = await fetch("https://fin4sure-backend.onrender.com/api/auth/profile", {
-      method: "GET",
-      headers: { "content-type": "application/json" },
-      credentials: "include",
-    });
+      const res = await fetch("http://localhost:5000/api/auth/profile", {
+        method: "GET",
+        headers: { "content-type": "application/json" },
+        credentials: "include",
+      });
 
-    if (!res.ok) {
-      navigate("/login");
-      return;
+      if (!res.ok) {
+        navigate("/login");
+        return;
+      }
+
+      const data = await res.json();
+      setUser(data);
+      setName(data.name || "");
+      setEmail(data.email || "");
+      setNumber(data.number || "");
+      setAddress(data.address || "");
+      setPincode(data.pincode || "");
+      setState(data.state || "");
+      setDistrict(data.district || "");
+    } catch (e) {
+      alert("Error fetching profile: " + e.message);
     }
+  };
 
-    const data = await res.json();
-    setUser(data || "");
-    setname(data.name || "");
-    setemail(data.email || "");
-    setnumber(data.number || "");
-    setaddress(data.address || "");
-    setpincode(data.pincode || "");
-    setstate(data.state || "");
-    setdistrict(data.district || "");
-    // setpan_card(data.pan_card || "");
-    } catch(e) {
-      alert(e.message);
+  const fetchLeads = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/client/my-leads", {
+        method: "GET",
+        headers: { "content-type": "application/json" },
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setLeads(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch leads:", e.message);
     }
-  }
-
-  // Fetch client leads
-  const fetchLeads = async() => {
-    try{
-      const res = await fetch("https://fin4sure-backend.onrender.com/api/client/my-leads", {
-      method: "GET",
-      headers: { "content-type": "application/json" },
-      credentials: "include",
-    });
-
-    if (!res.ok) {
-      throw new error("failed to fetch lead");
-    }
-    const data = await res.json();
-    setLeads(data);
-  } catch(e) {
-    alert(e.message);
-  }
-  }
+  };
 
   const sendOTP = async () => {
     try {
-      if(!/^\d{10}$/.test(number)){
-        alert("Please enter valid 10 digit number");
+      if (!/^\d{10}$/.test(number)) {
+        alert("Please enter a valid 10-digit mobile number");
         return;
       }
       const res = await fetch(
-        "https://fin4sure-backend.onrender.com/api/auth/update-number-otp",
+        "http://localhost:5000/api/auth/update-number-otp",
         {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ number }),
-        },
+        }
       );
       if (!res.ok) {
-        throw new Error("faield to send otp");
+        throw new Error("Failed to send OTP");
       }
-      alert("OTP was sent successfully")
-      await res.json();
+      setOtpSent(true);
+      alert("OTP sent successfully to your WhatsApp number.");
     } catch (e) {
       alert(e.message);
     }
@@ -111,358 +116,615 @@ export default function ClientDashboard() {
     }
     try {
       const res = await fetch(
-        "https://fin4sure-backend.onrender.com/api/auth/verify-update-number-otp",
+        "http://localhost:5000/api/auth/verify-update-number-otp",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ number, otp }),
-        },
+        }
       );
       if (!res.ok) {
-        throw new Error("Invalid OTP");
+        throw new Error("Invalid OTP verification");
       }
-      setOtpVerified(true); // ✅ ADD THIS
-      alert("Phone verified successfully!");
+      setOtpVerified(true);
+      alert("WhatsApp number verified successfully!");
     } catch (e) {
       alert(e.message);
     }
   };
 
-  // Update profile
   const handleUpdate = async () => {
-    if(number!==user.number && !otpVerified){
-      alert("You must verify the new phone number before saving")
+    if (number !== user.number && !otpVerified) {
+      alert("You must verify the new phone number before saving");
+      return;
     }
     try {
-      const res = await fetch("https://fin4sure-backend.onrender.com/api/auth/profileupdate", {
+      const res = await fetch("http://localhost:5000/api/auth/profileupdate", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-                              name: name,
-                              email: email,
-                              address: address,
-                              pincode: pincode,
-                              district: district,
-                              state: state,
-                              number: number,
-                              otp_verified: otpVerified
-                            })
+          name,
+          email,
+          address,
+          pincode,
+          district,
+          state,
+          number,
+          otp_verified: otpVerified,
+        }),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || "Update failed");
+        throw new Error(data.message || "Update profile failed");
       }
 
       alert("Profile updated successfully!");
       setEditing(false);
-      fetchProfile(); // refresh profile
+      setOtpSent(false);
+      setOtpVerified(false);
+      setOtp("");
+      fetchProfile();
     } catch (err) {
       alert(err.message);
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      await logout();
+      navigate("/");
+    } catch (e) {
+      navigate("/");
+    }
+  };
+
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
+      <div className="min-h-screen flex items-center justify-center" style={{ color: "var(--navy)", fontWeight: 700 }}>
+        Loading dashboard profile...
       </div>
     );
   }
 
-  // ---------- helpers ----------
-  const productName = (id) =>
-    LOAN_PRODUCTS.find((p) => p.id === id)?.name || id;
-
-  const approved = leads.filter((l) => l.status === "approved").length;
-  const pending = leads.filter((l) => l.status === "pending").length;
-  const rejected = leads.filter((l) => l.status === "rejected").length;
-
-  const StatusBadge = ({ status }) => {
-    if (status === "approved")
-      return (
-        <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full flex items-center gap-1">
-          <IoMdCheckmarkCircle size={16} />
-          Approved
-        </span>
-      );
-    if (status === "rejected")
-      return (
-        <span className="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full flex items-center gap-1">
-          <IoMdCloseCircle size={16} />
-          Rejected
-        </span>
-      );
-    return (
-      <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full flex items-center gap-1">
-        <IoMdTimer size={16} />
-        Processing
-      </span>
-    );
+  // Helpers
+  const getProductTitle = (id) => {
+    return LOAN_PRODUCTS.find((p) => p.id === id)?.name || id;
   };
 
+  const getProductEmoji = (id) => {
+    const emojis = {
+      "home-loan": "🏠",
+      "loan-against-property": "🏢",
+      "personal-loan": "💳",
+      "business-loan": "📦",
+      "car-loan": "🚗",
+    };
+    return emojis[id] || "📄";
+  };
+
+  // Status arrays
+  const approvedCount = leads.filter((l) => l.status === "approved").length;
+  const pendingCount = leads.filter((l) => l.status === "pending").length;
+  const rejectedCount = leads.filter((l) => l.status === "rejected").length;
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
+    <div className="cdash-wrap">
+      {/* ═══ DASHBOARD HEADER WITH TABS ═══ */}
+      <div className="cdash-header">
+        <div className="cdash-header-inner">
+          <div className="cdash-greeting">
+            <div className="cdash-avatar">
+              {user.name ? user.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) : "US"}
+            </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Welcome back, {user.name}!
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Manage your loan applications and profile
-              </p>
+              <div className="cdash-welcome">Welcome back 👋</div>
+              <div className="cdash-name">{user.name}</div>
+              <div className="cdash-meta">
+                <span className="cdash-badge">Borrower</span>
+                <span>📱 {user.number}</span>
+              </div>
             </div>
           </div>
+
+          <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+            <button className="cdash-support-pill" onClick={() => setShowSupportModal(true)}>
+              <span className="csp-dot"></span> Need Help?
+            </button>
+            <button className="cdash-logout" onClick={handleSignOut}>
+              <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              Sign Out
+            </button>
+          </div>
+        </div>
+
+        {/* Dashboard Tabs */}
+        <div className="cdash-tab-bar">
+          <button
+            className={`cdash-tab ${activeTab === "loans" ? "active" : ""}`}
+            onClick={() => setActiveTab("loans")}
+          >
+            📊 My Dashboard
+          </button>
+          <button
+            className={`cdash-tab ${activeTab === "profile" ? "active" : ""}`}
+            onClick={() => setActiveTab("profile")}
+          >
+            👤 Profile & Security
+          </button>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* LEFT SIDE — Applications */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Applications card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                My Applications
-              </h2>
-              <div className="space-y-4">
-                {leads.length === 0 && (
-                  <p className="text-gray-500">
-                    No applications submitted yet.
-                  </p>
-                )}
-                {leads.map((lead) => (
-                  <div
-                    key={lead._id}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border-l-4 border-blue-500"
-                  >
-                    <div>
-                      <p className="font-semibold text-gray-900">
-                        {productName(lead.product)}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Applied on{" "}
-                        {new Date(lead.createdAt).toLocaleDateString()}
-                      </p>
+      {/* ═══ MAIN WORKSPACE ═══ */}
+      <div className="cdash-body">
+        {activeTab === "loans" ? (
+          /* TAB 1: APPLICATIONS & STATS */
+          <div className="cdash-cols animate-fade-up">
+            {/* Left Column */}
+            <div className="cdash-left">
+              {/* Applications Card */}
+              <div className="cdash-section">
+                <div className="cdash-sec-head">
+                  <h3>My Loan Applications</h3>
+                  <Link to="/apply" className="cdash-new-btn" style={{ textDecoration: "none" }}>
+                    + Apply New Loan
+                  </Link>
+                </div>
+
+                <div className="cd-loan-list">
+                  {leads.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "30px", background: "#fff", border: "1px solid #E6EEF8", borderRadius: "18px", color: "var(--text2)", fontSize: ".88rem" }}>
+                      No applications submitted yet. Click "Apply New Loan" above to start.
                     </div>
-                    <StatusBadge status={lead.status} />
-                  </div>
-                ))}
+                  ) : (
+                    leads.map((lead) => (
+                      <div key={lead._id} className="cdl-card">
+                        <div className="cdl-top">
+                          <div className="cdl-left">
+                            <div className="cdl-type-icon" style={{ backgroundColor: "#F0F6FF", color: "#1E3A5F" }}>
+                              {getProductEmoji(lead.product)}
+                            </div>
+                            <div className="cdl-info">
+                              <h4>{getProductTitle(lead.product)}</h4>
+                              <div className="cdl-meta">
+                                Submitted: {new Date(lead.createdAt).toLocaleDateString()}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="cdl-right">
+                            <div className="cdl-bank">FIN4SURE MATCH</div>
+                            <span
+                              className={`cdl-status-chip ${
+                                lead.status === "approved"
+                                  ? "cdl-chip-green"
+                                  : lead.status === "rejected"
+                                  ? "cdl-chip-amber"
+                                  : "cdl-chip-blue"
+                              }`}
+                            >
+                              <span className="cdl-chip-dot"></span>
+                              {lead.status === "approved"
+                                ? "Approved"
+                                : lead.status === "rejected"
+                                ? "Rejected"
+                                : "Processing"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Journey tracker timeline visualization */}
+                        <div className="cdl-journey">
+                          <div className="cdl-jlabel">Application Progress</div>
+                          <div className="cdl-track">
+                            <div className="cdl-step done">
+                              <div className="cdl-dot">✓</div>
+                              <span className="cdl-step-lbl">Apply</span>
+                            </div>
+                            <div className={`cdl-step ${lead.status !== "pending" ? "done" : "active"}`}>
+                              <div className="cdl-dot">2</div>
+                              <span className="cdl-step-lbl">Verify</span>
+                            </div>
+                            <div className={`cdl-step ${lead.status === "approved" ? "done" : "active"}`}>
+                              <div className="cdl-dot">3</div>
+                              <span className="cdl-step-lbl">Sanction</span>
+                            </div>
+                            <div className="cdl-step">
+                              <div className="cdl-dot">4</div>
+                              <span className="cdl-step-lbl">Disburse</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
-              <div className="mt-6 pt-6 border-t border-gray-100">
-                <Link
-                  to="/apply"
-                  className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-medium"
-                >
-                  New Application
-                </Link>
+
+              {/* Reward Almirah Panel */}
+              <div className="cdash-section">
+                <div className="cdash-sec-head">
+                  <h3>🏆 Finn4sure Reward Cabinet</h3>
+                  <span className="cd-reward-live-tag">✨ Live Rewards</span>
+                </div>
+
+                <div className="reward-almirah">
+                  <div className="almirah-arch">
+                    <div className="aa-logo">🎁</div>
+                    <div className="aa-title">Your Reward Cabinet</div>
+                    <div className="aa-sub">Earn vouchers & exclusive perks after disbursals</div>
+                  </div>
+
+                  <div className="almirah-tiles">
+                    <div className="almirah-tile tile-gold">
+                      <div className="at-glow"></div>
+                      <div className="at-icon">💰</div>
+                      <div className="at-badge">Locked</div>
+                      <div className="at-title">Disbursal Reward</div>
+                      <div className="at-amount">—</div>
+                      <div className="at-desc">Complete your loan disbursement to unlock</div>
+                      <div className="at-status">
+                        <span className="ats-pill ats-pending">⏳ Pending</span>
+                      </div>
+                    </div>
+
+                    <Link to="/partner" className="almirah-tile tile-teal" style={{ textDecoration: "none" }}>
+                      <div className="at-glow"></div>
+                      <div className="at-icon">🤝</div>
+                      <div className="at-badge at-badge-earn">Earn Now</div>
+                      <div className="at-title">Referral Reward</div>
+                      <div className="at-amount">₹2k – ₹10k</div>
+                      <div className="at-desc">Refer a friend or join as a partner.</div>
+                      <div className="at-status">
+                        <button className="ats-cta">Partner →</button>
+                      </div>
+                    </Link>
+
+                    <div className="almirah-tile tile-purple">
+                      <div className="at-glow"></div>
+                      <div className="at-icon">⭐</div>
+                      <div className="at-badge at-badge-soon">Soon</div>
+                      <div className="at-title">Loyalty Reward</div>
+                      <div className="at-amount">Up to ₹5k</div>
+                      <div className="at-desc">Vouchers after 12 on-time EMI repayments.</div>
+                      <div className="at-status">
+                        <span className="ats-pill ats-soon">🔒 Locked</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Terms Accordion */}
+                  <div className="almirah-tc" style={{ marginTop: "20px" }}>
+                    <div className="atc-head" onClick={() => setRewardTcOpen(!rewardTcOpen)}>
+                      <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path d="M9 12l2 2 4-4" />
+                        <path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.5C16.5 22.15 20 17.25 20 12V6z" />
+                      </svg>
+                      Terms & Conditions
+                      <svg
+                        className={`atc-chevron ${rewardTcOpen ? "open" : ""}`}
+                        width="13"
+                        height="13"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                        style={{ marginLeft: "auto", transition: "transform .3s", transform: rewardTcOpen ? "rotate(180deg)" : "none" }}
+                      >
+                        <path d="M6 9l6 6 6-6" />
+                      </svg>
+                    </div>
+                    {rewardTcOpen && (
+                      <div className="atc-body open" style={{ padding: "0 16px 16px 32px" }}>
+                        <ul className="atc-list" style={{ listStyleType: "disc", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "8px" }}>
+                          <li style={{ fontSize: ".74rem", color: "rgba(255,255,255,.65)" }}>Rewards credited as Amazon/Flipkart vouchers.</li>
+                          <li style={{ fontSize: ".74rem", color: "rgba(255,255,255,.65)" }}>Determined by final disbursed amount.</li>
+                          <li style={{ fontSize: ".74rem", color: "rgba(255,255,255,.65)" }}>Sent to registered email and mobile number.</li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
-                <div className="text-3xl font-bold text-green-600">
-                  {approved}
+            {/* Right Column */}
+            <div className="cdash-right">
+              {/* Stats Card */}
+              <div className="cd-stats-card">
+                <div className="cdsc-row">
+                  <span>Active Applications</span>
+                  <span className="cdsc-val cdsc-amber">{pendingCount}</span>
                 </div>
-                <div className="text-sm text-gray-600 mt-1">Approved</div>
+                <div className="cdsc-row">
+                  <span>Approved Loans</span>
+                  <span className="cdsc-val cdsc-green">{approvedCount}</span>
+                </div>
+                <div className="cdsc-row">
+                  <span>Rejected Loans</span>
+                  <span className="cdsc-val cdsc-amber" style={{ color: "#DC2626" }}>{rejectedCount}</span>
+                </div>
+                <div className="cdsc-divider"></div>
+                <div className="cdsc-row">
+                  <span>Rewards Earned</span>
+                  <span className="cdsc-val cdsc-gold">₹0</span>
+                </div>
               </div>
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
-                <div className="text-3xl font-bold text-blue-600">
-                  {pending}
+
+              {/* Dedicated Support advisor */}
+              <div className="cd-support-mini">
+                <div className="cdsm-head">Your Dedicated Advisor</div>
+                <div className="cdsm-person">
+                  <div className="cdsm-avatar">RM</div>
+                  <div>
+                    <div className="cdsm-name">Mr. Rishabh Mathur</div>
+                    <div className="cdsm-role">Manager — Mortgages</div>
+                  </div>
+                  <span className="cdsm-online">
+                    <span className="psc-dot"></span>Online
+                  </span>
                 </div>
-                <div className="text-sm text-gray-600 mt-1">Pending</div>
+                <div className="cdsm-actions">
+                  <a className="cdsm-btn cdsm-call" href="tel:9910507574">
+                    📞 Call
+                  </a>
+                  <a className="cdsm-btn cdsm-email" href="mailto:support@finn4sure.com">
+                    📧 Email
+                  </a>
+                  <a className="cdsm-btn cdsm-wa" href="https://wa.me/919910507574" target="_blank" rel="noreferrer">
+                    📱 WhatsApp
+                  </a>
+                </div>
+                <div className="cdsm-hours">Mon–Sat · 9:30 AM – 6:30 PM IST</div>
               </div>
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
-                <div className="text-3xl font-bold text-red-600">
-                  {rejected}
+
+              {/* Document status check */}
+              <div className="cd-docs-card">
+                <div className="cddc-head">📋 Document Status</div>
+                <div className="cddc-list">
+                  <div className="cddc-item">✓ Aadhaar Card</div>
+                  <div className="cddc-item">✓ PAN Card</div>
+                  <div className="cddc-item cddc-pending">
+                    ⚡ Salary Slips (3 months) <span className="cddc-tag">Pending</span>
+                  </div>
+                  <div className="cddc-item cddc-pending">
+                    ⚡ Bank Statement (6 months) <span className="cddc-tag">Pending</span>
+                  </div>
                 </div>
-                <div className="text-sm text-gray-600 mt-1">Rejected</div>
+                <button className="cddc-upload" onClick={() => alert("Upload documents backend integration coming soon.")}>
+                  📤 Upload Documents
+                </button>
               </div>
             </div>
           </div>
-
-          {/* RIGHT SIDE — Profile */}
-          <div className="space-y-6">
-            <div className="bg-linear-to-br from-blue-500 to-blue-600 text-white rounded-xl shadow-lg p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-                  <CgProfile size={24} />
-                </div>
+        ) : (
+          /* TAB 2: PROFILE & SECURITY EDITOR */
+          <div className="cdPanelProfile animate-fade-up" style={{ maxWidth: "640px", margin: "0 auto" }}>
+            <div className="cpro-card">
+              <div className="cpro-head">
+                <span className="cpro-head-ic">👤</span>
                 <div>
-                  <h3 className="font-bold text-xl">{user.name}</h3>
+                  <div className="cpro-head-title">Personal Details</div>
+                  <div className="cpro-head-sub">Review and edit your details below</div>
                 </div>
               </div>
 
-              {/* Profile form */}
-              <div className="space-y-3 text-sm">
-                {editing ? (
-                  <>
-                  {/* name */}
-                    <div>
-                      <label className="block text-gray-200">Name</label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={name}
-                        onChange={(e) => setname(e.target.value)}
-                        className="mt-1 p-2 w-full rounded text-black"
-                      />
+              <div className="cpro-fields">
+                <div className="cpro-field">
+                  <label htmlFor="pname">Full Name</label>
+                  <div className="input-wrap">
+                    <span className="icon">👤</span>
+                    <input
+                      id="pname"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      disabled={!editing}
+                    />
+                  </div>
+                </div>
+
+                <div className="cpro-field">
+                  <label htmlFor="pemail">Email Address</label>
+                  <div className="input-wrap">
+                    <span className="icon">📧</span>
+                    <input
+                      id="pemail"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={!editing}
+                    />
+                  </div>
+                </div>
+
+                <div className="cpro-field">
+                  <label htmlFor="paddress">Address</label>
+                  <div className="input-wrap">
+                    <span className="icon">🏠</span>
+                    <input
+                      id="paddress"
+                      type="text"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      disabled={!editing}
+                    />
+                  </div>
+                </div>
+
+                {/* State & District Editor */}
+                <div className="apply-form-row">
+                  <div className="cpro-field">
+                    <label htmlFor="pstate">State</label>
+                    <div className="input-wrap" style={{ padding: "0 6px" }}>
+                      <select
+                        id="pstate"
+                        value={state}
+                        onChange={(e) => {
+                          setState(e.target.value);
+                          setDistrict("");
+                        }}
+                        disabled={!editing}
+                        style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".92rem", fontWeight: "600", color: "var(--navy)" }}
+                      >
+                        <option value="">Select State</option>
+                        {states.map((s) => (
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                    {/* Profile form */}
-                    <div>
-                      <label className="block text-gray-200">Email</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={email}
-                        onChange={(e) => setemail(e.target.value)}
-                        className="mt-1 p-2 w-full rounded text-black"
-                      />
+                  </div>
+
+                  <div className="cpro-field">
+                    <label htmlFor="pdistrict">District</label>
+                    <div className="input-wrap" style={{ padding: "0 6px" }}>
+                      <select
+                        id="pdistrict"
+                        value={district}
+                        disabled={!editing || !state}
+                        onChange={(e) => setDistrict(e.target.value)}
+                        style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".92rem", fontWeight: "600", color: "var(--navy)" }}
+                      >
+                        <option value="">Select District</option>
+                        {state &&
+                          districtsByState[state]?.map((d) => (
+                            <option key={d} value={d}>
+                              {d}
+                            </option>
+                          ))}
+                      </select>
                     </div>
-                    {/* address */}
-                    <div>
-                      <label className="block text-gray-200">Address</label>
-                      <input
-                        type="text"
-                        name="address"
-                        value={address}
-                        onChange={(e) => setaddress(e.target.value)}
-                        className="mt-1 p-2 w-full rounded text-black"
-                      />
-                    </div>
-                    {/* pincode */}
-                    <div>
-                      <label className="block text-gray-200">pincode</label>
-                      <input
+                  </div>
+                </div>
+
+                <div className="cpro-field">
+                  <label htmlFor="ppincode">Pincode</label>
+                  <div className="input-wrap">
+                    <span className="icon">📍</span>
+                    <input
+                      id="ppincode"
                       type="text"
                       value={pincode}
-                      onChange={(e) => {setpincode(e.target.value.replace(/\D/g,''))}}
-                      className="mt-1 p-2 w-full rounded text-black"
-                      />
-                    </div>
-                    {/* state */}
-                    <div>
-                      <label className="block text-gray-200">State</label>
-                      <select
-                      className="text-black rounded-2xl" name="state" id="state" value={state}
-                      onChange={(e) => {
-                        setstate(e.target.value)
-                        setdistrict("")
-                      }}
-                      >
-                      <option value="" className="text-black rounded-2xl">---- select a State ----</option>
-                      {states.map((s) => (
-                        <option key={s} value={s} className="text-black rounded-2xl"> 
-                        {s}
-                      </option>
-                      ))}
-                    </select>
-                    </div>
-                    {/* district */}
-                    <div>
-                     <label className="block text-gray-200">District</label>
-                      <select
-                      name="district" id="district" className="text-black rounded-2xl" disabled={!state} value={district}
-                      onChange={(e) => {setdistrict(e.target.value)}}>
-                        <option value="" className="text-black rounded-2xl">---- select a district ----</option>
-                        {state&&districtsByState[state].map((d) => (
-                          <option key={d} value={d}>{d}</option>
-                        ))}
-                        </select>
-                    </div>
+                      onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
+                      disabled={!editing}
+                    />
+                  </div>
+                </div>
 
-                    {/* phone */}
-                    <div>
-                      <label className="block text-gray-200">Phone</label>
+                <div className="cpro-field">
+                  <label htmlFor="pphone">Phone Number (WhatsApp)</label>
+                  <div className="input-wrap">
+                    <span className="icon">📱</span>
+                    <input
+                      id="pphone"
+                      type="text"
+                      value={number}
+                      onChange={(e) => {
+                        setNumber(e.target.value);
+                        setOtp("");
+                        setOtpVerified(false);
+                      }}
+                      disabled={!editing}
+                    />
+                  </div>
+                </div>
+
+                {/* OTP Verification on Phone change */}
+                {editing && number !== user.number && (
+                  <div className="apply-autofill-banner" style={{ background: "#FEF3C7", borderColor: "#FDE68A" }}>
+                    <label style={{ fontSize: ".76rem", fontWeight: "700", color: "#92400E", display: "block", marginBottom: "8px" }}>
+                      Verify WhatsApp OTP to update number
+                    </label>
+                    <div style={{ display: "flex", gap: "8px" }}>
                       <input
                         type="text"
-                        name="number"
-                        value={number}
-                        onChange={(e) => {
-                          setnumber(e.target.value);
-                          setotp(""); // reset OTP if number changes
-                          setOtpVerified(false); // ✅ IMPORTANT
-                        }}
-                        className="mt-1 p-2 w-full rounded text-black"
+                        placeholder="OTP Code"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        style={{ flex: 1, padding: "8px 12px", border: "1.5px solid #FCD34D", borderRadius: "8px" }}
                       />
-                    </div>
-
-                    {/* Phone OTP */}
-                    {number !== user.number && (
-                      <div className="mt-2">
-                        <label className="block text-gray-200">
-                          OTP (required to update phone)
-                        </label>
-                        <div className="flex gap-2 mt-1">
-                          <input
-                            type="text"
-                            value={otp}
-                            onChange={(e) => setotp(e.target.value)}
-                            className="p-2 rounded text-black flex-1"
-                          />
-                          <button
-                            onClick={sendOTP}
-                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                          >
-                            Send OTP
-                          </button>
-                          <button
-                            onClick={verifyOTP}
-                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                          >
-                            Verify OTP
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Save / Cancel */}
-                    <div className="flex gap-2 mt-4">
-                      <button
-                        onClick={handleUpdate}
-                        className="bg-green-600 px-4 py-2 rounded hover:bg-green-700"
-                      >
-                        Save
+                      <button type="button" onClick={sendOTP} className="btn-primary" style={{ width: "auto", height: "36px", padding: "0 14px", fontSize: ".76rem" }}>
+                        Send OTP
                       </button>
-                      <button
-                        onClick={() => setEditing(false)}
-                        className="bg-gray-500 px-4 py-2 rounded hover:bg-gray-600"
-                      >
+                      <button type="button" onClick={verifyOTP} className="btn-primary" style={{ width: "auto", height: "36px", padding: "0 14px", fontSize: ".76rem", background: "#059669" }}>
+                        Verify
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div style={{ marginTop: "16px" }}>
+                  {editing ? (
+                    <div style={{ display: "flex", gap: "10px" }}>
+                      <button onClick={handleUpdate} className="btn-primary" style={{ flex: 1 }}>
+                        Save Details
+                      </button>
+                      <button onClick={() => { setEditing(false); fetchProfile(); }} className="btn-secondary" style={{ flex: 1 }}>
                         Cancel
                       </button>
                     </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex justify-between">
-                      <span>Email:</span>
-                      <span className="font-medium">{user.email}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Phone:</span>
-                      <span className="font-medium">{user.number}</span>
-                    </div>
-                    <button
-                      onClick={() => setEditing(true)}
-                      className="mt-4 bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-100"
-                    >
-                      Edit Profile
+                  ) : (
+                    <button onClick={() => setEditing(true)} className="btn-primary">
+                      Edit Profile Details
                     </button>
-                  </>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
+
+      {/* ═══ SUPPORT MODAL ═══ */}
+      {showSupportModal && (
+        <div className="cd-modal" onClick={() => setShowSupportModal(false)}>
+          <div className="cd-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="cd-modal-head">
+              <span>Contact Support</span>
+              <button onClick={() => setShowSupportModal(false)}>&times;</button>
+            </div>
+            <div className="cd-modal-body">
+              <div className="cdm-person">
+                <div className="cdm-avatar">RM</div>
+                <div>
+                  <div className="cdm-name">Mr. Rishabh Mathur</div>
+                  <div className="cdm-role">Manager — Mortgages · Finn4sure</div>
+                </div>
+              </div>
+              <a href="tel:9910507574" className="cdm-contact-row">
+                <div className="cdm-ci" style={{ backgroundColor: "#EEF6FF", color: "#1B4D8E" }}>📞</div>
+                <div>
+                  <div className="cdm-cl" style={{ fontSize: ".66rem", color: "var(--text2)", textTransform: "uppercase" }}>Phone Support</div>
+                  <div className="cdm-cv">99105 07574</div>
+                </div>
+              </a>
+              <a href="mailto:support@finn4sure.com" className="cdm-contact-row">
+                <div className="cdm-ci" style={{ backgroundColor: "#F0FDF4", color: "#16A34A" }}>📧</div>
+                <div>
+                  <div className="cdm-cl" style={{ fontSize: ".66rem", color: "var(--text2)", textTransform: "uppercase" }}>Email Support</div>
+                  <div className="cdm-cv">support@finn4sure.com</div>
+                </div>
+              </a>
+              <a href="https://wa.me/919910507574" target="_blank" rel="noreferrer" className="cdm-contact-row">
+                <div className="cdm-ci" style={{ backgroundColor: "#ECFDF5", color: "#059669" }}>📱</div>
+                <div>
+                  <div className="cdm-cl" style={{ fontSize: ".66rem", color: "var(--text2)", textTransform: "uppercase" }}>WhatsApp Chat</div>
+                  <div className="cdm-cv">Chat Live Now</div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+export { ClientDashboard };

@@ -1,17 +1,22 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import "./styles/login.css";
 
 export default function Login() {
   const { login, fetchProfile } = useAuth();
   const navigate = useNavigate();
 
+  // Active view tab state: "borrower" (Client) vs "partner" (Broker)
+  const [activeTab, setActiveTab] = useState("borrower");
+
+  // Input states
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const API_BASE = "https://fin4sure-backend.onrender.com/api/auth";
+  const API_BASE = "http://localhost:5000/api/auth";
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -31,7 +36,7 @@ export default function Login() {
     try {
       const res = await fetch(`${API_BASE}/login`, {
         method: "POST",
-        credentials: "include", // ✅ REQUIRED for cookie auth
+        credentials: "include", // Required for session/cookie auth
         headers: {
           "Content-Type": "application/json",
         },
@@ -47,17 +52,20 @@ export default function Login() {
         throw new Error(data.message || "Login failed");
       }
 
-      // ✅ store full user object from backend
+      // Store user session state
       login(data);
 
-      // ✅ re-sync profile (extra safety)
+      // Re-sync profile from backend for data consistency
       await fetchProfile();
 
-      // ✅ role-based secure navigation
-      if (data.role === "admin") navigate("/admin-dashboard");
-      else if (data.role === "broker") navigate("/broker-dashboard");
-      else navigate("/client-dashboard");
-
+      // Role-based redirect
+      if (data.role === "admin") {
+        navigate("/admin-dashboard");
+      } else if (data.role === "broker") {
+        navigate("/broker-dashboard");
+      } else {
+        navigate("/client-dashboard");
+      }
     } catch (err) {
       setError(err.message || "Network error");
     } finally {
@@ -65,53 +73,102 @@ export default function Login() {
     }
   }
 
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setError("");
+  };
+
   return (
-    <section className="bg-linear-to-b from-blue-50 via-white to-white min-h-screen flex items-center">
-      <div className="max-w-md mx-auto w-full bg-white p-6 rounded-xl border border-blue-100 shadow-sm">
-        <h1 className="text-2xl font-bold text-slate-900">
-          Login to <span className="text-blue-700">Finn4sure</span>
-        </h1>
-
-        <p className="mt-2 text-sm text-slate-600">
-          Please login to continue with your loan application.
-        </p>
-
-        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-          {error && (
-            <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm">
-              {error}
+    <div className="login-page-wrap">
+      <div className="login-page-content animate-fade-up">
+        <div className="login-form-card">
+          {/* Form Header */}
+          <div style={{ textAlign: "center", marginBottom: "24px" }}>
+            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", color: "var(--navy)", fontWeight: 700, marginBottom: "6px" }}>
+              Sign In
             </div>
-          )}
+            <div style={{ fontSize: ".85rem", color: "var(--text2)" }}>
+              {activeTab === "borrower" ? "Access your loan dashboard" : "Access partner portal"}
+            </div>
+          </div>
 
-          <input
-            type="email"
-            placeholder="you@example.com"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600"
-          />
+          {/* Login Tabs */}
+          <div className="login-tabs">
+            <button
+              className={`login-tab ${activeTab === "borrower" ? "active" : ""}`}
+              onClick={() => handleTabChange("borrower")}
+            >
+              🏠 Borrower
+            </button>
+            <button
+              className={`login-tab ${activeTab === "partner" ? "active" : ""}`}
+              onClick={() => handleTabChange("partner")}
+            >
+              🤝 Partner
+            </button>
+          </div>
 
-          <input
-            type="password"
-            placeholder="Enter your password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600"
-          />
+          {/* Form Fields */}
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {error && (
+              <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm" style={{ marginBottom: "6px" }}>
+                ⚠️ {error}
+              </div>
+            )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-lg font-medium text-white
-              bg-linear-to-r from-blue-700 via-teal-600 to-emerald-500
-              disabled:opacity-50"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
+            <div className="input-wrap">
+              <span className="icon">📧</span>
+              <input
+                type="email"
+                placeholder={activeTab === "borrower" ? "Email Address" : "Registered Partner Email"}
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            <div className="input-wrap">
+              <span className="icon">🔒</span>
+              <input
+                type="password"
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`btn-primary ${activeTab === "partner" ? "partner-btn" : ""}`}
+              style={{ height: "44px", marginTop: "8px" }}
+            >
+              {loading ? "Signing In..." : activeTab === "borrower" ? "Sign In" : "Sign In to Partner Portal"}
+            </button>
+
+            {/* Account Redirection link */}
+            <div style={{ textAlign: "center", marginTop: "14px", fontSize: ".8rem", color: "var(--text2)" }}>
+              {activeTab === "borrower" ? (
+                <>
+                  Don't have an account?{" "}
+                  <Link to="/signup" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>
+                    Register here
+                  </Link>
+                </>
+              ) : (
+                <>
+                  New partner?{" "}
+                  <Link to="/partner" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>
+                    Apply here
+                  </Link>
+                </>
+              )}
+            </div>
+          </form>
+        </div>
       </div>
-    </section>
+    </div>
   );
 }
+export { Login };
