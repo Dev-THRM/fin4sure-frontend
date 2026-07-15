@@ -16,7 +16,7 @@ export default function Navbar() {
 
   const getDashboardPath = () => {
     if (role === "admin") return "/admin-dashboard";
-    if (role === "broker") return "/broker-dashboard";
+    if (role === "broker" || role === "partner") return "/broker-dashboard";
     return "/client-dashboard";
   };
 

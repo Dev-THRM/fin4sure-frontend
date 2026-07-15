@@ -61,7 +61,7 @@ export default function Login() {
       // Role-based redirect
       if (data.role === "admin") {
         navigate("/admin-dashboard");
-      } else if (data.role === "broker") {
+      } else if (data.role === "broker" || data.role === "partner") {
         navigate("/broker-dashboard");
       } else {
         navigate("/client-dashboard");

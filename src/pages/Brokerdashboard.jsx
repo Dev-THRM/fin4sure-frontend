@@ -116,10 +116,11 @@ export default function BrokerDashboard() {
 
   // Add Client - Lender option list based on loan type
   const lenderOptions = useMemo(() => {
-    return LENDERS.filter((l) => !l._hidden && l.rates[acLoanType])
+    return LENDERS.filter((l) => !l._hidden && l.rates && l.rates[acLoanType])
       .map((l) => {
-        const rates = l.rates[acLoanType].f || l.rates[acLoanType].x;
-        return { name: l.name, rate: rates[0] };
+        const ratesObj = l.rates[acLoanType];
+        const rates = ratesObj ? (ratesObj.f || ratesObj.x) : null;
+        return { name: l.name, rate: rates ? rates[0] : null };
       })
       .filter((l) => l.rate !== null);
   }, [acLoanType]);
@@ -212,7 +213,7 @@ export default function BrokerDashboard() {
               <div className="pdash-name">{user.name}</div>
               <div className="pdash-meta">
                 <span className="pdash-badge">Finn4sure Partner</span>
-                <span className="pdash-id">ID: {user.brokerId}</span>
+                <span className="pdash-id">ID: {user.brokerId || user.id}</span>
               </div>
             </div>
           </div>
