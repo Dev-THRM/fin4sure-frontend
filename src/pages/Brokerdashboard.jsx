@@ -311,34 +311,6 @@ export default function BrokerDashboard() {
       <div className="pdash-body">
         {/* KPI stat metrics row */}
         <div className="pdash-kpi-row animate-fade-up">
-          <div className="pdash-kpi">
-            <div className="pdash-kpi-icon" style={{ backgroundColor: "#F0FDF4", color: "#16A34A" }}>👥</div>
-            {/* <div>
-              <div className="pdash-kpi-val">{clients.length}</div>
-              <div className="pdash-kpi-lbl">Total Clients</div>
-            </div> */}
-          </div>
-          <div className="pdash-kpi">
-            <div className="pdash-kpi-icon" style={{ backgroundColor: "#FFF8E8", color: "#D4A017" }}>⏳</div>
-            {/* <div>
-              <div className="pdash-kpi-val">{pendingCount}</div>
-              <div className="pdash-kpi-lbl">Pending Leads</div>
-            </div>
-          </div>
-          <div className="pdash-kpi">
-            <div className="pdash-kpi-icon" style={{ backgroundColor: "#EFF6FF", color: "#1D4ED8" }}>✓</div>
-            <div>
-              <div className="pdash-kpi-val">{approvedCount}</div>
-              <div className="pdash-kpi-lbl">Approved Loans</div>
-            </div> */}
-          </div>
-          <div className="pdash-kpi">
-            <div className="pdash-kpi-icon" style={{ backgroundColor: "#FDF2F8", color: "#BE185D" }}>📈</div>
-            <div>
-              <div className="pdash-kpi-val">₹{leads.length > 0 ? (leads.length * 25).toFixed(0) : "0"}L</div>
-              <div className="pdash-kpi-lbl">Referral Vol.</div>
-            </div>
-          </div>
         </div>
 
         {/* Eye-catching Refer Client banner */}

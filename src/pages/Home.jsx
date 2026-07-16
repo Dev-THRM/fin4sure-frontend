@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import BrandPanel from "../components/home/BrandPanel";
 import CompanyRibbon from "../components/home/CompanyRibbon";
 import RoleCards from "../components/home/RoleCards";
@@ -10,7 +10,22 @@ import "./styles/home.css";
 
 export default function Home() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeView, setActiveView] = useState("roles");
+
+  useEffect(() => {
+    if (location.state?.activeView) {
+      setActiveView(location.state.activeView);
+    } else {
+      const searchParams = new URLSearchParams(location.search);
+      const view = searchParams.get("view");
+      if (view === "borrower" || view === "borrowerStepper") {
+        setActiveView("borrowerStepper");
+      } else if (view === "partner" || view === "partnerStepper") {
+        setActiveView("partnerStepper");
+      }
+    }
+  }, [location]);
 
   const handleSelectRole = (role) => {
     if (role === "borrower") {

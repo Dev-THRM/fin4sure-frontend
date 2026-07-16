@@ -83,7 +83,7 @@ export default function Navbar() {
           🧮 EMI Calculator
         </NavLink>
         <NavLink 
-          to="/products" 
+          to="/loans" 
           className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
           onClick={() => setMobileMenuOpen(false)}
         >
