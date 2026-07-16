@@ -37,7 +37,7 @@ export default function AppRoutes() {
         <Route
           path="/broker-dashboard"
           element={
-            <ProtectedRoute allowedRole="broker">
+            <ProtectedRoute allowedRole={["broker", "partner"]}>
               <BrokerDashboard />
             </ProtectedRoute>
           }

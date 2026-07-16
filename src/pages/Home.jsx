@@ -5,6 +5,7 @@ import CompanyRibbon from "../components/home/CompanyRibbon";
 import RoleCards from "../components/home/RoleCards";
 import HomeEmiWidget from "../components/home/HomeEmiWidget";
 import BorrowerStepper from "../components/home/BorrowerStepper";
+import PartnerStepper from "../components/home/PartnerStepper";
 import "./styles/home.css";
 
 export default function Home() {
@@ -14,16 +15,15 @@ export default function Home() {
   const handleSelectRole = (role) => {
     if (role === "borrower") {
       setActiveView("borrowerStepper");
-    } else {
-      // Redirect to Become a Partner page
-      navigate("/broker-register");
+    } else if (role === "partner") {
+      setActiveView("partnerStepper");
     }
   };
 
   return (
-    <div className="brand-form-layout animate-fade-up">
+    <div className={`brand-form-layout animate-fade-up ${activeView === "partnerStepper" ? "partner-mode-active" : ""}`}>
       {/* Left branding panel */}
-      <BrandPanel mode="borrower" />
+      <BrandPanel mode={activeView === "partnerStepper" ? "partner" : "borrower"} />
 
       {/* Right onboarding panel */}
       <main className="form-panel">
@@ -62,8 +62,10 @@ export default function Home() {
                 </span>
               </div>
             </>
-          ) : (
+          ) : activeView === "borrowerStepper" ? (
             <BorrowerStepper onBack={() => setActiveView("roles")} />
+          ) : (
+            <PartnerStepper onBack={() => setActiveView("roles")} />
           )}
         </div>
       </main>
