@@ -1,8 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { LOAN_PRODUCTS } from "../utils/constants";
-import { LENDERS } from "../utils/loanConstants";
 import { fmtINR } from "../utils/formatters";
 import "./styles/brokerDashboard.css";
 
@@ -15,27 +13,51 @@ export default function BrokerDashboard() {
   const [clients, setClients] = useState([]);
   const [leads, setLeads] = useState([]);
 
+  const statuses = useMemo(() => {
+    const uniqueStatuses = [...new Set(
+      leads
+        .map((lead) => lead.status)
+        .filter(Boolean)
+    )];
+
+    return uniqueStatuses;
+  }, [leads]);
+
   // UI States
   const [activeFilter, setActiveFilter] = useState("all");
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [showAddClientModal, setShowAddClientModal] = useState(false);
 
+  // Toast notification
+  const [toast, setToast] = useState(null);
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 4000);
+  };
+
   // Add Client Form States
   const [acName, setAcName] = useState("");
   const [acMobile, setAcMobile] = useState("");
   const [acEmail, setAcEmail] = useState("");
-  const [acAmt, setAcAmt] = useState("20");
-  const [acAmtUnit, setAcAmtUnit] = useState(100000); // Lakh vs Crore
+  const [acAmt, setAcAmt] = useState("");
+  const [acLoanPurpose, setAcLoanPurpose] = useState("");
   const [acTenure, setAcTenure] = useState("180"); // months
-  const [acLoanType, setAcLoanType] = useState("home");
+  const [acLoanType, setAcLoanType] = useState("");
   const [acReachMode, setAcReachMode] = useState("direct");
   const [selectedLenders, setSelectedLenders] = useState([]);
+
+  // DB-driven data
+  const [loanTypes, setLoanTypes] = useState([]);
+  const [allLenders, setAllLenders] = useState([]);
 
   useEffect(() => {
     fetchProfile();
     fetchClients();
     fetchLeads();
+    fetchLoanTypes();
+    fetchLenders();
   }, []);
+
 
   async function fetchProfile() {
     try {
@@ -77,6 +99,32 @@ export default function BrokerDashboard() {
     }
   }
 
+  async function fetchLoanTypes() {
+    try {
+      const res = await fetch("http://localhost:5000/api/loan-types");
+      if (res.ok) {
+        const data = await res.json();
+        const types = data.data || [];
+        setLoanTypes(types);
+        if (types.length > 0) setAcLoanType(String(types[0].id));
+      }
+    } catch (e) {
+      console.error("Failed to fetch loan types:", e.message);
+    }
+  }
+
+  async function fetchLenders() {
+    try {
+      const res = await fetch("http://localhost:5000/api/lenders");
+      if (res.ok) {
+        const data = await res.json();
+        setAllLenders(data.data || []);
+      }
+    } catch (e) {
+      console.error("Failed to fetch lenders:", e.message);
+    }
+  }
+
   const handleSignOut = async () => {
     try {
       await logout();
@@ -89,15 +137,13 @@ export default function BrokerDashboard() {
   // Filter leads based on tab choice
   const filteredLeads = useMemo(() => {
     if (activeFilter === "all") return leads;
-    if (activeFilter === "in_progress") {
-      return leads.filter((l) => l.status === "pending" || l.status === "processing");
-    }
-    return leads.filter((l) => l.status === activeFilter);
-  }, [leads, activeFilter]);
 
-  // Math metrics
-  const pendingCount = leads.filter((l) => l.status === "pending").length;
-  const approvedCount = leads.filter((l) => l.status === "approved").length;
+    return leads.filter(
+      (lead) =>
+        String(lead.status_id) === String(activeFilter) ||
+        String(lead.status?.id) === String(activeFilter)
+    );
+  }, [leads, activeFilter]);
 
   const getProductTitle = (id) => {
     return LOAN_PRODUCTS.find((p) => p.id === id)?.name || id;
@@ -114,16 +160,20 @@ export default function BrokerDashboard() {
     return emojis[id] || "📄";
   };
 
-  // Add Client - Lender option list based on loan type
+  // Add Client - Lender option list based on selected loan type (from DB)
   const lenderOptions = useMemo(() => {
-    return LENDERS.filter((l) => !l._hidden && l.rates && l.rates[acLoanType])
+    if (!acLoanType) return allLenders.map((l) => ({ id: l.id, name: l.name, rate: null }));
+    return allLenders
       .map((l) => {
-        const ratesObj = l.rates[acLoanType];
-        const rates = ratesObj ? (ratesObj.f || ratesObj.x) : null;
-        return { name: l.name, rate: rates ? rates[0] : null };
+        const matchingRate = (l.loanRates || []).find(
+          (r) => r.loan_type_id === parseInt(acLoanType)
+        );
+        return matchingRate
+          ? { id: l.id, name: l.name, rate: matchingRate.min_rate }
+          : null;
       })
-      .filter((l) => l.rate !== null);
-  }, [acLoanType]);
+      .filter(Boolean);
+  }, [acLoanType, allLenders]);
 
   const handleToggleLender = (name) => {
     if (selectedLenders.includes(name)) {
@@ -141,53 +191,71 @@ export default function BrokerDashboard() {
     }
   };
 
+  const selectedLoanTypeName = loanTypes.find((t) => String(t.id) === String(acLoanType))?.name || acLoanType;
+
+  const [submitting, setSubmitting] = useState(false);
+
   const submitAddClient = async (e) => {
     e.preventDefault();
     if (!acName || !acMobile) {
-      alert("Please enter client name and mobile number");
+      showToast("error", "Please enter client name and mobile number");
+      return;
+    }
+    if (!acAmt || parseFloat(acAmt) <= 0) {
+      showToast("error", "Please enter a valid loan amount");
       return;
     }
 
+    setSubmitting(true);
     try {
-      // Direct client referral - since backend might not have direct POST endpoint,
-      // we'll attempt submission or mock add it to lead states locally.
-      const amountVal = parseFloat(acAmt) * acAmtUnit;
+      // Pick first selected lender's id (if any)
+      const firstSelectedLender = lenderOptions.find((l) => selectedLenders.includes(l.name));
+
       const payload = {
         name: acName,
         number: acMobile,
         email: acEmail,
-        product: acLoanType,
-        amount: amountVal,
-        tenure: parseInt(acTenure),
-        preferredLenders: selectedLenders,
-        reachMode: acReachMode,
+        loan_type_id: acLoanType,
+        loan_amount: parseFloat(acAmt),
+        loan_purpose: acLoanPurpose || selectedLoanTypeName,
+        preferred_lender_id: firstSelectedLender?.id || null,
+        client_preference: acReachMode,
       };
 
-      // Mock lead for broker's instant view
-      const mockLead = {
-        _id: "MOCK" + Math.floor(Math.random() * 9000),
-        name: acName,
-        product: acLoanType,
-        status: "pending",
-        createdAt: new Date().toISOString(),
-        remark: `Preferred lenders: ${selectedLenders.join(", ") || "None"}. Contact: ${acReachMode}`,
-      };
+      const res = await fetch("http://localhost:5000/api/broker/referClient", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-      setLeads([mockLead, ...leads]);
-      setClients([...clients, { _id: mockLead._id, name: acName, number: acMobile }]);
+      const data = await res.json();
 
-      alert(`✅ Customer "${acName}" referred successfully! Their application is now tracked on your dashboard.`);
+      if (!res.ok) {
+        showToast("error", data.message || "Failed to submit referral");
+        return;
+      }
+
+      showToast("success", `Referral for "${acName}" submitted! Application saved to database.`);
       setShowAddClientModal(false);
 
       // Reset form
       setAcName("");
       setAcMobile("");
       setAcEmail("");
-      setAcAmt("20");
+      setAcAmt("");
+      setAcLoanPurpose("");
       setAcTenure("180");
       setSelectedLenders([]);
+      if (loanTypes.length > 0) setAcLoanType(String(loanTypes[0].id));
+
+      // Refresh dashboard data (stay on same page)
+      fetchClients();
+      fetchLeads();
     } catch (e) {
-      alert("Error adding client: " + e.message);
+      showToast("error", "Network error: " + e.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -245,14 +313,14 @@ export default function BrokerDashboard() {
         <div className="pdash-kpi-row animate-fade-up">
           <div className="pdash-kpi">
             <div className="pdash-kpi-icon" style={{ backgroundColor: "#F0FDF4", color: "#16A34A" }}>👥</div>
-            <div>
+            {/* <div>
               <div className="pdash-kpi-val">{clients.length}</div>
               <div className="pdash-kpi-lbl">Total Clients</div>
-            </div>
+            </div> */}
           </div>
           <div className="pdash-kpi">
             <div className="pdash-kpi-icon" style={{ backgroundColor: "#FFF8E8", color: "#D4A017" }}>⏳</div>
-            <div>
+            {/* <div>
               <div className="pdash-kpi-val">{pendingCount}</div>
               <div className="pdash-kpi-lbl">Pending Leads</div>
             </div>
@@ -262,7 +330,7 @@ export default function BrokerDashboard() {
             <div>
               <div className="pdash-kpi-val">{approvedCount}</div>
               <div className="pdash-kpi-lbl">Approved Loans</div>
-            </div>
+            </div> */}
           </div>
           <div className="pdash-kpi">
             <div className="pdash-kpi-icon" style={{ backgroundColor: "#FDF2F8", color: "#BE185D" }}>📈</div>
@@ -305,20 +373,7 @@ export default function BrokerDashboard() {
               >
                 All Referrals ({leads.length})
               </button>
-              <button
-                className={`pdash-ftab ${activeFilter === "in_progress" ? "active" : ""}`}
-                onClick={() => setActiveFilter("in_progress")}
-              >
-                In Progress ({pendingCount})
-              </button>
-              <button
-                className={`pdash-ftab ${activeFilter === "approved" ? "active" : ""}`}
-                onClick={() => setActiveFilter("approved")}
-              >
-                Approved ({approvedCount})
-              </button>
             </div>
-
             {/* Referral Cards List */}
             <div className="cd-loan-list">
               {filteredLeads.length === 0 ? (
@@ -327,7 +382,7 @@ export default function BrokerDashboard() {
                 </div>
               ) : (
                 filteredLeads.map((lead) => (
-                  <div key={lead._id} className="cdl-card">
+                  <div key={lead.id || lead._id} className="cdl-card">
                     <div className="cdl-top">
                       <div className="cdl-left">
                         <div className="cdl-type-icon" style={{ backgroundColor: "#ECFDF5", color: "#0F766E" }}>
@@ -336,17 +391,18 @@ export default function BrokerDashboard() {
                         <div className="cdl-info">
                           <h4>{lead.name}</h4>
                           <div className="cdl-meta">
-                            Asset: {getProductTitle(lead.product)} · Referred: {new Date(lead.createdAt).toLocaleDateString()}
+                            {lead.product} · Referred: {new Date(lead.createdAt).toLocaleDateString()}
+                            {lead.amount ? ` · ₹${Number(lead.amount).toLocaleString("en-IN")}` : ""}
                           </div>
                         </div>
                       </div>
                       <div className="cdl-right">
                         <span
                           className={`cdl-status-chip ${lead.status === "approved"
-                              ? "cdl-chip-green"
-                              : lead.status === "rejected"
-                                ? "cdl-chip-amber"
-                                : "cdl-chip-blue"
+                            ? "cdl-chip-green"
+                            : lead.status === "rejected"
+                              ? "cdl-chip-amber"
+                              : "cdl-chip-blue"
                             }`}
                         >
                           <span className="cdl-chip-dot"></span>
@@ -359,6 +415,11 @@ export default function BrokerDashboard() {
                       </div>
                     </div>
 
+                    {lead.client_preference && (
+                      <div className="cdl-remark" style={{ fontSize: ".76rem", background: "#F4FBF7", border: "1px solid #A7F3D0", color: "#065F46" }}>
+                        🛡️ {lead.client_preference === "partner_routing" ? "Partner Routing — you will be contacted" : "Direct Reach — team will contact client"}
+                      </div>
+                    )}
                     {lead.remark && (
                       <div className="cdl-remark" style={{ fontSize: ".76rem", background: "#F4FBF7", border: "1px solid #A7F3D0", color: "#065F46" }}>
                         💡 {lead.remark}
@@ -474,13 +535,16 @@ export default function BrokerDashboard() {
                     <div className="input-wrap" style={{ padding: "0 6px" }}>
                       <select
                         value={acLoanType}
-                        onChange={(e) => setAcLoanType(e.target.value)}
+                        onChange={(e) => { setAcLoanType(e.target.value); setSelectedLenders([]); }}
                         required
                         style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".92rem", fontWeight: "600", color: "var(--navy)" }}
                       >
-                        {LOAN_PRODUCTS.map((lp) => (
-                          <option key={lp.id} value={lp.id}>
-                            {lp.name}
+                        {loanTypes.length === 0 && (
+                          <option value="">Loading...</option>
+                        )}
+                        {loanTypes.map((lt) => (
+                          <option key={lt.id} value={lt.id}>
+                            {lt.name}
                           </option>
                         ))}
                       </select>
@@ -488,27 +552,31 @@ export default function BrokerDashboard() {
                   </div>
 
                   <div className="apply-form-group">
-                    <label>Loan Amount *</label>
-                    <div style={{ display: "flex", gap: "6px" }}>
-                      <div className="input-wrap" style={{ flex: 1 }}>
-                        <input
-                          type="number"
-                          value={acAmt}
-                          onChange={(e) => setAcAmt(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="input-wrap" style={{ width: "80px", padding: "0 6px" }}>
-                        <select
-                          value={acAmtUnit}
-                          onChange={(e) => setAcAmtUnit(parseInt(e.target.value))}
-                          style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".84rem", fontWeight: "700" }}
-                        >
-                          <option value={100000}>Lakh</option>
-                          <option value={10000000}>Cr</option>
-                        </select>
-                      </div>
+                    <label>Loan Amount (₹) *</label>
+                    <div className="input-wrap">
+                      <input
+                        type="number"
+                        placeholder="Enter amount in ₹"
+                        value={acAmt}
+                        onChange={(e) => setAcAmt(e.target.value)}
+                        required
+                        min="1"
+                        style={{ width: "100%" }}
+                      />
                     </div>
+                  </div>
+                </div>
+
+                <div className="apply-form-group">
+                  <label>Loan Purpose</label>
+                  <div className="input-wrap">
+                    <span className="icon">📝</span>
+                    <input
+                      type="text"
+                      placeholder="e.g. Home purchase, Business expansion..."
+                      value={acLoanPurpose}
+                      onChange={(e) => setAcLoanPurpose(e.target.value)}
+                    />
                   </div>
                 </div>
 
@@ -570,9 +638,10 @@ export default function BrokerDashboard() {
                 <button
                   type="submit"
                   className="btn-primary"
-                  style={{ height: "46px", marginTop: "12px", background: "linear-gradient(135deg,#0D9488,#0F766E)" }}
+                  disabled={submitting}
+                  style={{ height: "46px", marginTop: "12px", background: submitting ? "#6B7280" : "linear-gradient(135deg,#0D9488,#0F766E)", cursor: submitting ? "not-allowed" : "pointer" }}
                 >
-                  Refer Client Application →
+                  {submitting ? "Submitting..." : "Refer Client Application →"}
                 </button>
               </form>
             </div>
@@ -612,6 +681,17 @@ export default function BrokerDashboard() {
               </a>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ═══ CUSTOM TOAST NOTIFICATION ═══ */}
+      {toast && (
+        <div className={`pdash-toast pdash-toast--${toast.type}`}>
+          <div className="pdash-toast-icon">
+            {toast.type === "success" ? "✓" : "✕"}
+          </div>
+          <div className="pdash-toast-msg">{toast.message}</div>
+          <button className="pdash-toast-close" onClick={() => setToast(null)}>×</button>
         </div>
       )}
     </div>
