@@ -353,7 +353,12 @@ export default function BrokerDashboard() {
                   No referred leads found for this filter tab.
                 </div>
               ) : (
-                filteredLeads.map((lead) => (
+                filteredLeads.map((lead) => {
+                  const statusName = lead.status?.toLowerCase() || 'applied';
+                  const steps = ['applied' , 'docs', 'credit', 'submitted', 'sanction', 'legal', 'disbursed'];
+                  const currentStepIndex = steps.indexOf(statusName) !== -1 ? steps.indexOf(statusName) : 0;
+
+                  return (
                   <div key={lead.id || lead._id} className="cdl-card">
                     <div className="cdl-top">
                       <div className="cdl-left">
@@ -370,20 +375,35 @@ export default function BrokerDashboard() {
                       </div>
                       <div className="cdl-right">
                         <span
-                          className={`cdl-status-chip ${lead.status === "approved"
-                            ? "cdl-chip-green"
-                            : lead.status === "rejected"
+                          className={`cdl-status-chip ${
+                            statusName === "disbursed"
+                              ? "cdl-chip-green"
+                              : statusName === "rejected"
                               ? "cdl-chip-amber"
                               : "cdl-chip-blue"
-                            }`}
+                          }`}
                         >
                           <span className="cdl-chip-dot"></span>
-                          {lead.status === "approved"
-                            ? "Approved"
-                            : lead.status === "rejected"
-                              ? "Rejected"
-                              : "Processing"}
+                          <span style={{ textTransform: 'capitalize' }}>{statusName}</span>
                         </span>
+                      </div>
+                    </div>
+
+                    {/* Journey tracker timeline visualization */}
+                    <div className="cdl-journey">
+                      <div className="cdl-jlabel">Application Progress</div>
+                      <div className="cdl-track">
+                        {steps.map((step, index) => {
+                          const isDone = index <= currentStepIndex;
+                          const isActive = index === currentStepIndex + 1;
+                          
+                          return (
+                            <div key={step} className={`cdl-step ${isDone ? "done" : ""} ${isActive ? "active" : ""}`}>
+                              <div className="cdl-dot">{isDone ? "✓" : (index + 1)}</div>
+                              <span className="cdl-step-lbl" style={{ textTransform: 'capitalize' }}>{step}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -398,7 +418,7 @@ export default function BrokerDashboard() {
                       </div>
                     )}
                   </div>
-                ))
+                )})
               )}
             </div>
           </div>
