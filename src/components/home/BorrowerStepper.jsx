@@ -9,6 +9,7 @@ export default function BorrowerStepper({ onBack }) {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [step, setStep] = useState(1);
+  const [submitError, setSubmitError] = useState('');
   const [loanType, setLoanType] = useState('');
   const [selectedLenders, setSelectedLenders] = useState([]);
   const [loanTypesData, setLoanTypesData] = useState([]);
@@ -102,6 +103,7 @@ export default function BorrowerStepper({ onBack }) {
   };
 
   const handleFinalSubmit = async () => {
+    setSubmitError('');
     try {
       const response = await axios.post('http://localhost:5000/api/auth/register-borrower', {
         name: formData.name,
@@ -122,7 +124,6 @@ export default function BorrowerStepper({ onBack }) {
       });
 
       if (response.data) {
-        // Automatically login the user contextually since the backend also sets the cookie
         login({ 
           name: response.data.name, 
           email: response.data.email, 
@@ -133,7 +134,12 @@ export default function BorrowerStepper({ onBack }) {
       }
     } catch (error) {
       console.error("Error registering borrower:", error);
-      alert(error.response?.data?.message || "Registration failed. Please try again.");
+      const msg = error.response?.data?.message || "Registration failed. Please try again.";
+      if (msg.toLowerCase().includes("already exists")) {
+        setSubmitError('already_exists');
+      } else {
+        setSubmitError(msg);
+      }
     }
   };
 
@@ -443,6 +449,23 @@ export default function BorrowerStepper({ onBack }) {
                 >
                   Submit & Go to Dashboard →
                 </button>
+
+                {submitError === 'already_exists' && (
+                  <div style={{ marginTop: '14px', padding: '12px 16px', background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '10px', fontSize: '.82rem', color: '#991B1B', textAlign: 'center' }}>
+                    ⚠️ An account with this email or mobile number already exists.<br />
+                    <button
+                      onClick={() => navigate('/login')}
+                      style={{ marginTop: '8px', background: 'none', border: 'none', color: '#1D4ED8', fontWeight: 700, cursor: 'pointer', fontSize: '.82rem', textDecoration: 'underline' }}
+                    >
+                      → Sign in instead
+                    </button>
+                  </div>
+                )}
+                {submitError && submitError !== 'already_exists' && (
+                  <div style={{ marginTop: '14px', padding: '12px 16px', background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '10px', fontSize: '.82rem', color: '#991B1B', textAlign: 'center' }}>
+                    ⚠️ {submitError}
+                  </div>
+                )}
                 
                 <div style={{ marginTop: '12px', textAlign: 'center' }}>
                   <button className="btn-back" onClick={() => setStep(3)}>← Back to Basic Info</button>
