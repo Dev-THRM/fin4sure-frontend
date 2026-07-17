@@ -152,14 +152,14 @@ export default function Login() {
               {activeTab === "borrower" ? (
                 <>
                   Don't have an account?{" "}
-                  <Link to="/signup" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>
+                  <Link to="/?view=borrower" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>
                     Register here
                   </Link>
                 </>
               ) : (
                 <>
                   New partner?{" "}
-                  <Link to="/partner" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>
+                  <Link to="/?view=partner" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>
                     Apply here
                   </Link>
                 </>
