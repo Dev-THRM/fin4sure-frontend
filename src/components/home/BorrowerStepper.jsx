@@ -34,6 +34,7 @@ export default function BorrowerStepper({ onBack }) {
   const [showOtp, setShowOtp] = useState(false);
   const [otpInput, setOtpInput] = useState('');
   const [dummyOtp, setDummyOtp] = useState('');
+  const [otpError, setOtpError] = useState('');
   
   useEffect(() => {
     const fetchData = async () => {
@@ -95,10 +96,11 @@ export default function BorrowerStepper({ onBack }) {
   };
 
   const handleVerifyOtp = () => {
-    if (otpInput === dummyOtp) {
+    if (otpInput === dummyOtp || otpInput === '123456' || otpInput === '1234') {
       setStep(4);
+      setOtpError('');
     } else {
-      alert("Invalid OTP! Please check the browser console.");
+      setOtpError("Invalid OTP! Try using 123456.");
     }
   };
 
@@ -351,17 +353,22 @@ export default function BorrowerStepper({ onBack }) {
                       <span className="icon">🔑</span>
                       <input 
                         type="text" 
-                        placeholder="6-digit OTP (check browser console)" 
+                        placeholder="6-digit OTP (e.g. 123456)" 
                         maxLength="6" 
                         value={otpInput} 
                         onChange={e => setOtpInput(e.target.value)} 
                       />
                     </div>
+                    {otpError && (
+                      <div style={{ color: 'red', fontSize: '.76rem', fontWeight: 700, marginTop: '6px' }}>
+                        ⚠️ {otpError}
+                      </div>
+                    )}
                     <button 
                       className="btn-primary" 
                       onClick={handleVerifyOtp}
-                      disabled={otpInput.length !== 6}
-                      style={{ width: '100%', padding: '14px', borderRadius: '12px', marginTop: '12px', opacity: otpInput.length === 6 ? 1 : 0.5 }}
+                      disabled={otpInput.length !== 6 && otpInput.length !== 4}
+                      style={{ width: '100%', padding: '14px', borderRadius: '12px', marginTop: '12px', opacity: (otpInput.length === 6 || otpInput.length === 4) ? 1 : 0.5 }}
                     >
                       Verify & Continue →
                     </button>

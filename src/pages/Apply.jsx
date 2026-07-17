@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
-import { LOAN_PRODUCTS } from "../utils/constants";
 import { useAuth } from "../context/AuthContext";
-import { states, districtsByState } from "../components/Statedata";
 import "./styles/apply.css";
 
 export default function Apply() {
@@ -14,30 +12,34 @@ export default function Apply() {
 
   // Form Fields State
   const [product, setProduct] = useState(productId || "");
-  const [pan, setPan] = useState("");
-  const [dob, setdob] = useState("");
-  const [address, setaddress] = useState("");
-  const [pincode, setpincode] = useState("");
-  const [state, setstate] = useState("");
-  const [district, setdistrict] = useState("");
+  const [loanAmount, setLoanAmount] = useState("");
+  const [tenure, setTenure] = useState("");
+  const [loanTypes, setLoanTypes] = useState([]);
 
   // UI Status State
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
-
-  // Pre-fill profile data on login status
+  // Fetch actual loan types from DB
   useEffect(() => {
-    if (user) {
-      setdob(user.dob || "");
-      setaddress(user.address || "");
-      setpincode(user.pincode || "");
-      setstate(user.state || "");
-      setdistrict(user.district || "");
-    }
-  }, [user]);
+    const fetchLoanTypes = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/loan-types");
+        const data = await res.json();
+        if (data.success) {
+          setLoanTypes(data.data);
+          // If no product pre-selected via URL, default to first available
+          if (!productId && data.data.length > 0) {
+            setProduct(data.data[0].short_id);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching loan types:", err);
+      }
+    };
+    fetchLoanTypes();
+  }, [productId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,14 +50,8 @@ export default function Apply() {
       return;
     }
 
-    if (!dob || !address || !state || !district || !pincode) {
-      setError("Please fill out all address and contact details.");
-      return;
-    }
-
-    const cleanPAN = pan.trim().toUpperCase();
-    if (!PAN_REGEX.test(cleanPAN)) {
-      setError("Enter valid PAN (e.g. ABCDE1234F).");
+    if (!loanAmount || !tenure) {
+      setError("Please fill out loan amount and duration.");
       return;
     }
 
@@ -73,13 +69,9 @@ export default function Apply() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            pan: cleanPAN,
             product,
-            dob,
-            address,
-            state,
-            district,
-            pincode,
+            loanAmount: parseFloat(loanAmount),
+            tenure: parseInt(tenure),
           }),
         }
       );
@@ -91,7 +83,6 @@ export default function Apply() {
       }
 
       setSuccess("Application submitted successfully!");
-      setPan("");
       
       // Auto-navigate to dashboard to track application status
       setTimeout(() => {
@@ -105,7 +96,7 @@ export default function Apply() {
     }
   };
 
-  const selectedProduct = LOAN_PRODUCTS.find((item) => item.id === product);
+  const selectedProduct = loanTypes.find((item) => item.short_id === product);
 
   return (
     <div className="apply-wrap">
@@ -119,7 +110,7 @@ export default function Apply() {
           <div className="apply-head-title">
             <h1>Start your loan application</h1>
             <p>
-              Submit your credit parameters and address info securely. We'll map your profile to 30+ lenders instantly.
+              Submit your credit parameters securely. We'll map your profile to 30+ lenders instantly.
             </p>
           </div>
         </div>
@@ -181,136 +172,54 @@ export default function Apply() {
             </div>
 
             <form onSubmit={handleSubmit} className="apply-form">
-              {/* DOB & ADDRESS ROW */}
-              <div className="apply-form-row">
-                <div className="apply-form-group">
-                  <label htmlFor="dob">Date of Birth *</label>
-                  <div className="input-wrap">
-                    <span className="icon">📅</span>
-                    <input
-                      id="dob"
-                      type="date"
-                      value={dob}
-                      onChange={(e) => setdob(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="apply-form-group">
-                  <label htmlFor="pincode">City Pincode *</label>
-                  <div className="input-wrap">
-                    <span className="icon">📍</span>
-                    <input
-                      id="pincode"
-                      type="text"
-                      maxLength={6}
-                      placeholder="e.g. 110001"
-                      value={pincode}
-                      onChange={(e) => setpincode(e.target.value.replace(/\D/g, ""))}
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Full Address */}
+              {/* Product Select field */}
               <div className="apply-form-group">
-                <label htmlFor="address">Residential Address *</label>
-                <div className="input-wrap">
-                  <span className="icon">🏠</span>
-                  <input
-                    id="address"
-                    type="text"
-                    placeholder="Flat / Building / Street name"
-                    value={address}
-                    onChange={(e) => setaddress(e.target.value)}
+                <label htmlFor="product">Requested Loan Asset *</label>
+                <div className="input-wrap" style={{ padding: "0 6px" }}>
+                  <select
+                    id="product"
+                    value={product}
+                    onChange={(e) => setProduct(e.target.value)}
                     required
-                  />
+                    style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".92rem", fontWeight: "600", color: "var(--navy)" }}
+                  >
+                    <option value="">Select Asset Type</option>
+                    {loanTypes.map((loan) => (
+                      <option key={loan.id} value={loan.short_id}>
+                        {loan.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
-              {/* State & District Row */}
+              {/* Loan Amount & Tenure Row */}
               <div className="apply-form-row">
                 <div className="apply-form-group">
-                  <label htmlFor="state">State *</label>
-                  <div className="input-wrap" style={{ padding: "0 6px" }}>
-                    <select
-                      id="state"
-                      value={state}
-                      onChange={(e) => {
-                        setstate(e.target.value);
-                        setdistrict("");
-                      }}
-                      required
-                      style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".92rem", fontWeight: "600", color: "var(--navy)" }}
-                    >
-                      <option value="">Select State</option>
-                      {states.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="apply-form-group">
-                  <label htmlFor="district">District *</label>
-                  <div className="input-wrap" style={{ padding: "0 6px" }}>
-                    <select
-                      id="district"
-                      value={district}
-                      disabled={!state}
-                      onChange={(e) => setdistrict(e.target.value)}
-                      required
-                      style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".92rem", fontWeight: "600", color: "var(--navy)" }}
-                    >
-                      <option value="">Select District</option>
-                      {state &&
-                        districtsByState[state]?.map((d) => (
-                          <option key={d} value={d}>
-                            {d}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Product & PAN Row */}
-              <div className="apply-form-row">
-                <div className="apply-form-group">
-                  <label htmlFor="product">Requested Loan Asset *</label>
-                  <div className="input-wrap" style={{ padding: "0 6px" }}>
-                    <select
-                      id="product"
-                      value={product}
-                      onChange={(e) => setProduct(e.target.value)}
-                      required
-                      style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".92rem", fontWeight: "600", color: "var(--navy)" }}
-                    >
-                      <option value="">Select Asset Type</option>
-                      {LOAN_PRODUCTS.map((loan) => (
-                        <option key={loan.id} value={loan.id}>
-                          {loan.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="apply-form-group">
-                  <label htmlFor="pan">PAN Card Number *</label>
+                  <label htmlFor="loanAmount">Loan Amount (₹) *</label>
                   <div className="input-wrap">
-                    <span className="icon">💳</span>
+                    <span className="icon">💰</span>
                     <input
-                      id="pan"
-                      type="text"
-                      placeholder="ABCDE1234F"
-                      maxLength={10}
-                      value={pan}
-                      onChange={(e) => setPan(e.target.value.toUpperCase())}
+                      id="loanAmount"
+                      type="number"
+                      placeholder="e.g. 500000"
+                      value={loanAmount}
+                      onChange={(e) => setLoanAmount(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="apply-form-group">
+                  <label htmlFor="tenure">Loan Duration (Months) *</label>
+                  <div className="input-wrap">
+                    <span className="icon">⏳</span>
+                    <input
+                      id="tenure"
+                      type="number"
+                      placeholder="e.g. 60"
+                      value={tenure}
+                      onChange={(e) => setTenure(e.target.value)}
                       required
                     />
                   </div>

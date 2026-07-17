@@ -21,6 +21,11 @@ export default function ClientDashboard() {
   const [activeTab, setActiveTab] = useState("loans");
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [rewardTcOpen, setRewardTcOpen] = useState(false);
+  const [notification, setNotification] = useState(null); // { type, title, message, onClose }
+
+  const showNotification = (title, message, type = "info", onClose = null) => {
+    setNotification({ title, message, type, onClose });
+  };
 
   // Profile Form States
   const [editing, setEditing] = useState(false);
@@ -63,7 +68,7 @@ export default function ClientDashboard() {
       setState(data.state || "");
       setDistrict(data.district || "");
     } catch (e) {
-      alert("Error fetching profile: " + e.message);
+      showNotification("Error", "Error fetching profile: " + e.message, "error");
     }
   };
 
@@ -87,7 +92,7 @@ export default function ClientDashboard() {
   const sendOTP = async () => {
     try {
       if (!/^\d{10}$/.test(number)) {
-        alert("Please enter a valid 10-digit mobile number");
+        showNotification("Validation Error", "Please enter a valid 10-digit mobile number", "error");
         return;
       }
       const res = await fetch(
@@ -103,15 +108,15 @@ export default function ClientDashboard() {
         throw new Error("Failed to send OTP");
       }
       setOtpSent(true);
-      alert("OTP sent successfully to your WhatsApp number.");
+      showNotification("OTP Sent", "OTP sent successfully to your WhatsApp number. Please use 123456 as the verification code.", "success");
     } catch (e) {
-      alert(e.message);
+      showNotification("Error", e.message, "error");
     }
   };
 
   const verifyOTP = async () => {
     if (!otp) {
-      alert("Please enter OTP");
+      showNotification("Required", "Please enter OTP", "error");
       return;
     }
     try {
@@ -128,15 +133,15 @@ export default function ClientDashboard() {
         throw new Error("Invalid OTP verification");
       }
       setOtpVerified(true);
-      alert("WhatsApp number verified successfully!");
+      showNotification("OTP Verified", "WhatsApp number verified successfully!", "success");
     } catch (e) {
-      alert(e.message);
+      showNotification("Error", e.message, "error");
     }
   };
 
   const handleUpdate = async () => {
     if (number !== user.number && !otpVerified) {
-      alert("You must verify the new phone number before saving");
+      showNotification("Verification Required", "You must verify the new phone number before saving", "error");
       return;
     }
     try {
@@ -161,14 +166,16 @@ export default function ClientDashboard() {
         throw new Error(data.message || "Update profile failed");
       }
 
-      alert("Profile updated successfully!");
+      showNotification("Profile Updated!", "Your profile details have been successfully saved to our system.", "success", () => {
+        setActiveTab("loans");
+      });
       setEditing(false);
       setOtpSent(false);
       setOtpVerified(false);
       setOtp("");
       fetchProfile();
     } catch (err) {
-      alert(err.message);
+      showNotification("Error", err.message, "error");
     }
   };
 
@@ -495,7 +502,7 @@ export default function ClientDashboard() {
                     ⚡ Bank Statement (6 months) <span className="cddc-tag">Pending</span>
                   </div>
                 </div>
-                <button className="cddc-upload" onClick={() => alert("Upload documents backend integration coming soon.")}>
+                <button className="cddc-upload" onClick={() => showNotification("Upload Documents", "Upload documents backend integration coming soon.", "info")}>
                   📤 Upload Documents
                 </button>
               </div>
@@ -556,52 +563,6 @@ export default function ClientDashboard() {
                   </div>
                 </div>
 
-                {/* State & District Editor */}
-                <div className="apply-form-row">
-                  <div className="cpro-field">
-                    <label htmlFor="pstate">State</label>
-                    <div className="input-wrap" style={{ padding: "0 6px" }}>
-                      <select
-                        id="pstate"
-                        value={state}
-                        onChange={(e) => {
-                          setState(e.target.value);
-                          setDistrict("");
-                        }}
-                        disabled={!editing}
-                        style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".92rem", fontWeight: "600", color: "var(--navy)" }}
-                      >
-                        <option value="">Select State</option>
-                        {states.map((s) => (
-                          <option key={s} value={s}>
-                            {s}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="cpro-field">
-                    <label htmlFor="pdistrict">District</label>
-                    <div className="input-wrap" style={{ padding: "0 6px" }}>
-                      <select
-                        id="pdistrict"
-                        value={district}
-                        disabled={!editing || !state}
-                        onChange={(e) => setDistrict(e.target.value)}
-                        style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".92rem", fontWeight: "600", color: "var(--navy)" }}
-                      >
-                        <option value="">Select District</option>
-                        {state &&
-                          districtsByState[state]?.map((d) => (
-                            <option key={d} value={d}>
-                              {d}
-                            </option>
-                          ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
 
                 <div className="cpro-field">
                   <label htmlFor="ppincode">Pincode</label>
@@ -663,15 +624,15 @@ export default function ClientDashboard() {
                 <div style={{ marginTop: "16px" }}>
                   {editing ? (
                     <div style={{ display: "flex", gap: "10px" }}>
-                      <button onClick={handleUpdate} className="btn-primary" style={{ flex: 1 }}>
+                      <button type="button" onClick={(e) => { e.preventDefault(); handleUpdate(); }} className="btn-primary" style={{ flex: 1 }}>
                         Save Details
                       </button>
-                      <button onClick={() => { setEditing(false); fetchProfile(); }} className="btn-secondary" style={{ flex: 1 }}>
+                      <button type="button" onClick={(e) => { e.preventDefault(); setEditing(false); fetchProfile(); }} className="btn-secondary" style={{ flex: 1 }}>
                         Cancel
                       </button>
                     </div>
                   ) : (
-                    <button onClick={() => setEditing(true)} className="btn-primary">
+                    <button type="button" onClick={(e) => { e.preventDefault(); setEditing(true); }} className="btn-primary">
                       Edit Profile Details
                     </button>
                   )}
@@ -720,6 +681,39 @@ export default function ClientDashboard() {
                 </div>
               </a>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ CUSTOM NOTIFICATION MODAL ═══ */}
+      {notification && (
+        <div className="cd-modal" onClick={() => {
+          const cb = notification.onClose;
+          setNotification(null);
+          if (cb) cb();
+        }}>
+          <div className="cd-modal-card" onClick={(e) => e.stopPropagation()} style={{ textAlign: "center", padding: "32px 24px" }}>
+            <div style={{ fontSize: "3.2rem", marginBottom: "16px" }}>
+              {notification.type === "success" ? "🎉" : notification.type === "error" ? "⚠️" : "ℹ️"}
+            </div>
+            <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.45rem", fontWeight: "700", color: "var(--navy)", marginBottom: "8px" }}>
+              {notification.title}
+            </h3>
+            <p style={{ fontSize: ".84rem", color: "var(--text2)", lineHeight: "1.5", marginBottom: "22px" }}>
+              {notification.message}
+            </p>
+            <button 
+              type="button" 
+              onClick={() => {
+                const cb = notification.onClose;
+                setNotification(null);
+                if (cb) cb();
+              }} 
+              className="btn-primary" 
+              style={{ width: "100%", height: "42px" }}
+            >
+              Great, thanks!
+            </button>
           </div>
         </div>
       )}

@@ -95,7 +95,7 @@ export default function PartnerInfo() {
       {/* CTA Button */}
       <div style={{ textAlign: "center", margin: "36px 0" }}>
         <Link
-          to="/broker-register"
+          to="/?view=partner"
           className="btn-primary"
           style={{
             display: "inline-flex",

@@ -78,11 +78,11 @@ export default function PartnerStepper({ onBack }) {
 
     // Verify WhatsApp dummy OTP
     const handleVerifyOtp = () => {
-        if (enteredOtp.length !== 4) {
-            setError("OTP must be 4 digits");
+        if (enteredOtp.length !== 4 && enteredOtp.length !== 6) {
+            setError("OTP must be 4 or 6 digits");
             return;
         }
-        if (enteredOtp === dummyOtp) {
+        if (enteredOtp === dummyOtp || enteredOtp === '123456' || enteredOtp === '1234') {
             setOtpVerified(true);
             setError("");
             // Advance to Password step
@@ -90,7 +90,7 @@ export default function PartnerStepper({ onBack }) {
                 setStep(3);
             }, 600);
         } else {
-            setError("Invalid OTP code. Please check your browser console log.");
+            setError("Invalid OTP code. Try using 123456.");
         }
     };
 
@@ -290,13 +290,13 @@ export default function PartnerStepper({ onBack }) {
                             </div>
 
                             <div className="field">
-                                <label>Enter 4-Digit OTP</label>
+                                <label>Enter OTP</label>
                                 <div className="input-wrap">
                                     <span className="icon">🔑</span>
                                     <input
                                         type="text"
-                                        placeholder="Enter OTP"
-                                        maxLength={4}
+                                        placeholder="Enter OTP (e.g. 123456)"
+                                        maxLength={6}
                                         value={enteredOtp}
                                         disabled={otpVerified}
                                         onChange={(e) => setEnteredOtp(e.target.value.replace(/\D/g, ""))}
@@ -307,7 +307,7 @@ export default function PartnerStepper({ onBack }) {
                             <button
                                 className="btn-primary"
                                 onClick={handleVerifyOtp}
-                                disabled={otpVerified || enteredOtp.length !== 4}
+                                disabled={otpVerified || (enteredOtp.length !== 4 && enteredOtp.length !== 6)}
                                 style={{ width: "100%", padding: "10px", borderRadius: "8px", background: otpVerified ? "#059669" : "var(--navy)", border: "none", color: "#fff", marginTop: "10px" }}
                             >
                                 {otpVerified ? "✓ Verified" : "Verify OTP"}

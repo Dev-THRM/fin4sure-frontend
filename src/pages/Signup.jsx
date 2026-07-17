@@ -104,8 +104,8 @@ export default function Signup() {
 
   // ---------------- VERIFY OTP ----------------
   const verifyOTP = async () => {
-    if (receivedOtp.length !== 4) {
-      setOtpError("OTP must be 4 digits");
+    if (receivedOtp.length !== 4 && receivedOtp.length !== 6) {
+      setOtpError("OTP must be 4 or 6 digits");
       return;
     }
 
@@ -369,8 +369,8 @@ export default function Signup() {
                   <span className="icon">🔑</span>
                   <input
                     type="text"
-                    placeholder="4-digit OTP"
-                    maxLength={4}
+                    placeholder="Enter OTP (e.g. 123456)"
+                    maxLength={6}
                     value={receivedOtp}
                     onChange={(e) => setReceivedOtp(e.target.value.replace(/\D/g, ""))}
                     disabled={otpVerified}

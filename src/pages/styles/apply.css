@@ -226,8 +226,8 @@
 }
 
 .apply-autofill-banner {
-  background: #F5F3FF;
-  border: 1px solid #DDD6FE;
+  background: var(--cream);
+  border: 1px solid var(--teal-lt);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 12px;
@@ -236,7 +236,7 @@
 .apply-autofill-banner h3 {
   font-size: .86rem;
   font-weight: 700;
-  color: #5B21B6;
+  color: #0D2B6B;
   margin-bottom: 10px;
 }
 
