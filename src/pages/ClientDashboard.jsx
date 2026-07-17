@@ -17,7 +17,7 @@ export default function ClientDashboard() {
 
   // Local dashboard states
   const [user, setUser] = useState(null);
-  const [leads, setLeads] = useState([]);
+  const [applications, setApplications] = useState([]);
   const [activeTab, setActiveTab] = useState("loans");
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [rewardTcOpen, setRewardTcOpen] = useState(false);
@@ -37,7 +37,7 @@ export default function ClientDashboard() {
 
   useEffect(() => {
     fetchProfile();
-    fetchLeads();
+    fetchApplications();
   }, []);
 
   const fetchProfile = async () => {
@@ -67,9 +67,9 @@ export default function ClientDashboard() {
     }
   };
 
-  const fetchLeads = async () => {
+  const fetchApplications = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/client/my-leads", {
+      const res = await fetch("http://localhost:5000/api/client/my-applications", {
         method: "GET",
         headers: { "content-type": "application/json" },
         credentials: "include",
@@ -77,10 +77,10 @@ export default function ClientDashboard() {
 
       if (res.ok) {
         const data = await res.json();
-        setLeads(data);
+        setApplications(data);
       }
     } catch (e) {
-      console.error("Failed to fetch leads:", e.message);
+      console.error("Failed to fetch applications:", e.message);
     }
   };
 
@@ -206,9 +206,12 @@ export default function ClientDashboard() {
   };
 
   // Status arrays
-  const approvedCount = leads.filter((l) => l.status === "approved").length;
-  const pendingCount = leads.filter((l) => l.status === "pending").length;
-  const rejectedCount = leads.filter((l) => l.status === "rejected").length;
+  const disbursedCount = applications.filter((app) => app.Status?.name?.toLowerCase() === "disbursed").length;
+  const activeCount = applications.filter((app) => {
+    const status = app.Status?.name?.toLowerCase();
+    return status && status !== "disbursed" && status !== "rejected";
+  }).length;
+  const rejectedCount = applications.filter((app) => app.Status?.name?.toLowerCase() === "rejected").length;
 
   return (
     <div className="cdash-wrap">
@@ -278,42 +281,43 @@ export default function ClientDashboard() {
                 </div>
 
                 <div className="cd-loan-list">
-                  {leads.length === 0 ? (
+                  {applications.length === 0 ? (
                     <div style={{ textAlign: "center", padding: "30px", background: "#fff", border: "1px solid #E6EEF8", borderRadius: "18px", color: "var(--text2)", fontSize: ".88rem" }}>
                       No applications submitted yet. Click "Apply New Loan" above to start.
                     </div>
                   ) : (
-                    leads.map((lead) => (
-                      <div key={lead._id} className="cdl-card">
+                    applications.map((app) => {
+                      const statusName = app.Status?.name?.toLowerCase() || 'applied';
+                      const steps = ['applied' , 'docs', 'credit', 'submitted', 'sanction', 'legal', 'disbursed'];
+                      const currentStepIndex = steps.indexOf(statusName) !== -1 ? steps.indexOf(statusName) : 0;
+                      
+                      return (
+                      <div key={app.id || app.application_no} className="cdl-card">
                         <div className="cdl-top">
                           <div className="cdl-left">
                             <div className="cdl-type-icon" style={{ backgroundColor: "#F0F6FF", color: "#1E3A5F" }}>
-                              {getProductEmoji(lead.product)}
+                              {getProductEmoji(app.Loan_type?.short_id || "document")}
                             </div>
                             <div className="cdl-info">
-                              <h4>{getProductTitle(lead.product)}</h4>
+                              <h4>{app.Loan_type?.name || "Loan Application"}</h4>
                               <div className="cdl-meta">
-                                Submitted: {new Date(lead.createdAt).toLocaleDateString()}
+                                Submitted: {new Date(app.createdAt).toLocaleDateString()}
                               </div>
                             </div>
                           </div>
                           <div className="cdl-right">
-                            <div className="cdl-bank">FIN4SURE MATCH</div>
+                            <div className="cdl-bank">{app.Lender?.name || "FIN4SURE MATCH"}</div>
                             <span
                               className={`cdl-status-chip ${
-                                lead.status === "approved"
+                                statusName === "disbursed"
                                   ? "cdl-chip-green"
-                                  : lead.status === "rejected"
+                                  : statusName === "rejected"
                                   ? "cdl-chip-amber"
                                   : "cdl-chip-blue"
                               }`}
                             >
                               <span className="cdl-chip-dot"></span>
-                              {lead.status === "approved"
-                                ? "Approved"
-                                : lead.status === "rejected"
-                                ? "Rejected"
-                                : "Processing"}
+                              <span style={{ textTransform: 'capitalize' }}>{statusName}</span>
                             </span>
                           </div>
                         </div>
@@ -322,26 +326,21 @@ export default function ClientDashboard() {
                         <div className="cdl-journey">
                           <div className="cdl-jlabel">Application Progress</div>
                           <div className="cdl-track">
-                            <div className="cdl-step done">
-                              <div className="cdl-dot">✓</div>
-                              <span className="cdl-step-lbl">Apply</span>
-                            </div>
-                            <div className={`cdl-step ${lead.status !== "pending" ? "done" : "active"}`}>
-                              <div className="cdl-dot">2</div>
-                              <span className="cdl-step-lbl">Verify</span>
-                            </div>
-                            <div className={`cdl-step ${lead.status === "approved" ? "done" : "active"}`}>
-                              <div className="cdl-dot">3</div>
-                              <span className="cdl-step-lbl">Sanction</span>
-                            </div>
-                            <div className="cdl-step">
-                              <div className="cdl-dot">4</div>
-                              <span className="cdl-step-lbl">Disburse</span>
-                            </div>
+                            {steps.map((step, index) => {
+                              const isDone = index <= currentStepIndex;
+                              const isActive = index === currentStepIndex + 1;
+                              
+                              return (
+                                <div key={step} className={`cdl-step ${isDone ? "done" : ""} ${isActive ? "active" : ""}`}>
+                                  <div className="cdl-dot">{isDone ? "✓" : (index + 1)}</div>
+                                  <span className="cdl-step-lbl" style={{ textTransform: 'capitalize' }}>{step}</span>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       </div>
-                    ))
+                    )})
                   )}
                 </div>
               </div>
@@ -439,11 +438,11 @@ export default function ClientDashboard() {
               <div className="cd-stats-card">
                 <div className="cdsc-row">
                   <span>Active Applications</span>
-                  <span className="cdsc-val cdsc-amber">{pendingCount}</span>
+                  <span className="cdsc-val cdsc-amber">{activeCount}</span>
                 </div>
                 <div className="cdsc-row">
-                  <span>Approved Loans</span>
-                  <span className="cdsc-val cdsc-green">{approvedCount}</span>
+                  <span>Disbursed Loans</span>
+                  <span className="cdsc-val cdsc-green">{disbursedCount}</span>
                 </div>
                 <div className="cdsc-row">
                   <span>Rejected Loans</span>

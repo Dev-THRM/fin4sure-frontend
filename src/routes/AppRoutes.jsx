@@ -11,7 +11,7 @@ import BrokerRegistration from "../pages/BrokerRegister";
 import About from "../pages/About";
 import PartnerInfo from "../pages/PartnerInfo";
 import LoansRedirect from "../pages/LoansRedirect";
-import BrokerDashboard  from "../pages/Brokerdashboard";
+import BrokerDashboard from "../pages/Brokerdashboard";
 import AdminDashboard from "../pages/AdminDashboard";  // You'll create this
 import ClientDashboard from "../pages/ClientDashboard"; // You'll create this
 import ProtectedRoute from "../components/ProtectedRoute";
