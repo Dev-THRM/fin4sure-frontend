@@ -61,7 +61,7 @@ export default function BrokerDashboard() {
 
   async function fetchProfile() {
     try {
-      const res = await fetch("http://localhost:5000/api/auth/profile", {
+      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/auth/profile", {
         credentials: "include",
       });
       if (!res.ok) return navigate("/login");
@@ -73,7 +73,7 @@ export default function BrokerDashboard() {
 
   async function fetchClients() {
     try {
-      const res = await fetch("http://localhost:5000/api/broker/getRefferedClients", {
+      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/broker/getRefferedClients", {
         credentials: "include",
       });
       if (res.ok) {
@@ -87,7 +87,7 @@ export default function BrokerDashboard() {
 
   async function fetchLeads() {
     try {
-      const res = await fetch("http://localhost:5000/api/broker/getBrokerLeads", {
+      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/broker/getBrokerLeads", {
         credentials: "include",
       });
       if (res.ok) {
@@ -101,7 +101,7 @@ export default function BrokerDashboard() {
 
   async function fetchLoanTypes() {
     try {
-      const res = await fetch("http://localhost:5000/api/loan-types");
+      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/loan-types");
       if (res.ok) {
         const data = await res.json();
         const types = data.data || [];
@@ -115,7 +115,7 @@ export default function BrokerDashboard() {
 
   async function fetchLenders() {
     try {
-      const res = await fetch("http://localhost:5000/api/lenders");
+      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/lenders");
       if (res.ok) {
         const data = await res.json();
         setAllLenders(data.data || []);
@@ -222,7 +222,7 @@ export default function BrokerDashboard() {
         client_preference: acReachMode,
       };
 
-      const res = await fetch("http://localhost:5000/api/broker/referClient", {
+      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/broker/referClient", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

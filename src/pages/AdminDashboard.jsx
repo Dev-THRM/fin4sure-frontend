@@ -34,7 +34,7 @@ export default function AdminDashboard() {
 
   async function fetchStats() {
     try {
-      const res = await fetch("http://localhost:5000/api/admin/stats", {
+      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/stats", {
         credentials: "include",
       });
       if (!res.ok) return navigate("/login");
@@ -46,7 +46,7 @@ export default function AdminDashboard() {
 
   async function fetchBrokers() {
     try {
-      const res = await fetch("http://localhost:5000/api/admin/brokers", {
+      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/brokers", {
         credentials: "include",
       });
       if (res.ok) setBrokers(await res.json());
@@ -58,7 +58,7 @@ export default function AdminDashboard() {
   async function fetchLeads() {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/admin/leads?status=${leadFilter}`,
+        `https://palevioletred-ape-449755.hostingersite.com/api/admin/leads?status=${leadFilter}`,
         { credentials: "include" }
       );
       if (res.ok) setLeads(await res.json());
@@ -69,7 +69,7 @@ export default function AdminDashboard() {
 
   async function updateBrokerStatus(brokerId, status) {
     try {
-      await fetch("http://localhost:5000/api/admin/broker-status", {
+      await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/broker-status", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -84,7 +84,7 @@ export default function AdminDashboard() {
 
   async function updateLeadStatus(leadId, status) {
     try {
-      await fetch("http://localhost:5000/api/admin/lead-status", {
+      await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/lead-status", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -128,7 +128,7 @@ export default function AdminDashboard() {
       alert("Please select a valid date range");
       return;
     }
-    const url = `http://localhost:5000/api/admin/export?type=${type}&from=${from}&to=${to}`;
+    const url = `https://palevioletred-ape-449755.hostingersite.com/api/admin/export?type=${type}&from=${from}&to=${to}`;
     window.open(url, "_blank");
   }
 

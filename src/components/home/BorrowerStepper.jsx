@@ -41,8 +41,8 @@ export default function BorrowerStepper({ onBack }) {
       try {
         setLoading(true);
         const [loanTypesRes, lendersRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/loan-types'),
-          axios.get('http://localhost:5000/api/lenders')
+          axios.get('https://palevioletred-ape-449755.hostingersite.com/api/loan-types'),
+          axios.get('https://palevioletred-ape-449755.hostingersite.com/api/lenders')
         ]);
         
         if (loanTypesRes.data.success) {
@@ -107,7 +107,7 @@ export default function BorrowerStepper({ onBack }) {
   const handleFinalSubmit = async () => {
     setSubmitError('');
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/register-borrower', {
+      const response = await axios.post('https://palevioletred-ape-449755.hostingersite.com/api/auth/register-borrower', {
         name: formData.name,
         email: formData.email,
         number: formData.mob_no,

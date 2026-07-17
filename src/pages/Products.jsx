@@ -25,8 +25,8 @@ export default function Products() {
       try {
         setLoading(true);
         const [loanTypesRes, lendersRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/loan-types'),
-          axios.get('http://localhost:5000/api/lenders')
+          axios.get('https://palevioletred-ape-449755.hostingersite.com/api/loan-types'),
+          axios.get('https://palevioletred-ape-449755.hostingersite.com/api/lenders')
         ]);
         
         if (loanTypesRes.data.success) {

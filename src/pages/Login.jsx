@@ -16,7 +16,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const API_BASE = "http://localhost:5000/api/auth";
+  const API_BASE = "https://palevioletred-ape-449755.hostingersite.com/api/auth";
 
   async function handleSubmit(e) {
     e.preventDefault();
