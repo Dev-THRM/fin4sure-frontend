@@ -14,6 +14,7 @@ import LoansRedirect from "../pages/LoansRedirect";
 import BrokerDashboard from "../pages/Brokerdashboard";
 import AdminDashboard from "../pages/AdminDashboard";  // You'll create this
 import ClientDashboard from "../pages/ClientDashboard"; // You'll create this
+import UploadDocs from "../pages/UploadDocs";
 import ProtectedRoute from "../components/ProtectedRoute";
 
 export default function AppRoutes() {
@@ -55,6 +56,14 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute allowedRole="borrower">
               <ClientDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/upload-docs/:applicationId"
+          element={
+            <ProtectedRoute allowedRole={["borrower", "broker", "partner"]}>
+              <UploadDocs />
             </ProtectedRoute>
           }
         />

@@ -296,7 +296,10 @@ export default function ClientDashboard() {
                     applications.map((app) => {
                       const statusName = app.Status?.name?.toLowerCase() || 'applied';
                       const steps = ['applied' , 'docs', 'credit', 'submitted', 'sanction', 'legal', 'disbursed'];
-                      const currentStepIndex = steps.indexOf(statusName) !== -1 ? steps.indexOf(statusName) : 0;
+                      let currentStepIndex = steps.indexOf(statusName) !== -1 ? steps.indexOf(statusName) : 0;
+                      if (statusName === 'applied') {
+                        currentStepIndex = 1;
+                      }
                       
                       return (
                       <div key={app.id || app.application_no} className="cdl-card">
@@ -313,18 +316,28 @@ export default function ClientDashboard() {
                             </div>
                           </div>
                           <div className="cdl-right">
-                            <div className="cdl-bank">{app.Lender?.name || "FIN4SURE MATCH"}</div>
+                            <div className="cdl-bank" style={{ textTransform: 'uppercase', fontSize: '.74rem', color: '#64748B', fontWeight: 'bold', marginBottom: '4px' }}>
+                              {statusName === "disbursed"
+                                ? "COMPLETED"
+                                : statusName === "rejected"
+                                ? "REJECTED"
+                                : "ACTIVE"}
+                            </div>
                             <span
                               className={`cdl-status-chip ${
                                 statusName === "disbursed"
                                   ? "cdl-chip-green"
-                                  : statusName === "rejected"
-                                  ? "cdl-chip-amber"
-                                  : "cdl-chip-blue"
+                                  : "cdl-chip-amber"
                               }`}
                             >
                               <span className="cdl-chip-dot"></span>
-                              <span style={{ textTransform: 'capitalize' }}>{statusName}</span>
+                              <span>
+                                {statusName === "disbursed"
+                                  ? "Completed"
+                                  : statusName === "rejected"
+                                  ? "Rejected"
+                                  : "In Progress"}
+                              </span>
                             </span>
                           </div>
                         </div>
@@ -334,8 +347,8 @@ export default function ClientDashboard() {
                           <div className="cdl-jlabel">Application Progress</div>
                           <div className="cdl-track">
                             {steps.map((step, index) => {
-                              const isDone = index <= currentStepIndex;
-                              const isActive = index === currentStepIndex + 1;
+                              const isDone = index < currentStepIndex;
+                              const isActive = index === currentStepIndex;
                               
                               return (
                                 <div key={step} className={`cdl-step ${isDone ? "done" : ""} ${isActive ? "active" : ""}`}>
@@ -346,6 +359,37 @@ export default function ClientDashboard() {
                             })}
                           </div>
                         </div>
+
+                        {(statusName === 'applied' || statusName === 'docs') && (
+                          <div style={{ 
+                            marginTop: '20px', 
+                            paddingTop: '16px', 
+                            borderTop: '1px solid #E6EEF8', 
+                            display: 'flex', 
+                            justifyContent: 'flex-end', 
+                            alignItems: 'center'
+                          }}>
+                            <Link 
+                              to={`/upload-docs/${app.id}`} 
+                              style={{ 
+                                textDecoration: "none", 
+                                background: "linear-gradient(135deg, #059669, #10B981)", 
+                                color: "#fff",
+                                fontSize: "0.82rem",
+                                fontWeight: "700",
+                                padding: "8px 16px",
+                                borderRadius: "8px",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                boxShadow: "0 4px 12px rgba(16, 185, 129, 0.2)",
+                                transition: "all 0.2s ease"
+                              }}
+                            >
+                              📤 Upload Documents
+                            </Link>
+                          </div>
+                        )}
                       </div>
                     )})
                   )}
@@ -489,23 +533,7 @@ export default function ClientDashboard() {
                 <div className="cdsm-hours">Mon–Sat · 9:30 AM – 6:30 PM IST</div>
               </div>
 
-              {/* Document status check */}
-              <div className="cd-docs-card">
-                <div className="cddc-head">📋 Document Status</div>
-                <div className="cddc-list">
-                  <div className="cddc-item">✓ Aadhaar Card</div>
-                  <div className="cddc-item">✓ PAN Card</div>
-                  <div className="cddc-item cddc-pending">
-                    ⚡ Salary Slips (3 months) <span className="cddc-tag">Pending</span>
-                  </div>
-                  <div className="cddc-item cddc-pending">
-                    ⚡ Bank Statement (6 months) <span className="cddc-tag">Pending</span>
-                  </div>
-                </div>
-                <button className="cddc-upload" onClick={() => showNotification("Upload Documents", "Upload documents backend integration coming soon.", "info")}>
-                  📤 Upload Documents
-                </button>
-              </div>
+
             </div>
           </div>
         ) : (
