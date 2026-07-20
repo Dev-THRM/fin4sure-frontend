@@ -28,6 +28,7 @@ export default function AdminDashboard() {
   const [leadStatusFilter, setLeadStatusFilter] = useState("all_statuses");
   const [leadTypeFilter, setLeadTypeFilter] = useState("all_loan_types");
   const [brokerStatusFilter, setBrokerStatusFilter] = useState("all_partners");
+  const [borrowerStatusFilter, setBorrowerStatusFilter] = useState("all_statuses");
 
   // Custom alert popup notification state
   const [customAlert, setCustomAlert] = useState(null);
@@ -408,6 +409,22 @@ export default function AdminDashboard() {
       return matchesSearch && matchesStatus && matchesType;
     });
   }, [leads, searchTerm, leadStatusFilter, leadTypeFilter]);
+
+  const filteredBorrowers = useMemo(() => {
+    return borrowers.filter((b) => {
+      const term = searchTerm.toLowerCase();
+      const matchesSearch = !term ||
+        b.name?.toLowerCase().includes(term) ||
+        b.email?.toLowerCase().includes(term) ||
+        b.number?.includes(term);
+
+      const matchesStatus =
+        borrowerStatusFilter === "all_statuses" ||
+        (b.status || "active").toLowerCase() === borrowerStatusFilter.toLowerCase();
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [borrowers, searchTerm, borrowerStatusFilter]);
 
   const disbursedCount = leads.filter(l => ['disbursed', 'completed', 'approved'].includes(l.status)).length;
   const pendingCount = leads.filter(l => l.status === 'rejected').length;
@@ -957,6 +974,13 @@ export default function AdminDashboard() {
           {activeTab === "borrowers" && (
             <div className="adm-subtab-container animate-fade-up">
               <div className="adm-controls-row">
+                <select className="adm-filter-dropdown" value={borrowerStatusFilter} onChange={(e) => setBorrowerStatusFilter(e.target.value)}>
+                  <option value="all_statuses">All Statuses</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+
                 <button className="adm-ctrl-btn btn-csv" onClick={() => exportData("clients")}>
                   <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -982,12 +1006,12 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {borrowers.length === 0 ? (
+                      {filteredBorrowers.length === 0 ? (
                         <tr>
-                          <td colSpan="9" className="no-data-cell" style={{ padding: '40px 20px' }}>No borrowers registered yet</td>
+                          <td colSpan="9" className="no-data-cell" style={{ padding: '40px 20px' }}>No borrowers found</td>
                         </tr>
                       ) : (
-                        borrowers.map((b) => (
+                        filteredBorrowers.map((b) => (
                           <tr key={b.id}>
                             <td style={{ fontWeight: 600, color: '#0d2b6b' }}>{b.name}</td>
                             <td>{b.number}</td>
