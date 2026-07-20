@@ -34,7 +34,8 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}/login`, {
+      const endpoint = cleanEmail === "admin@finn4sure.com" ? "/admin-login" : "/login";
+      const res = await fetch(`${API_BASE}${endpoint}`, {
         method: "POST",
         credentials: "include", // Required for session/cookie auth
         headers: {
