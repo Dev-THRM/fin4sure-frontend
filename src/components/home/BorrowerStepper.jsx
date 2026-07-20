@@ -23,6 +23,8 @@ export default function BorrowerStepper({ onBack }) {
     gender: '',
     address: '',
     pincode: '',
+    state: '',
+    district: '',
     loanAmount: '',
     tenure: '',
     loanPurpose: ''
@@ -104,6 +106,30 @@ export default function BorrowerStepper({ onBack }) {
     }
   };
 
+  const handlePincodeChange = async (e) => {
+    const val = e.target.value.replace(/\D/g, "");
+    setFormData(prev => ({ ...prev, pincode: val }));
+    
+    if (val.length === 6) {
+      try {
+        const res = await axios.get(`https://api.postalpincode.in/pincode/${val}`);
+        const data = res.data;
+        if (data && data[0].Status === "Success") {
+          const postOffice = data[0].PostOffice[0];
+          setFormData(prev => ({
+            ...prev,
+            district: postOffice.District,
+            state: postOffice.State
+          }));
+        }
+      } catch (err) {
+        console.error("Error fetching pincode details:", err);
+      }
+    } else {
+      setFormData(prev => ({ ...prev, district: '', state: '' }));
+    }
+  };
+
   const handleFinalSubmit = async () => {
     setSubmitError('');
     try {
@@ -115,6 +141,8 @@ export default function BorrowerStepper({ onBack }) {
         gender: formData.gender,
         address: formData.address,
         pincode: formData.pincode,
+        state: formData.state,
+        district: formData.district,
         password: password,
         loanAmount: formData.loanAmount,
         tenure: formData.tenure,
@@ -145,8 +173,39 @@ export default function BorrowerStepper({ onBack }) {
     }
   };
 
-  const isBasicInfoValid = formData.name.trim() !== '' && formData.mob_no.trim() !== '' && formData.email.trim() !== '' && password.trim() !== '' && password === confirmPassword;
-  const isMoreDetailsValid = formData.dob.trim() !== '' && formData.gender.trim() !== '' && formData.address.trim() !== '' && formData.pincode.trim() !== '' && formData.loanAmount.trim() !== '' && formData.tenure.trim() !== '' && formData.loanPurpose.trim() !== '';
+  const isOver18 = (dobStr) => {
+    if (!dobStr) return false;
+    const dob = new Date(dobStr);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    return age >= 18;
+  };
+
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isValidMobile = (mob) => /^[0-9]{10}$/.test(mob);
+
+  const isBasicInfoValid = 
+    formData.name.trim() !== '' && 
+    isValidMobile(formData.mob_no) && 
+    isValidEmail(formData.email) && 
+    password.trim() !== '' && 
+    password === confirmPassword;
+
+  const isMoreDetailsValid = 
+    formData.dob.trim() !== '' && 
+    isOver18(formData.dob) &&
+    formData.gender.trim() !== '' && 
+    formData.address.trim() !== '' && 
+    /^[0-9]{6}$/.test(formData.pincode) && 
+    formData.district.trim() !== '' &&
+    formData.state.trim() !== '' &&
+    formData.loanAmount.trim() !== '' && 
+    formData.tenure.trim() !== '' && 
+    formData.loanPurpose.trim() !== '';
 
   return (
     <div style={{ maxWidth: '480px', margin: '0 auto', width: '100%', animation: 'fadeUp 0.35s ease' }}>
@@ -299,8 +358,9 @@ export default function BorrowerStepper({ onBack }) {
                   <label>Mobile Number <span style={{color: 'red'}}>*</span></label>
                   <div className="input-wrap">
                     <span className="icon">📱</span>
-                    <input type="tel" placeholder="10-digit mobile number" maxLength="10" value={formData.mob_no} onChange={e => setFormData({...formData, mob_no: e.target.value})} />
+                    <input type="tel" placeholder="10-digit mobile number" maxLength="10" value={formData.mob_no} onChange={e => setFormData({...formData, mob_no: e.target.value.replace(/\D/g, '')})} />
                   </div>
+                  {formData.mob_no && !isValidMobile(formData.mob_no) && <div style={{ color: 'red', fontSize: '0.75rem', marginTop: '4px' }}>Please enter a valid 10-digit mobile number.</div>}
                 </div>
 
                 <div className="field">
@@ -309,6 +369,7 @@ export default function BorrowerStepper({ onBack }) {
                     <span className="icon">✉️</span>
                     <input type="email" placeholder="Email address" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
                   </div>
+                  {formData.email && !isValidEmail(formData.email) && <div style={{ color: 'red', fontSize: '0.75rem', marginTop: '4px' }}>Please enter a valid email address.</div>}
                 </div>
 
                 <div className="field" style={{ marginTop: '20px' }}>
@@ -335,6 +396,7 @@ export default function BorrowerStepper({ onBack }) {
                       onChange={e => setConfirmPassword(e.target.value)} 
                     />
                   </div>
+                  {confirmPassword && password !== confirmPassword && <div style={{ color: 'red', fontSize: '0.75rem', marginTop: '4px' }}>Passwords do not match.</div>}
                 </div>
 
                 {!showOtp ? (
@@ -393,6 +455,7 @@ export default function BorrowerStepper({ onBack }) {
                       <span className="icon">📅</span>
                       <input type="date" value={formData.dob} onChange={e => setFormData({...formData, dob: e.target.value})} />
                     </div>
+                    {formData.dob && !isOver18(formData.dob) && <div style={{ color: 'red', fontSize: '0.75rem', marginTop: '4px' }}>You must be at least 18 years old.</div>}
                   </div>
                   <div className="field" style={{ flex: 1 }}>
                     <label>Gender <span style={{color: 'red'}}>*</span></label>
@@ -420,7 +483,23 @@ export default function BorrowerStepper({ onBack }) {
                   <label>Pincode <span style={{color: 'red'}}>*</span></label>
                   <div className="input-wrap">
                     <span className="icon">📮</span>
-                    <input type="text" placeholder="6-digit pincode" maxLength="6" value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value})} />
+                    <input type="text" placeholder="6-digit pincode" maxLength="6" value={formData.pincode} onChange={handlePincodeChange} />
+                  </div>
+                  {formData.pincode && !/^[0-9]{6}$/.test(formData.pincode) && <div style={{ color: 'red', fontSize: '0.75rem', marginTop: '4px' }}>Please enter a valid 6-digit pincode.</div>}
+                </div>
+
+                <div className="two-cols" style={{ display: 'flex', gap: '12px' }}>
+                  <div className="field" style={{ flex: 1 }}>
+                    <label>City/District <span style={{color: 'red'}}>*</span></label>
+                    <div className="input-wrap">
+                      <input type="text" placeholder="Enter City" value={formData.district} onChange={e => setFormData({...formData, district: e.target.value})} />
+                    </div>
+                  </div>
+                  <div className="field" style={{ flex: 1 }}>
+                    <label>State <span style={{color: 'red'}}>*</span></label>
+                    <div className="input-wrap">
+                      <input type="text" placeholder="Enter State" value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} />
+                    </div>
                   </div>
                 </div>
 

@@ -374,38 +374,107 @@ export default function BrokerDashboard() {
                         </div>
                       </div>
                       <div className="cdl-right">
-                        <span
-                          className={`cdl-status-chip ${
-                            statusName === "disbursed"
+                        {lead.isApp ? (
+                          <>
+                            <div className="cdl-bank" style={{ textTransform: 'uppercase', fontSize: '.74rem', color: '#64748B', fontWeight: 'bold', marginBottom: '4px' }}>
+                              {lead.statusName === "disbursed"
+                                ? "COMPLETED"
+                                : lead.statusName === "rejected"
+                                ? "REJECTED"
+                                : "ACTIVE"}
+                            </div>
+                            <span
+                              className={`cdl-status-chip ${
+                                lead.statusName === "disbursed"
+                                  ? "cdl-chip-green"
+                                  : "cdl-chip-amber"
+                              }`}
+                            >
+                              <span className="cdl-chip-dot"></span>
+                              <span>
+                                {lead.statusName === "disbursed"
+                                  ? "Completed"
+                                  : lead.statusName === "rejected"
+                                  ? "Rejected"
+                                  : "In Progress"}
+                              </span>
+                            </span>
+                          </>
+                        ) : (
+                          <span
+                            className={`cdl-status-chip ${lead.status === "approved"
                               ? "cdl-chip-green"
-                              : statusName === "rejected"
-                              ? "cdl-chip-amber"
-                              : "cdl-chip-blue"
-                          }`}
-                        >
-                          <span className="cdl-chip-dot"></span>
-                          <span style={{ textTransform: 'capitalize' }}>{statusName}</span>
-                        </span>
+                              : lead.status === "rejected"
+                                ? "cdl-chip-amber"
+                                : "cdl-chip-blue"
+                              }`}
+                          >
+                            <span className="cdl-chip-dot"></span>
+                            {lead.status === "approved"
+                              ? "Approved"
+                              : lead.status === "rejected"
+                                ? "Rejected"
+                                : "Processing"}
+                          </span>
+                        )}
                       </div>
                     </div>
 
-                    {/* Journey tracker timeline visualization */}
-                    <div className="cdl-journey">
-                      <div className="cdl-jlabel">Application Progress</div>
-                      <div className="cdl-track">
-                        {steps.map((step, index) => {
-                          const isDone = index <= currentStepIndex;
-                          const isActive = index === currentStepIndex + 1;
-                          
-                          return (
-                            <div key={step} className={`cdl-step ${isDone ? "done" : ""} ${isActive ? "active" : ""}`}>
-                              <div className="cdl-dot">{isDone ? "✓" : (index + 1)}</div>
-                              <span className="cdl-step-lbl" style={{ textTransform: 'capitalize' }}>{step}</span>
-                            </div>
-                          );
-                        })}
+                    {/* Journey tracker timeline visualization for referred apps */}
+                    {lead.isApp && (
+                      <div className="cdl-journey" style={{ marginTop: '20px', borderTop: '1px solid #F1F5F9', paddingTop: '16px' }}>
+                        <div className="cdl-jlabel">Loan Journey</div>
+                        <div className="cdl-track">
+                          {['applied' , 'docs', 'credit', 'submitted', 'sanction', 'legal', 'disbursed'].map((step, index) => {
+                            const steps = ['applied' , 'docs', 'credit', 'submitted', 'sanction', 'legal', 'disbursed'];
+                            let currentStepIndex = steps.indexOf(lead.statusName) !== -1 ? steps.indexOf(lead.statusName) : 0;
+                            if (lead.statusName === 'applied') {
+                              currentStepIndex = 1;
+                            }
+                            const isDone = index < currentStepIndex;
+                            const isActive = index === currentStepIndex;
+                            
+                            return (
+                              <div key={step} className={`cdl-step ${isDone ? "done" : ""} ${isActive ? "active" : ""}`}>
+                                <div className="cdl-dot">{isDone ? "✓" : (index + 1)}</div>
+                                <span className="cdl-step-lbl" style={{ textTransform: 'capitalize' }}>{step}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
+                    )}
+
+                    {lead.isApp && (lead.statusName === 'applied' || lead.statusName === 'docs') && (
+                      <div style={{ 
+                        marginTop: '20px', 
+                        paddingTop: '16px', 
+                        borderTop: '1px solid #F1F5F9', 
+                        display: 'flex', 
+                        justifyContent: 'flex-end', 
+                        alignItems: 'center'
+                      }}>
+                        <Link 
+                          to={`/upload-docs/${lead.appId}`} 
+                          style={{ 
+                            textDecoration: "none", 
+                            background: "linear-gradient(135deg, #059669, #10B981)", 
+                            color: "#fff",
+                            fontSize: "0.82rem",
+                            fontWeight: "700",
+                            padding: "8px 16px",
+                            borderRadius: "8px",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            boxShadow: "0 4px 12px rgba(16, 185, 129, 0.2)",
+                            transition: "all 0.2s ease"
+                          }}
+                        >
+                          📤 Upload Documents
+                        </Link>
+                      </div>
+                    )}
 
                     {lead.client_preference && (
                       <div className="cdl-remark" style={{ fontSize: ".76rem", background: "#F4FBF7", border: "1px solid #A7F3D0", color: "#065F46" }}>
