@@ -686,8 +686,8 @@ export default function AdminDashboard() {
                               <td style={{ fontWeight: 600 }}>{l.name}</td>
                               <td>{l.product}</td>
                               <td>
-                                <span className={`rate-type-badge ${['completed', 'disbursed', 'approved'].includes(l.status) ? 'private' : l.status === 'rejected' ? 'nbfc-hfc' : 'psu'}`}>
-                                  {['completed', 'disbursed', 'approved'].includes(l.status) ? 'Completed' : l.status === 'rejected' ? 'Rejected' : 'In Progress'}
+                                <span style={{ textTransform: 'capitalize' }} className={`rate-type-badge ${['completed', 'disbursed', 'approved'].includes(l.status) ? 'private' : l.status === 'rejected' ? 'nbfc-hfc' : 'psu'}`}>
+                                  {l.status || 'Unknown'}
                                 </span>
                               </td>
                             </tr>
@@ -857,8 +857,8 @@ export default function AdminDashboard() {
                             <td>{l.loan_amount ? `₹${Number(l.loan_amount).toLocaleString('en-IN')}` : "-"}</td>
                             <td>{l.source || "Direct"}</td>
                             <td>
-                              <span className={`rate-type-badge ${['completed', 'disbursed', 'approved'].includes(l.status) ? 'private' : l.status === 'rejected' ? 'nbfc-hfc' : 'psu'}`}>
-                                {['completed', 'disbursed', 'approved'].includes(l.status) ? 'Completed' : l.status === 'rejected' ? 'Rejected' : 'In Progress'}
+                              <span style={{ textTransform: 'capitalize' }} className={`rate-type-badge ${['completed', 'disbursed', 'approved'].includes(l.status) ? 'private' : l.status === 'rejected' ? 'nbfc-hfc' : 'psu'}`}>
+                                {l.status || 'Unknown'}
                               </span>
                             </td>
                             <td>
@@ -977,13 +977,14 @@ export default function AdminDashboard() {
                         <th>JOINED</th>
                         <th>LOANS</th>
                         <th>APPLIED TO</th>
+                        <th>STATUS</th>
                         <th>ACTION</th>
                       </tr>
                     </thead>
                     <tbody>
                       {borrowers.length === 0 ? (
                         <tr>
-                          <td colSpan="8" className="no-data-cell" style={{ padding: '40px 20px' }}>No borrowers registered yet</td>
+                          <td colSpan="9" className="no-data-cell" style={{ padding: '40px 20px' }}>No borrowers registered yet</td>
                         </tr>
                       ) : (
                         borrowers.map((b) => (
@@ -995,6 +996,19 @@ export default function AdminDashboard() {
                             <td>{new Date(b.createdAt).toLocaleDateString()}</td>
                             <td>{b.loanCount || 0}</td>
                             <td>Direct</td>
+                            <td>
+                              <span style={{ 
+                                textTransform: 'capitalize', 
+                                fontWeight: 600, 
+                                fontSize: '0.75rem',
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                background: b.status === 'active' ? '#dcfce7' : b.status === 'inactive' ? '#fef3c7' : '#fee2e2',
+                                color: b.status === 'active' ? '#166534' : b.status === 'inactive' ? '#92400e' : '#991b1b'
+                              }}>
+                                {b.status || 'Active'}
+                              </span>
+                            </td>
                             <td>
                               <button onClick={() => setSelectedBorrower(b)} className="settings-action-btn" style={{ padding: '4px 10px', fontSize: '.75rem', marginTop: 0 }}>View</button>
                             </td>
@@ -1012,10 +1026,7 @@ export default function AdminDashboard() {
           {activeTab === "timeline" && (
             <div className="adm-subtab-container animate-fade-up">
               <div className="timeline-subtitle-legend">
-                <span style={{ marginRight: '4px' }}>📅</span> Date-wise loan activity grouped by month. Stage bar shows progress (colour:
-                <span className="legend-dot disbursed"></span> Disbursed &middot;
-                <span className="legend-dot in-progress"></span> In Progress &middot;
-                <span className="legend-dot pending"></span> Pending). Edit stage inline.
+                <span style={{ marginRight: '4px' }}>📅</span> Recent system activity and application status changes.
               </div>
 
               <div className="adm-workspace-card" style={{ marginTop: '16px' }}>
@@ -1041,8 +1052,8 @@ export default function AdminDashboard() {
                             <td style={{ fontWeight: 600 }}>Application submitted by {t.borrower}</td>
                             <td>{t.product}</td>
                             <td>
-                              <span className={`rate-type-badge ${t.status === 'approved' ? 'private' : t.status === 'rejected' ? 'nbfc-hfc' : 'psu'}`}>
-                                {t.status}
+                              <span style={{ textTransform: 'capitalize' }} className={`rate-type-badge ${t.status === 'approved' ? 'private' : t.status === 'rejected' ? 'nbfc-hfc' : 'psu'}`}>
+                                {t.status || 'Unknown'}
                               </span>
                             </td>
                           </tr>
