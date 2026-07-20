@@ -109,7 +109,7 @@ export default function AdminDashboard() {
 
   async function fetchBorrowers() {
     try {
-      const res = await fetch("http://localhost:5000/api/admin/clients", {
+      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/clients", {
         credentials: "include",
       });
       if (res.ok) setBorrowers(await res.json());
@@ -120,7 +120,7 @@ export default function AdminDashboard() {
 
   async function fetchTimeline() {
     try {
-      const res = await fetch("http://localhost:5000/api/admin/timeline", {
+      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/timeline", {
         credentials: "include",
       });
       if (res.ok) setTimeline(await res.json());
@@ -131,7 +131,7 @@ export default function AdminDashboard() {
 
   async function fetchLenderRates() {
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/lender-rates?loanTypeShortId=${selectedLoanCategory}`, {
+      const res = await fetch(`https://palevioletred-ape-449755.hostingersite.com/api/admin/lender-rates?loanTypeShortId=${selectedLoanCategory}`, {
         credentials: "include",
       });
       if (res.ok) setRates(await res.json());
@@ -142,7 +142,7 @@ export default function AdminDashboard() {
 
   async function saveLenderRates() {
     try {
-      const res = await fetch("http://localhost:5000/api/admin/lender-rates", {
+      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/lender-rates", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -159,7 +159,7 @@ export default function AdminDashboard() {
 
   async function fetchSettings() {
     try {
-      const resRM = await fetch("http://localhost:5000/api/admin/relationship-manager", {
+      const resRM = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/relationship-manager", {
         credentials: "include",
       });
       if (resRM.ok) {
@@ -171,7 +171,7 @@ export default function AdminDashboard() {
         setRmAvailability(data.availability || "");
       }
 
-      const resAdmin = await fetch("http://localhost:5000/api/admin/admin-access-details", {
+      const resAdmin = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/admin-access-details", {
         credentials: "include",
       });
       if (resAdmin.ok) {
@@ -181,7 +181,7 @@ export default function AdminDashboard() {
         setAdminSessionStatus(data.sessionStatus || "Active");
       }
 
-      const resPlat = await fetch("http://localhost:5000/api/admin/platform-settings", {
+      const resPlat = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/platform-settings", {
         credentials: "include",
       });
       if (resPlat.ok) {
@@ -200,7 +200,7 @@ export default function AdminDashboard() {
 
   async function handleSaveRM() {
     try {
-      const res = await fetch("http://localhost:5000/api/admin/relationship-manager", {
+      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/relationship-manager", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -222,7 +222,7 @@ export default function AdminDashboard() {
 
   async function handleSaveContent() {
     try {
-      const res = await fetch("http://localhost:5000/api/admin/platform-settings", {
+      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/platform-settings", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -241,7 +241,7 @@ export default function AdminDashboard() {
 
   async function handleApplyStats() {
     try {
-      const res = await fetch("http://localhost:5000/api/admin/platform-settings", {
+      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/platform-settings", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -302,7 +302,7 @@ export default function AdminDashboard() {
 
   async function saveEditLead() {
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/leads/${editingLead.id}`, {
+      const res = await fetch(`https://palevioletred-ape-449755.hostingersite.com/api/admin/leads/${editingLead.id}`, {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
