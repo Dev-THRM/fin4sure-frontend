@@ -52,6 +52,7 @@ export default function AdminDashboard() {
 
   const [selectedLead, setSelectedLead] = useState(null);
   const [selectedBroker, setSelectedBroker] = useState(null);
+  const [selectedBorrower, setSelectedBorrower] = useState(null);
   const [editingLead, setEditingLead] = useState(null); // lead being edited
   const [editForm, setEditForm] = useState({});
 
@@ -378,8 +379,8 @@ export default function AdminDashboard() {
 
       const matchesStatus =
         brokerStatusFilter === "all_partners" ||
-        (brokerStatusFilter === "approved" && b.status === "approved") ||
-        (brokerStatusFilter === "pending" && b.status === "pending");
+        (brokerStatusFilter === "active" && b.status === "active") ||
+        (brokerStatusFilter === "inactive" && b.status !== "active");
 
       return matchesSearch && matchesStatus;
     });
@@ -408,8 +409,8 @@ export default function AdminDashboard() {
     });
   }, [leads, searchTerm, leadStatusFilter, leadTypeFilter]);
 
-  const disbursedCount = leads.filter(l => l.status === 'disbursed' || l.status === 'approved').length;
-  const pendingCount = leads.filter(l => l.status === 'applied' || l.status === 'pending').length;
+  const disbursedCount = leads.filter(l => ['disbursed', 'completed', 'approved'].includes(l.status)).length;
+  const pendingCount = leads.filter(l => l.status === 'rejected').length;
   const inProgressCount = leads.length - disbursedCount - pendingCount;
   const totalLeadsCount = leads.length || 1;
   const disbursedPct = Math.round((disbursedCount / totalLeadsCount) * 100);
@@ -685,8 +686,8 @@ export default function AdminDashboard() {
                               <td style={{ fontWeight: 600 }}>{l.name}</td>
                               <td>{l.product}</td>
                               <td>
-                                <span className={`rate-type-badge ${l.status === 'approved' ? 'private' : l.status === 'rejected' ? 'nbfc-hfc' : 'psu'}`}>
-                                  {l.status}
+                                <span className={`rate-type-badge ${['completed', 'disbursed', 'approved'].includes(l.status) ? 'private' : l.status === 'rejected' ? 'nbfc-hfc' : 'psu'}`}>
+                                  {['completed', 'disbursed', 'approved'].includes(l.status) ? 'Completed' : l.status === 'rejected' ? 'Rejected' : 'In Progress'}
                                 </span>
                               </td>
                             </tr>
@@ -707,7 +708,7 @@ export default function AdminDashboard() {
 
                     <div className="breakdown-item">
                       <div className="breakdown-info">
-                        <span>Disbursed</span>
+                        <span>Completed</span>
                         <span>{disbursedCount}</span>
                       </div>
                       <div className="breakdown-progress-bar">
@@ -727,7 +728,7 @@ export default function AdminDashboard() {
 
                     <div className="breakdown-item">
                       <div className="breakdown-info">
-                        <span>Pending</span>
+                        <span>Rejected</span>
                         <span>{pendingCount}</span>
                       </div>
                       <div className="breakdown-progress-bar">
@@ -800,6 +801,7 @@ export default function AdminDashboard() {
                   <option value="sanction">Sanction</option>
                   <option value="legal">Legal</option>
                   <option value="disbursed">Disbursed</option>
+                  <option value="rejected">Rejected</option>
                 </select>
 
                 <select className="adm-filter-dropdown" value={leadTypeFilter} onChange={(e) => setLeadTypeFilter(e.target.value)}>
@@ -855,8 +857,8 @@ export default function AdminDashboard() {
                             <td>{l.loan_amount ? `₹${Number(l.loan_amount).toLocaleString('en-IN')}` : "-"}</td>
                             <td>{l.source || "Direct"}</td>
                             <td>
-                              <span className={`rate-type-badge ${l.status === 'approved' ? 'private' : l.status === 'rejected' ? 'nbfc-hfc' : 'psu'}`}>
-                                {l.status}
+                              <span className={`rate-type-badge ${['completed', 'disbursed', 'approved'].includes(l.status) ? 'private' : l.status === 'rejected' ? 'nbfc-hfc' : 'psu'}`}>
+                                {['completed', 'disbursed', 'approved'].includes(l.status) ? 'Completed' : l.status === 'rejected' ? 'Rejected' : 'In Progress'}
                               </span>
                             </td>
                             <td>
@@ -881,8 +883,8 @@ export default function AdminDashboard() {
               <div className="adm-controls-row">
                 <select className="adm-filter-dropdown" value={brokerStatusFilter} onChange={(e) => setBrokerStatusFilter(e.target.value)}>
                   <option value="all_partners">All Partners</option>
-                  <option value="approved">active</option>
-                  <option value="pending">inactive</option>
+                  <option value="active">active</option>
+                  <option value="inactive">inactive</option>
                 </select>
 
                 <div className="adm-search-input-wrapper">
@@ -933,7 +935,7 @@ export default function AdminDashboard() {
                             <td>
                               <div style={{ display: 'flex', gap: '4px' }}>
                                 <button onClick={() => setSelectedBroker(b)} className="settings-action-btn" style={{ padding: '4px 8px', fontSize: '.75rem', marginTop: 0 }}>View</button>
-                                {b.status === 'pending' && (
+                                {b.status !== 'active' && (
                                   <>
                                     <button onClick={() => updateBrokerStatus(b.brokerId, 'approved')} className="settings-action-btn" style={{ padding: '4px 8px', fontSize: '.75rem', marginTop: 0 }}>Approve</button>
                                     <button onClick={() => updateBrokerStatus(b.brokerId, 'rejected')} className="settings-action-btn" style={{ padding: '4px 8px', fontSize: '.75rem', marginTop: 0, background: '#ef4444' }}>Reject</button>
@@ -971,7 +973,7 @@ export default function AdminDashboard() {
                         <th>BORROWER</th>
                         <th>MOBILE</th>
                         <th>EMAIL</th>
-                        <th>CITY</th>
+                        <th>LOCATION</th>
                         <th>JOINED</th>
                         <th>LOANS</th>
                         <th>APPLIED TO</th>
@@ -989,12 +991,13 @@ export default function AdminDashboard() {
                             <td style={{ fontWeight: 600, color: '#0d2b6b' }}>{b.name}</td>
                             <td>{b.number}</td>
                             <td>{b.email}</td>
-                            <td>{b.district || b.state || "-"}</td>
+                            <td>{b.address || b.district || b.state || "-"}</td>
                             <td>{new Date(b.createdAt).toLocaleDateString()}</td>
                             <td>{b.loanCount || 0}</td>
                             <td>Direct</td>
-                            <td>-</td>
-                            <td>-</td>
+                            <td>
+                              <button onClick={() => setSelectedBorrower(b)} className="settings-action-btn" style={{ padding: '4px 10px', fontSize: '.75rem', marginTop: 0 }}>View</button>
+                            </td>
                           </tr>
                         ))
                       )}
@@ -1342,15 +1345,28 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <h4 style={{ margin: "10px 0 6px", borderBottom: "1px solid #E2E8F0", paddingBottom: "4px" }}>Linked Clients ({selectedBroker.clients?.length || 0})</h4>
+                <h4 style={{ margin: "10px 0 10px", borderBottom: "1px solid #E2E8F0", paddingBottom: "4px" }}>Linked Clients ({selectedBroker.clients?.length || 0})</h4>
                 {selectedBroker.clients && selectedBroker.clients.length > 0 ? (
-                  <ul style={{ listStyleType: "disc", paddingLeft: "20px", fontSize: ".78rem", display: "flex", flexDirection: "column", gap: "4px" }}>
-                    {selectedBroker.clients.map((c) => (
-                      <li key={c.id || c._id}>
-                        {c.name} ({c.email || c.number})
-                      </li>
-                    ))}
-                  </ul>
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: ".78rem", textAlign: "left" }}>
+                      <thead>
+                        <tr style={{ borderBottom: "1.5px solid #e2e8f0", color: "#64748b", textTransform: "uppercase" }}>
+                          <th style={{ padding: "8px 4px", fontWeight: 600 }}>Name</th>
+                          <th style={{ padding: "8px 4px", fontWeight: 600 }}>Email</th>
+                          <th style={{ padding: "8px 4px", fontWeight: 600 }}>Mobile</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedBroker.clients.map((c) => (
+                          <tr key={c.id || Math.random()} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                            <td style={{ padding: "8px 4px", fontWeight: 500, color: "#0f172a" }}>{c.name || "-"}</td>
+                            <td style={{ padding: "8px 4px", color: "#475569" }}>{c.email || "-"}</td>
+                            <td style={{ padding: "8px 4px", color: "#475569" }}>{c.number || "-"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 ) : (
                   <p style={{ fontSize: ".76rem", color: "var(--text2)" }}>No clients linked yet.</p>
                 )}
@@ -1414,6 +1430,7 @@ export default function AdminDashboard() {
                   <option value="sanction">Sanction</option>
                   <option value="legal">Legal</option>
                   <option value="disbursed">Disbursed</option>
+                  <option value="rejected">Rejected</option>
                 </select>
               </div>
 
@@ -1438,6 +1455,26 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* ═══ BORROWER MODAL ═══ */}
+      {selectedBorrower && (
+        <div className="cd-modal" onClick={() => setSelectedBorrower(null)}>
+          <div className="cd-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "600px" }}>
+            <div className="cd-modal-head">
+              <span style={{ fontSize: "1.15rem", fontWeight: 700, color: "#0d2b6b", letterSpacing: ".02em" }}>Borrower Details</span>
+              <button onClick={() => setSelectedBorrower(null)}>&times;</button>
+            </div>
+            <div className="cd-modal-body" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", fontSize: ".84rem" }}>
+              <div><strong>Name:</strong> {selectedBorrower.name}</div>
+              <div><strong>Email:</strong> {selectedBorrower.email}</div>
+              <div><strong>Mobile:</strong> {selectedBorrower.number}</div>
+              <div><strong>Location:</strong> {selectedBorrower.address || selectedBorrower.district || selectedBorrower.state || "-"}</div>
+              <div><strong>Joined:</strong> {new Date(selectedBorrower.createdAt).toLocaleDateString()}</div>
+              <div><strong>Loans:</strong> {selectedBorrower.loanCount || 0}</div>
+              <div><strong>Applied To:</strong> Direct</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ═══ CUSTOM ALERT MODAL ═══ */}
       {customAlert && (

@@ -23,6 +23,8 @@ export default function BorrowerStepper({ onBack }) {
     gender: '',
     address: '',
     pincode: '',
+    state: '',
+    district: '',
     loanAmount: '',
     tenure: '',
     loanPurpose: ''
@@ -104,6 +106,30 @@ export default function BorrowerStepper({ onBack }) {
     }
   };
 
+  const handlePincodeChange = async (e) => {
+    const val = e.target.value.replace(/\D/g, "");
+    setFormData(prev => ({ ...prev, pincode: val }));
+    
+    if (val.length === 6) {
+      try {
+        const res = await axios.get(`https://api.postalpincode.in/pincode/${val}`);
+        const data = res.data;
+        if (data && data[0].Status === "Success") {
+          const postOffice = data[0].PostOffice[0];
+          setFormData(prev => ({
+            ...prev,
+            district: postOffice.District,
+            state: postOffice.State
+          }));
+        }
+      } catch (err) {
+        console.error("Error fetching pincode details:", err);
+      }
+    } else {
+      setFormData(prev => ({ ...prev, district: '', state: '' }));
+    }
+  };
+
   const handleFinalSubmit = async () => {
     setSubmitError('');
     try {
@@ -115,6 +141,8 @@ export default function BorrowerStepper({ onBack }) {
         gender: formData.gender,
         address: formData.address,
         pincode: formData.pincode,
+        state: formData.state,
+        district: formData.district,
         password: password,
         loanAmount: formData.loanAmount,
         tenure: formData.tenure,
@@ -420,9 +448,26 @@ export default function BorrowerStepper({ onBack }) {
                   <label>Pincode <span style={{color: 'red'}}>*</span></label>
                   <div className="input-wrap">
                     <span className="icon">📮</span>
-                    <input type="text" placeholder="6-digit pincode" maxLength="6" value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value})} />
+                    <input type="text" placeholder="6-digit pincode" maxLength="6" value={formData.pincode} onChange={handlePincodeChange} />
                   </div>
                 </div>
+
+                {(formData.state || formData.district) && (
+                  <div className="two-cols">
+                    <div className="field">
+                      <label>District</label>
+                      <div className="input-wrap">
+                        <input type="text" value={formData.district} readOnly style={{ backgroundColor: '#f1f5f9', cursor: 'not-allowed', color: '#64748b' }} />
+                      </div>
+                    </div>
+                    <div className="field">
+                      <label>State</label>
+                      <div className="input-wrap">
+                        <input type="text" value={formData.state} readOnly style={{ backgroundColor: '#f1f5f9', cursor: 'not-allowed', color: '#64748b' }} />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="field">
                   <label>Loan Amount <span style={{color: 'red'}}>*</span></label>
