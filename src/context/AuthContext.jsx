@@ -9,7 +9,7 @@ export function AuthProvider({ children }) {
   // 🔥 Sync frontend auth with backend session
   const fetchProfile = async () => {
     try {
-      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/auth/profile", {
+      const res = await fetch("/api/auth/profile", {
         credentials: "include",
       });
 
@@ -41,7 +41,7 @@ export function AuthProvider({ children }) {
 
   // Called on logout
   async function logout() {
-    await fetch("https://palevioletred-ape-449755.hostingersite.com/api/auth/logout", {
+    await fetch("/api/auth/logout", {
       method: "POST",
       credentials: "include",
     });

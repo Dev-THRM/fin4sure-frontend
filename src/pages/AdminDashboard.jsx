@@ -74,7 +74,7 @@ export default function AdminDashboard() {
 
   async function fetchStats() {
     try {
-      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/stats", {
+      const res = await fetch("/api/admin/stats", {
         credentials: "include",
       });
       if (!res.ok) return navigate("/login");
@@ -86,7 +86,7 @@ export default function AdminDashboard() {
 
   async function fetchBrokers() {
     try {
-      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/brokers", {
+      const res = await fetch("/api/admin/brokers", {
         credentials: "include",
       });
       if (res.ok) setBrokers(await res.json());
@@ -98,7 +98,7 @@ export default function AdminDashboard() {
   async function fetchLeads() {
     try {
       const res = await fetch(
-        `https://palevioletred-ape-449755.hostingersite.com/api/admin/leads`,
+        `/api/admin/leads`,
         { credentials: "include" }
       );
       if (res.ok) setLeads(await res.json());
@@ -109,7 +109,7 @@ export default function AdminDashboard() {
 
   async function fetchBorrowers() {
     try {
-      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/clients", {
+      const res = await fetch("/api/admin/clients", {
         credentials: "include",
       });
       if (res.ok) setBorrowers(await res.json());
@@ -120,7 +120,7 @@ export default function AdminDashboard() {
 
   async function fetchTimeline() {
     try {
-      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/timeline", {
+      const res = await fetch("/api/admin/timeline", {
         credentials: "include",
       });
       if (res.ok) setTimeline(await res.json());
@@ -131,7 +131,7 @@ export default function AdminDashboard() {
 
   async function fetchLenderRates() {
     try {
-      const res = await fetch(`https://palevioletred-ape-449755.hostingersite.com/api/admin/lender-rates?loanTypeShortId=${selectedLoanCategory}`, {
+      const res = await fetch(`/api/admin/lender-rates?loanTypeShortId=${selectedLoanCategory}`, {
         credentials: "include",
       });
       if (res.ok) setRates(await res.json());
@@ -142,7 +142,7 @@ export default function AdminDashboard() {
 
   async function saveLenderRates() {
     try {
-      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/lender-rates", {
+      const res = await fetch("/api/admin/lender-rates", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -159,7 +159,7 @@ export default function AdminDashboard() {
 
   async function fetchSettings() {
     try {
-      const resRM = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/relationship-manager", {
+      const resRM = await fetch("/api/admin/relationship-manager", {
         credentials: "include",
       });
       if (resRM.ok) {
@@ -171,7 +171,7 @@ export default function AdminDashboard() {
         setRmAvailability(data.availability || "");
       }
 
-      const resAdmin = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/admin-access-details", {
+      const resAdmin = await fetch("/api/admin/admin-access-details", {
         credentials: "include",
       });
       if (resAdmin.ok) {
@@ -181,7 +181,7 @@ export default function AdminDashboard() {
         setAdminSessionStatus(data.sessionStatus || "Active");
       }
 
-      const resPlat = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/platform-settings", {
+      const resPlat = await fetch("/api/admin/platform-settings", {
         credentials: "include",
       });
       if (resPlat.ok) {
@@ -200,7 +200,7 @@ export default function AdminDashboard() {
 
   async function handleSaveRM() {
     try {
-      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/relationship-manager", {
+      const res = await fetch("/api/admin/relationship-manager", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -222,7 +222,7 @@ export default function AdminDashboard() {
 
   async function handleSaveContent() {
     try {
-      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/platform-settings", {
+      const res = await fetch("/api/admin/platform-settings", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -241,7 +241,7 @@ export default function AdminDashboard() {
 
   async function handleApplyStats() {
     try {
-      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/platform-settings", {
+      const res = await fetch("/api/admin/platform-settings", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -262,7 +262,7 @@ export default function AdminDashboard() {
 
   async function updateBrokerStatus(brokerId, status) {
     try {
-      await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/broker-status", {
+      await fetch("/api/admin/broker-status", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -277,7 +277,7 @@ export default function AdminDashboard() {
 
   async function updateLeadStatus(leadId, status) {
     try {
-      await fetch("https://palevioletred-ape-449755.hostingersite.com/api/admin/lead-status", {
+      await fetch("/api/admin/lead-status", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -302,7 +302,7 @@ export default function AdminDashboard() {
 
   async function saveEditLead() {
     try {
-      const res = await fetch(`https://palevioletred-ape-449755.hostingersite.com/api/admin/leads/${editingLead.id}`, {
+      const res = await fetch(`/api/admin/leads/${editingLead.id}`, {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -356,7 +356,7 @@ export default function AdminDashboard() {
       setCustomAlert({ message: "Please select a valid date range", type: "warning" });
       return;
     }
-    const url = `https://palevioletred-ape-449755.hostingersite.com/api/admin/export?type=${type}&from=${from}&to=${to}&format=${format}`;
+    const url = `/api/admin/export?type=${type}&from=${from}&to=${to}&format=${format}`;
     window.open(url, "_blank");
   }
 

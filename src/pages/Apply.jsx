@@ -25,7 +25,7 @@ export default function Apply() {
   useEffect(() => {
     const fetchLoanTypes = async () => {
       try {
-        const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/loan-types");
+        const res = await fetch("/api/loan-types");
         const data = await res.json();
         if (data.success) {
           setLoanTypes(data.data);
@@ -61,7 +61,7 @@ export default function Apply() {
       setLoading(true);
 
       const res = await fetch(
-        "https://palevioletred-ape-449755.hostingersite.com/api/client/apply-loan",
+        "/api/client/apply-loan",
         {
           method: "POST",
           credentials: "include",

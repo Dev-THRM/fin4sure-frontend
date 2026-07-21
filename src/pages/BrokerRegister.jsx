@@ -77,7 +77,7 @@ export default function BrokerRegistration() {
       setLoading(true);
       setOtpError("");
 
-      const res = await fetch(`https://palevioletred-ape-449755.hostingersite.com/api/auth/send-otp`, {
+      const res = await fetch(`/api/auth/send-otp`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -109,7 +109,7 @@ export default function BrokerRegistration() {
       setOtpError("");
       setLoading(true);
 
-      const res = await fetch(`https://palevioletred-ape-449755.hostingersite.com/api/auth/verify-otp`, {
+      const res = await fetch(`/api/auth/verify-otp`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -163,7 +163,7 @@ export default function BrokerRegistration() {
         district,
       };
 
-      const res = await fetch(`https://palevioletred-ape-449755.hostingersite.com/api/auth/signup`, {
+      const res = await fetch(`/api/auth/signup`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

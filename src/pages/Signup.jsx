@@ -32,7 +32,7 @@ export default function Signup() {
   const [resendTimer, setResendTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
-  const API_BASE = "https://palevioletred-ape-449755.hostingersite.com/api/auth";
+  const API_BASE = "/api/auth";
 
   // ---------------- RESEND TIMER LOGIC ----------------
   useEffect(() => {

@@ -124,7 +124,7 @@ export default function PartnerStepper({ onBack }) {
                 pincode: "000000"
             };
 
-            const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/auth/signup", {
+            const res = await fetch("/api/auth/signup", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",

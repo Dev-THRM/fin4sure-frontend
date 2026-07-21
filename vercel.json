@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://palevioletred-ape-449755.hostingersite.com/api/$1" },
     { "source": "/(.*)", "destination": "/" }
   ]
 }

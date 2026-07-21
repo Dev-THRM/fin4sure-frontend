@@ -47,7 +47,7 @@ export default function ClientDashboard() {
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/auth/profile", {
+      const res = await fetch("/api/auth/profile", {
         method: "GET",
         headers: { "content-type": "application/json" },
         credentials: "include",
@@ -74,7 +74,7 @@ export default function ClientDashboard() {
 
   const fetchApplications = async () => {
     try {
-      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/client/my-applications", {
+      const res = await fetch("/api/client/my-applications", {
         method: "GET",
         headers: { "content-type": "application/json" },
         credentials: "include",
@@ -96,7 +96,7 @@ export default function ClientDashboard() {
         return;
       }
       const res = await fetch(
-        "https://palevioletred-ape-449755.hostingersite.com/api/auth/update-number-otp",
+        "/api/auth/update-number-otp",
         {
           method: "POST",
           credentials: "include",
@@ -121,7 +121,7 @@ export default function ClientDashboard() {
     }
     try {
       const res = await fetch(
-        "https://palevioletred-ape-449755.hostingersite.com/api/auth/verify-update-number-otp",
+        "/api/auth/verify-update-number-otp",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -145,7 +145,7 @@ export default function ClientDashboard() {
       return;
     }
     try {
-      const res = await fetch("https://palevioletred-ape-449755.hostingersite.com/api/auth/profileupdate", {
+      const res = await fetch("/api/auth/profileupdate", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         credentials: "include",
