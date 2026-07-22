@@ -58,6 +58,13 @@ export default function Apply() {
     fetchLenders();
   }, [productId]);
 
+  const getRateForLoanType = (lender, selectedTypeId) => {
+    if (!lender.loanRates || lender.loanRates.length === 0) return 'N/A';
+    const rateData = lender.loanRates.find(r => r.type && r.type.short_id === selectedTypeId);
+    if (rateData && rateData.min_rate) return rateData.min_rate;
+    return 'N/A';
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (loading) return;
@@ -267,47 +274,47 @@ export default function Apply() {
               </div>
 
               {/* Preferred Lender Row */}
-              <div className="apply-form-group">
-                <label>Preferred Lenders (Select at least 2) *</label>
-                <div className="bl-lender-list" style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '250px', overflowY: 'auto', paddingRight: '4px' }}>
+              <div className="apply-form-group" style={{ marginTop: '24px' }}>
+                <label style={{ fontSize: '1.05rem', fontWeight: '700', color: '#1E3A8A' }}>
+                  Preferred Lenders Preference (PSU & Private match)
+                </label>
+                <div style={{ fontSize: '0.9rem', color: '#059669', fontWeight: '600', marginBottom: '8px' }}>
+                  Select All suitable lenders
+                </div>
+                <div style={{ 
+                  background: '#F0FDF4', 
+                  border: '1px solid #A7F3D0', 
+                  borderRadius: '12px', 
+                  padding: '16px',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '10px'
+                }}>
                   {lenders.map((lender) => {
                     const isSel = selectedLenders.includes(lender.id);
+                    const rate = getRateForLoanType(lender, product);
                     return (
                       <div 
                         key={lender.id} 
-                        className={`bl-lender ${isSel ? 'sel' : ''}`} 
                         onClick={() => {
                           setSelectedLenders(prev => 
                             prev.includes(lender.id) ? prev.filter(id => id !== lender.id) : [...prev, lender.id]
                           );
                         }}
                         style={{ 
-                          display: 'flex', alignItems: 'center', padding: '12px 16px', 
-                          border: `1.5px solid ${isSel ? '#1D4ED8' : '#e2e8f0'}`, 
-                          borderRadius: '12px', cursor: 'pointer', background: isSel ? '#EFF6FF' : '#fff',
-                          transition: 'all 0.2s'
+                          display: 'inline-flex', alignItems: 'center', 
+                          padding: '6px 14px', 
+                          border: `1px solid ${isSel ? '#059669' : '#6EE7B7'}`, 
+                          borderRadius: '24px', cursor: 'pointer', 
+                          background: isSel ? '#059669' : '#ffffff',
+                          color: isSel ? '#ffffff' : '#1E3A8A',
+                          fontSize: '0.85rem',
+                          fontWeight: '600',
+                          transition: 'all 0.2s',
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
                         }}
                       >
-                        <div style={{ 
-                          width: '20px', height: '20px', borderRadius: '5px', 
-                          border: `1.5px solid ${isSel ? '#1D4ED8' : '#cbd5e1'}`,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          marginRight: '12px', background: isSel ? '#1D4ED8' : '#fff',
-                          color: '#fff', fontSize: '12px', fontWeight: 'bold'
-                        }}>
-                          {isSel ? '✓' : ''}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                          {lender.logo ? (
-                            <img src={lender.logo} alt={lender.name} style={{ width: '20px', height: '20px', marginRight: '8px', objectFit: 'contain' }} />
-                          ) : (
-                            <span style={{ marginRight: '8px' }}>🏦</span>
-                          )}
-                          <span style={{ fontWeight: '600', color: 'var(--navy)' }}>{lender.name}</span>
-                        </div>
-                        <div style={{ fontSize: '.75rem', color: '#64748b', fontWeight: '600' }}>
-                          {lender.type === 'psu' ? 'PSU' : 'Private'}
-                        </div>
+                        {lender.name} {rate !== 'N/A' ? `(${rate}%)` : ''}
                       </div>
                     );
                   })}
