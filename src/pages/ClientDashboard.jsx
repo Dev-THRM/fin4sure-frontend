@@ -296,10 +296,7 @@ export default function ClientDashboard() {
                     applications.map((app) => {
                       const statusName = app.Status?.name?.toLowerCase() || 'applied';
                       const steps = ['applied' , 'docs', 'credit', 'submitted', 'sanction', 'legal', 'disbursed'];
-                      let currentStepIndex = steps.indexOf(statusName) !== -1 ? steps.indexOf(statusName) : 0;
-                      if (statusName === 'applied') {
-                        currentStepIndex = 1;
-                      }
+                      let currentStepIndex = steps.indexOf(statusName) !== -1 ? steps.indexOf(statusName) + 1 : 1;
                       
                       return (
                       <div key={app.id || app.application_no} className="cdl-card">
