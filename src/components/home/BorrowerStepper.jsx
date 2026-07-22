@@ -15,6 +15,11 @@ export default function BorrowerStepper({ onBack }) {
   const [loanTypesData, setLoanTypesData] = useState([]);
   const [lendersData, setLendersData] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  const [statesList, setStatesList] = useState([]);
+  const [districtsList, setDistrictsList] = useState([]);
+  const [citiesList, setCitiesList] = useState([]);
+
   const [formData, setFormData] = useState({
     name: '',
     mob_no: '',
@@ -25,6 +30,7 @@ export default function BorrowerStepper({ onBack }) {
     pincode: '',
     state: '',
     district: '',
+    city: '',
     loanAmount: '',
     tenure: '',
     loanPurpose: ''
@@ -59,9 +65,10 @@ export default function BorrowerStepper({ onBack }) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [loanTypesRes, lendersRes] = await Promise.all([
+        const [loanTypesRes, lendersRes, statesRes] = await Promise.all([
           axios.get('/api/loan-types'),
-          axios.get('/api/lenders')
+          axios.get('/api/lenders'),
+          axios.get('/api/location/states')
         ]);
         
         if (loanTypesRes.data.success) {
@@ -79,6 +86,10 @@ export default function BorrowerStepper({ onBack }) {
         
         if (lendersRes.data.success) {
           setLendersData(lendersRes.data.data);
+        }
+
+        if (statesRes.data.success) {
+          setStatesList(statesRes.data.data);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -132,19 +143,56 @@ export default function BorrowerStepper({ onBack }) {
         const res = await axios.get(`https://api.postalpincode.in/pincode/${val}`);
         const data = res.data;
         if (data && data[0].Status === "Success") {
-          const postOffice = data[0].PostOffice[0];
-          setFormData(prev => ({
-            ...prev,
-            district: postOffice.District,
-            state: postOffice.State
-          }));
+          // We no longer auto-set state and district to allow user to select from fetched db lists
         }
       } catch (err) {
         console.error("Error fetching pincode details:", err);
       }
     } else {
-      setFormData(prev => ({ ...prev, district: '', state: '' }));
+      // clear
     }
+  };
+
+  const handleStateChange = async (e) => {
+    const stateId = e.target.value;
+    const selectedState = statesList.find(s => s.id === parseInt(stateId));
+    setFormData(prev => ({ ...prev, state: selectedState ? selectedState.name : '', district: '', city: '' }));
+    
+    if (stateId) {
+      try {
+        const res = await axios.get(`/api/location/districts/${stateId}`);
+        if (res.data.success) setDistrictsList(res.data.data);
+        setCitiesList([]);
+      } catch (err) {
+        console.error("Error fetching districts:", err);
+      }
+    } else {
+      setDistrictsList([]);
+      setCitiesList([]);
+    }
+  };
+
+  const handleDistrictChange = async (e) => {
+    const districtId = e.target.value;
+    const selectedDistrict = districtsList.find(d => d.id === parseInt(districtId));
+    setFormData(prev => ({ ...prev, district: selectedDistrict ? selectedDistrict.name : '', city: '' }));
+
+    if (districtId) {
+      try {
+        const res = await axios.get(`/api/location/cities/${districtId}`);
+        if (res.data.success) setCitiesList(res.data.data);
+      } catch (err) {
+        console.error("Error fetching cities:", err);
+      }
+    } else {
+      setCitiesList([]);
+    }
+  };
+
+  const handleCityChange = (e) => {
+    const cityId = e.target.value;
+    const selectedCity = citiesList.find(c => c.id === parseInt(cityId));
+    setFormData(prev => ({ ...prev, city: selectedCity ? selectedCity.name : '' }));
   };
 
   const handleFinalSubmit = async () => {
@@ -160,6 +208,7 @@ export default function BorrowerStepper({ onBack }) {
         pincode: formData.pincode,
         state: formData.state,
         district: formData.district,
+        city: formData.city,
         password: password,
         loanAmount: formData.loanAmount,
         tenure: formData.tenure,
@@ -220,6 +269,7 @@ export default function BorrowerStepper({ onBack }) {
     /^[0-9]{6}$/.test(formData.pincode) && 
     formData.district.trim() !== '' &&
     formData.state.trim() !== '' &&
+    formData.city.trim() !== '' &&
     formData.loanAmount.trim() !== '' && 
     formData.tenure.trim() !== '' && 
     formData.loanPurpose.trim() !== '';
@@ -545,15 +595,30 @@ export default function BorrowerStepper({ onBack }) {
 
                 <div className="two-cols" style={{ display: 'flex', gap: '12px' }}>
                   <div className="field" style={{ flex: 1 }}>
-                    <label>City/District <span style={{color: 'red'}}>*</span></label>
+                    <label>State <span style={{color: 'red'}}>*</span></label>
                     <div className="input-wrap">
-                      <input type="text" placeholder="Enter City" value={formData.district} onChange={e => setFormData({...formData, district: e.target.value})} />
+                      <select style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', outline: 'none' }} value={statesList.find(s => s.name === formData.state)?.id || ''} onChange={handleStateChange}>
+                        <option value="">Select State</option>
+                        {statesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      </select>
                     </div>
                   </div>
                   <div className="field" style={{ flex: 1 }}>
-                    <label>State <span style={{color: 'red'}}>*</span></label>
+                    <label>District <span style={{color: 'red'}}>*</span></label>
                     <div className="input-wrap">
-                      <input type="text" placeholder="Enter State" value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} />
+                      <select style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', outline: 'none' }} value={districtsList.find(d => d.name === formData.district)?.id || ''} onChange={handleDistrictChange} disabled={!formData.state}>
+                        <option value="">Select District</option>
+                        {districtsList.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="field" style={{ flex: 1 }}>
+                    <label>City <span style={{color: 'red'}}>*</span></label>
+                    <div className="input-wrap">
+                      <select style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', outline: 'none' }} value={citiesList.find(c => c.name === formData.city)?.id || ''} onChange={handleCityChange} disabled={!formData.district}>
+                        <option value="">Select City</option>
+                        {citiesList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      </select>
                     </div>
                   </div>
                 </div>
