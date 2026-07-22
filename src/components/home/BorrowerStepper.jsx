@@ -19,6 +19,7 @@ export default function BorrowerStepper({ onBack }) {
   const [statesList, setStatesList] = useState([]);
   const [districtsList, setDistrictsList] = useState([]);
   const [citiesList, setCitiesList] = useState([]);
+  const [pincodeNotFound, setPincodeNotFound] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -142,6 +143,7 @@ export default function BorrowerStepper({ onBack }) {
       try {
         const res = await axios.get(`/api/location/pincode/${val}`);
         if (res.data.success) {
+          setPincodeNotFound(false);
           const { city, district, state } = res.data.data;
           
           // Fetch districts for the state and cities for the district to populate dropdowns
@@ -162,8 +164,15 @@ export default function BorrowerStepper({ onBack }) {
         }
       } catch (err) {
         console.error("Error fetching pincode details from DB:", err);
+        if (err.response && err.response.status === 404) {
+          setPincodeNotFound(true);
+          setFormData(prev => ({ ...prev, state: '', district: '', city: '' }));
+          setDistrictsList([]);
+          setCitiesList([]);
+        }
       }
     } else {
+      setPincodeNotFound(false);
       setFormData(prev => ({ ...prev, state: '', district: '', city: '' }));
       setDistrictsList([]);
       setCitiesList([]);
@@ -614,19 +623,27 @@ export default function BorrowerStepper({ onBack }) {
                   <div className="field" style={{ flex: 1 }}>
                     <label>City <span style={{color: 'red'}}>*</span></label>
                     <div className="input-wrap">
-                      <select style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', outline: 'none' }} value={citiesList.find(c => c.name === formData.city)?.id || ''} onChange={handleCityChange} disabled={!formData.district}>
-                        <option value="">Select City</option>
-                        {citiesList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                      </select>
+                      {pincodeNotFound ? (
+                        <input type="text" placeholder="Enter City" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} />
+                      ) : (
+                        <select style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', outline: 'none' }} value={citiesList.find(c => c.name === formData.city)?.id || ''} onChange={handleCityChange} disabled={!formData.district}>
+                          <option value="">Select City</option>
+                          {citiesList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        </select>
+                      )}
                     </div>
                   </div>
                   <div className="field" style={{ flex: 1 }}>
                     <label>District <span style={{color: 'red'}}>*</span></label>
                     <div className="input-wrap">
-                      <select style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', outline: 'none' }} value={districtsList.find(d => d.name === formData.district)?.id || ''} onChange={handleDistrictChange} disabled={!formData.state}>
-                        <option value="">Select District</option>
-                        {districtsList.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                      </select>
+                      {pincodeNotFound ? (
+                        <input type="text" placeholder="Enter District" value={formData.district} onChange={e => setFormData({...formData, district: e.target.value})} />
+                      ) : (
+                        <select style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', outline: 'none' }} value={districtsList.find(d => d.name === formData.district)?.id || ''} onChange={handleDistrictChange} disabled={!formData.state}>
+                          <option value="">Select District</option>
+                          {districtsList.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                        </select>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -634,10 +651,14 @@ export default function BorrowerStepper({ onBack }) {
                 <div className="field">
                   <label>State <span style={{color: 'red'}}>*</span></label>
                   <div className="input-wrap">
-                    <select style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', outline: 'none' }} value={statesList.find(s => s.name === formData.state)?.id || ''} onChange={handleStateChange}>
-                      <option value="">Select State</option>
-                      {statesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                    </select>
+                    {pincodeNotFound ? (
+                      <input type="text" placeholder="Enter State" value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} />
+                    ) : (
+                      <select style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', outline: 'none' }} value={statesList.find(s => s.name === formData.state)?.id || ''} onChange={handleStateChange}>
+                        <option value="">Select State</option>
+                        {statesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      </select>
+                    )}
                   </div>
                 </div>
 
