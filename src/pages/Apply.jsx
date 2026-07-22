@@ -14,7 +14,7 @@ export default function Apply() {
   const [product, setProduct] = useState(productId || "");
   const [loanAmount, setLoanAmount] = useState("");
   const [tenure, setTenure] = useState("");
-  const [lenderId, setLenderId] = useState("");
+  const [selectedLenders, setSelectedLenders] = useState([]);
   const [loanPurpose, setLoanPurpose] = useState("");
   const [loanTypes, setLoanTypes] = useState([]);
   const [lenders, setLenders] = useState([]);
@@ -62,6 +62,11 @@ export default function Apply() {
     e.preventDefault();
     if (loading) return;
 
+    if (selectedLenders.length < 2) {
+      setError("Please select at least 2 preferred lenders.");
+      return;
+    }
+
     if (!product) {
       setError("Please select a loan type.");
       return;
@@ -89,7 +94,7 @@ export default function Apply() {
             product,
             loanAmount: parseFloat(loanAmount),
             tenure: parseInt(tenure),
-            lender_id: lenderId ? parseInt(lenderId) : null,
+            selectedLenders: selectedLenders,
             loan_purpose: loanPurpose
           }),
         }
@@ -247,7 +252,7 @@ export default function Apply() {
 
               {/* Loan Purpose Row */}
               <div className="apply-form-group">
-                <label htmlFor="loanPurpose">Loan Purpose (Optional)</label>
+                <label htmlFor="loanPurpose">Loan Purpose *</label>
                 <div className="input-wrap">
                   <span className="icon">📝</span>
                   <input
@@ -256,27 +261,56 @@ export default function Apply() {
                     placeholder="e.g. Home Renovation, Medical Emergency"
                     value={loanPurpose}
                     onChange={(e) => setLoanPurpose(e.target.value)}
+                    required
                   />
                 </div>
               </div>
 
               {/* Preferred Lender Row */}
               <div className="apply-form-group">
-                <label htmlFor="lenderId">Preferred Lender (Optional)</label>
-                <div className="input-wrap" style={{ padding: "0 6px" }}>
-                  <select
-                    id="lenderId"
-                    value={lenderId}
-                    onChange={(e) => setLenderId(e.target.value)}
-                    style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".92rem", fontWeight: "600", color: "var(--navy)" }}
-                  >
-                    <option value="">No Preference / Auto Assign</option>
-                    {lenders.map((lender) => (
-                      <option key={lender.id} value={lender.id}>
-                        {lender.name}
-                      </option>
-                    ))}
-                  </select>
+                <label>Preferred Lenders (Select at least 2) *</label>
+                <div className="bl-lender-list" style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '250px', overflowY: 'auto', paddingRight: '4px' }}>
+                  {lenders.map((lender) => {
+                    const isSel = selectedLenders.includes(lender.id);
+                    return (
+                      <div 
+                        key={lender.id} 
+                        className={`bl-lender ${isSel ? 'sel' : ''}`} 
+                        onClick={() => {
+                          setSelectedLenders(prev => 
+                            prev.includes(lender.id) ? prev.filter(id => id !== lender.id) : [...prev, lender.id]
+                          );
+                        }}
+                        style={{ 
+                          display: 'flex', alignItems: 'center', padding: '12px 16px', 
+                          border: `1.5px solid ${isSel ? '#1D4ED8' : '#e2e8f0'}`, 
+                          borderRadius: '12px', cursor: 'pointer', background: isSel ? '#EFF6FF' : '#fff',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        <div style={{ 
+                          width: '20px', height: '20px', borderRadius: '5px', 
+                          border: `1.5px solid ${isSel ? '#1D4ED8' : '#cbd5e1'}`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          marginRight: '12px', background: isSel ? '#1D4ED8' : '#fff',
+                          color: '#fff', fontSize: '12px', fontWeight: 'bold'
+                        }}>
+                          {isSel ? '✓' : ''}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                          {lender.logo ? (
+                            <img src={lender.logo} alt={lender.name} style={{ width: '20px', height: '20px', marginRight: '8px', objectFit: 'contain' }} />
+                          ) : (
+                            <span style={{ marginRight: '8px' }}>🏦</span>
+                          )}
+                          <span style={{ fontWeight: '600', color: 'var(--navy)' }}>{lender.name}</span>
+                        </div>
+                        <div style={{ fontSize: '.75rem', color: '#64748b', fontWeight: '600' }}>
+                          {lender.type === 'psu' ? 'PSU' : 'Private'}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
