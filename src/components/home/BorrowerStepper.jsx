@@ -140,16 +140,33 @@ export default function BorrowerStepper({ onBack }) {
     
     if (val.length === 6) {
       try {
-        const res = await axios.get(`https://api.postalpincode.in/pincode/${val}`);
-        const data = res.data;
-        if (data && data[0].Status === "Success") {
-          // We no longer auto-set state and district to allow user to select from fetched db lists
+        const res = await axios.get(`/api/location/pincode/${val}`);
+        if (res.data.success) {
+          const { city, district, state } = res.data.data;
+          
+          // Fetch districts for the state and cities for the district to populate dropdowns
+          const [districtsRes, citiesRes] = await Promise.all([
+            axios.get(`/api/location/districts/${state.id}`),
+            axios.get(`/api/location/cities/${district.id}`)
+          ]);
+
+          if (districtsRes.data.success) setDistrictsList(districtsRes.data.data);
+          if (citiesRes.data.success) setCitiesList(citiesRes.data.data);
+
+          setFormData(prev => ({
+            ...prev,
+            state: state.name,
+            district: district.name,
+            city: city.name
+          }));
         }
       } catch (err) {
-        console.error("Error fetching pincode details:", err);
+        console.error("Error fetching pincode details from DB:", err);
       }
     } else {
-      // clear
+      setFormData(prev => ({ ...prev, state: '', district: '', city: '' }));
+      setDistrictsList([]);
+      setCitiesList([]);
     }
   };
 
@@ -595,11 +612,11 @@ export default function BorrowerStepper({ onBack }) {
 
                 <div className="two-cols" style={{ display: 'flex', gap: '12px' }}>
                   <div className="field" style={{ flex: 1 }}>
-                    <label>State <span style={{color: 'red'}}>*</span></label>
+                    <label>City <span style={{color: 'red'}}>*</span></label>
                     <div className="input-wrap">
-                      <select style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', outline: 'none' }} value={statesList.find(s => s.name === formData.state)?.id || ''} onChange={handleStateChange}>
-                        <option value="">Select State</option>
-                        {statesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      <select style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', outline: 'none' }} value={citiesList.find(c => c.name === formData.city)?.id || ''} onChange={handleCityChange} disabled={!formData.district}>
+                        <option value="">Select City</option>
+                        {citiesList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                       </select>
                     </div>
                   </div>
@@ -612,14 +629,15 @@ export default function BorrowerStepper({ onBack }) {
                       </select>
                     </div>
                   </div>
-                  <div className="field" style={{ flex: 1 }}>
-                    <label>City <span style={{color: 'red'}}>*</span></label>
-                    <div className="input-wrap">
-                      <select style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', outline: 'none' }} value={citiesList.find(c => c.name === formData.city)?.id || ''} onChange={handleCityChange} disabled={!formData.district}>
-                        <option value="">Select City</option>
-                        {citiesList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                      </select>
-                    </div>
+                </div>
+
+                <div className="field">
+                  <label>State <span style={{color: 'red'}}>*</span></label>
+                  <div className="input-wrap">
+                    <select style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', outline: 'none' }} value={statesList.find(s => s.name === formData.state)?.id || ''} onChange={handleStateChange}>
+                      <option value="">Select State</option>
+                      {statesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
                   </div>
                 </div>
 
