@@ -32,6 +32,23 @@ export default function BorrowerStepper({ onBack }) {
   
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const passwordCriteria = [
+    { test: (pw) => pw.length >= 8, message: "At least 8 characters" },
+    { test: (pw) => /[A-Z]/.test(pw), message: "At least 1 uppercase letter" },
+    { test: (pw) => /[0-9]/.test(pw), message: "At least 1 number" },
+    { test: (pw) => /[!@#$%^&*(),.?":{}|<>]/.test(pw), message: "At least 1 special character" },
+  ];
+
+  const validatePassword = (pw) =>
+    passwordCriteria.map((c) => ({
+      message: c.message,
+      valid: c.test(pw),
+    }));
+
+  const isPasswordStrong = () => validatePassword(password).every((c) => c.valid);
 
   const [showOtp, setShowOtp] = useState(false);
   const [otpInput, setOtpInput] = useState('');
@@ -192,7 +209,7 @@ export default function BorrowerStepper({ onBack }) {
     formData.name.trim() !== '' && 
     isValidMobile(formData.mob_no) && 
     isValidEmail(formData.email) && 
-    password.trim() !== '' && 
+    isPasswordStrong() && 
     password === confirmPassword;
 
   const isMoreDetailsValid = 
@@ -374,29 +391,67 @@ export default function BorrowerStepper({ onBack }) {
 
                 <div className="field" style={{ marginTop: '20px' }}>
                   <label>Password <span style={{color: 'red'}}>*</span></label>
-                  <div className="input-wrap">
+                  <div className="input-wrap" style={{ position: 'relative' }}>
                     <span className="icon">🔒</span>
                     <input 
-                      type="password" 
+                      type={showPassword ? "text" : "password"} 
                       placeholder="Enter password" 
                       value={password}
                       onChange={e => setPassword(e.target.value)} 
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{ background: "none", border: "none", color: "var(--navy)", cursor: "pointer", position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", fontSize: ".76rem", fontWeight: 700 }}
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </button>
                   </div>
+                  {password && (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "8px" }}>
+                      {validatePassword(password).map((rule, idx) => (
+                        <span
+                          key={idx}
+                          style={{
+                            fontSize: ".62rem",
+                            padding: "2px 8px",
+                            borderRadius: "20px",
+                            border: "1px solid",
+                            borderColor: rule.valid ? "#A7F3D0" : "#FCA5A5",
+                            backgroundColor: rule.valid ? "#ECFDF5" : "#FEF2F2",
+                            color: rule.valid ? "#065F46" : "#991B1B",
+                          }}
+                        >
+                          {rule.message}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="field">
                   <label>Confirm Password <span style={{color: 'red'}}>*</span></label>
-                  <div className="input-wrap">
+                  <div className="input-wrap" style={{ position: 'relative' }}>
                     <span className="icon">🔒</span>
                     <input 
-                      type="password" 
+                      type={showConfirmPassword ? "text" : "password"} 
                       placeholder="Confirm password" 
                       value={confirmPassword}
                       onChange={e => setConfirmPassword(e.target.value)} 
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      style={{ background: "none", border: "none", color: "var(--navy)", cursor: "pointer", position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", fontSize: ".76rem", fontWeight: 700 }}
+                    >
+                      {showConfirmPassword ? "Hide" : "Show"}
+                    </button>
                   </div>
-                  {confirmPassword && password !== confirmPassword && <div style={{ color: 'red', fontSize: '0.75rem', marginTop: '4px' }}>Passwords do not match.</div>}
+                  {confirmPassword && (
+                    <div style={{ color: password === confirmPassword ? "green" : "red", fontSize: '0.75rem', marginTop: '4px', fontWeight: 700 }}>
+                      {password === confirmPassword ? "✓ Passwords match" : "✗ Passwords do not match"}
+                    </div>
+                  )}
                 </div>
 
                 {!showOtp ? (
