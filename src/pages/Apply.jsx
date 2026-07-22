@@ -14,7 +14,10 @@ export default function Apply() {
   const [product, setProduct] = useState(productId || "");
   const [loanAmount, setLoanAmount] = useState("");
   const [tenure, setTenure] = useState("");
+  const [lenderId, setLenderId] = useState("");
+  const [loanPurpose, setLoanPurpose] = useState("");
   const [loanTypes, setLoanTypes] = useState([]);
+  const [lenders, setLenders] = useState([]);
 
   // UI Status State
   const [error, setError] = useState("");
@@ -38,7 +41,21 @@ export default function Apply() {
         console.error("Error fetching loan types:", err);
       }
     };
+
+    const fetchLenders = async () => {
+      try {
+        const res = await fetch("/api/lenders");
+        const data = await res.json();
+        if (data.success) {
+          setLenders(data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching lenders:", err);
+      }
+    };
+
     fetchLoanTypes();
+    fetchLenders();
   }, [productId]);
 
   const handleSubmit = async (e) => {
@@ -72,6 +89,8 @@ export default function Apply() {
             product,
             loanAmount: parseFloat(loanAmount),
             tenure: parseInt(tenure),
+            lender_id: lenderId ? parseInt(lenderId) : null,
+            loan_purpose: loanPurpose
           }),
         }
       );
@@ -223,6 +242,41 @@ export default function Apply() {
                       required
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Loan Purpose Row */}
+              <div className="apply-form-group">
+                <label htmlFor="loanPurpose">Loan Purpose (Optional)</label>
+                <div className="input-wrap">
+                  <span className="icon">📝</span>
+                  <input
+                    id="loanPurpose"
+                    type="text"
+                    placeholder="e.g. Home Renovation, Medical Emergency"
+                    value={loanPurpose}
+                    onChange={(e) => setLoanPurpose(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Preferred Lender Row */}
+              <div className="apply-form-group">
+                <label htmlFor="lenderId">Preferred Lender (Optional)</label>
+                <div className="input-wrap" style={{ padding: "0 6px" }}>
+                  <select
+                    id="lenderId"
+                    value={lenderId}
+                    onChange={(e) => setLenderId(e.target.value)}
+                    style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".92rem", fontWeight: "600", color: "var(--navy)" }}
+                  >
+                    <option value="">No Preference / Auto Assign</option>
+                    {lenders.map((lender) => (
+                      <option key={lender.id} value={lender.id}>
+                        {lender.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
