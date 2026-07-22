@@ -445,7 +445,7 @@ export default function BrokerDashboard() {
                       </div>
                     )}
 
-                    {lead.isApp && (lead.statusName === 'applied' || lead.statusName === 'docs') && (
+                    {lead.isApp && lead.client_preference !== 'direct' && (lead.statusName === 'applied' || lead.statusName === 'docs') && (
                       <div style={{ 
                         marginTop: '20px', 
                         paddingTop: '16px', 
@@ -478,7 +478,7 @@ export default function BrokerDashboard() {
 
                     {lead.client_preference && (
                       <div className="cdl-remark" style={{ fontSize: ".76rem", background: "#F4FBF7", border: "1px solid #A7F3D0", color: "#065F46" }}>
-                        🛡️ {lead.client_preference === "partner_routing" ? "Partner Routing — you will be contacted" : "Direct Reach — team will contact client"}
+                        🛡️ {lead.client_preference === "partner" ? "Partner Routing — you will be contacted" : "Direct Reach — team will contact client"}
                       </div>
                     )}
                     {lead.remark && (
