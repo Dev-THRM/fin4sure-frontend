@@ -279,6 +279,10 @@ export default function AdminDashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ brokerId, status }),
       });
+      if (res.status === 429) {
+        setCustomAlert({ message: "Server rate limit reached — please wait 1 minute and try again.", type: "error" });
+        return;
+      }
       if (res.ok) {
         setBrokers((prev) =>
           prev.map((b) =>
@@ -289,12 +293,16 @@ export default function AdminDashboard() {
         );
         setCustomAlert({ message: "Partner status updated successfully!", type: "success" });
       } else {
-        const err = await res.json();
-        setCustomAlert({ message: err.message || "Failed to update partner status", type: "error" });
+        let errMsg = "Failed to update partner status";
+        try {
+          const errData = await res.json();
+          if (errData?.message) errMsg = errData.message;
+        } catch (_) {}
+        setCustomAlert({ message: errMsg, type: "error" });
       }
     } catch (e) {
       console.error(e);
-      setCustomAlert({ message: "Network error", type: "error" });
+      setCustomAlert({ message: "Network error. Please try again.", type: "error" });
     }
   }
 
@@ -336,6 +344,10 @@ export default function AdminDashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editForm),
       });
+      if (res.status === 429) {
+        setCustomAlert({ message: "Server rate limit reached — please wait 1 minute and try again.", type: "error" });
+        return;
+      }
       if (res.ok) {
         setEditingLead(null);
         setEditForm({});
@@ -348,8 +360,12 @@ export default function AdminDashboard() {
         );
         setCustomAlert({ message: "Application updated successfully!", type: "success" });
       } else {
-        const err = await res.json();
-        setCustomAlert({ message: err.message || "Failed to update application", type: "error" });
+        let errMsg = "Failed to update application";
+        try {
+          const errData = await res.json();
+          if (errData?.message) errMsg = errData.message;
+        } catch (_) {}
+        setCustomAlert({ message: errMsg, type: "error" });
       }
     } catch (e) {
       console.error(e);
