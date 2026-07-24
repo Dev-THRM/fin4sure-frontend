@@ -63,24 +63,27 @@ export default function AdminDashboard() {
   const [customTo, setCustomTo] = useState("");
 
   useEffect(() => {
-    fetchStats();
-    fetchBrokers();
-    fetchLeads();
-    fetchBorrowers();
-    fetchTimeline();
-    fetchLenderRates();
-    fetchSettings();
-  }, [leadFilter, selectedLoanCategory]);
+    const loadAdminData = async () => {
+      await fetchStats();
+      await fetchLeads();
+      await fetchBrokers();
+      await fetchBorrowers();
+      await fetchTimeline();
+    };
+    loadAdminData();
+  }, []);
 
   async function fetchStats() {
     try {
       const res = await fetch("/api/admin/stats", {
         credentials: "include",
       });
-      if (!res.ok) return navigate("/login");
-      setStats(await res.json());
+      if (res.status === 401 || res.status === 403) {
+        return navigate("/login");
+      }
+      if (res.ok) setStats(await res.json());
     } catch (e) {
-      navigate("/login");
+      console.error("fetchStats error:", e);
     }
   }
 
@@ -277,14 +280,19 @@ export default function AdminDashboard() {
 
   async function updateLeadStatus(leadId, status) {
     try {
-      await fetch("/api/admin/lead-status", {
+      const res = await fetch("/api/admin/lead-status", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ leadId, status }),
       });
-      fetchLeads();
-      fetchStats();
+      if (res.ok) {
+        setLeads((prev) =>
+          prev.map((item) =>
+            item.id === leadId ? { ...item, status, statusName: status } : item
+          )
+        );
+      }
     } catch (e) {
       console.error(e);
     }
@@ -311,8 +319,13 @@ export default function AdminDashboard() {
       if (res.ok) {
         setEditingLead(null);
         setEditForm({});
-        fetchLeads();
-        fetchStats();
+        setLeads((prev) =>
+          prev.map((item) =>
+            item.id === editingLead.id
+              ? { ...item, ...editForm, statusName: editForm.status || item.statusName }
+              : item
+          )
+        );
         setCustomAlert({ message: "Application updated successfully!", type: "success" });
       } else {
         const err = await res.json();
