@@ -186,6 +186,9 @@ export default function BrokerDashboard() {
       setProfCity(data.city || profCity);
       setProfNumber(data.number || profNumber);
       setProfEmail(data.email || profEmail);
+
+      // Automatically redirect to Referral Dashboard tab
+      setWorkspaceTab("dashboard");
     } catch (err) {
       showToast("error", err.message);
     } finally {
