@@ -4,6 +4,7 @@ import "./roiTicker.css";
 
 export default function RoiTicker() {
   const [announcementText, setAnnouncementText] = useState("");
+  const [isBannerVisible, setIsBannerVisible] = useState(true);
 
   useEffect(() => {
     fetch("/api/location/public-settings")
@@ -85,23 +86,26 @@ export default function RoiTicker() {
         </div>
       )}
 
-      {announcementText && (
-        <div className="announcement-ticker-global" aria-label="Announcement banner">
-          <div className="announcement-ticker-label">
-            <span className="announcement-pulse-dot"></span>
-            <span>📢 ANNOUNCEMENT</span>
+      {announcementText && isBannerVisible && (
+        <div className="news-ticker-banner" aria-label="News ticker">
+          <div className="news-ticker-label">
+            <span className="news-pulse-dot"></span>
+            <span>NEWS</span>
           </div>
-          <div className="announcement-ticker-viewport">
-            <div className="announcement-ticker-track">
+          <div className="news-ticker-viewport">
+            <div className="news-ticker-track">
               {announcementRepeats.map((text, idx) => (
-                <span key={idx} className="announcement-item">
-                  <span className="announcement-badge">Notice</span>
-                  <span>{text}</span>
-                  <span className="announcement-divider">•</span>
+                <span key={idx} className="news-ticker-item">
+                  <span className="news-icon">📢</span>
+                  <span className="news-text">{text}</span>
+                  <span className="news-diamond">✦</span>
                 </span>
               ))}
             </div>
           </div>
+          <button className="news-close-btn" onClick={() => setIsBannerVisible(false)} title="Dismiss">
+            ✕
+          </button>
         </div>
       )}
     </>
