@@ -1,10 +1,14 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { LENDERS } from "../../utils/loanConstants";
+import { useAuth } from "../../context/AuthContext";
 import "./roiTicker.css";
 
 export default function RoiTicker() {
   const [announcementText, setAnnouncementText] = useState("");
   const [isBannerVisible, setIsBannerVisible] = useState(true);
+
+  const { role, user } = useAuth();
+  const isAdmin = role === "admin" || user?.role === "admin" || (typeof window !== "undefined" && window.location.pathname.includes("admin"));
 
   useEffect(() => {
     fetch("/api/location/public-settings")
@@ -58,7 +62,7 @@ export default function RoiTicker() {
   const displayItems = [...tickerItems, ...tickerItems];
 
   // Repeat announcement for smooth continuous scrolling
-  const announcementRepeats = Array(8).fill(announcementText);
+  const announcementRepeats = Array(12).fill(announcementText);
 
   return (
     <>
@@ -103,9 +107,11 @@ export default function RoiTicker() {
               ))}
             </div>
           </div>
-          <button className="news-close-btn" onClick={() => setIsBannerVisible(false)} title="Dismiss">
-            ✕
-          </button>
+          {isAdmin && (
+            <button className="news-close-btn" onClick={() => setIsBannerVisible(false)} title="Dismiss (Admin Only)">
+              ✕
+            </button>
+          )}
         </div>
       )}
     </>
