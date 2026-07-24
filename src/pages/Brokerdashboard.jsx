@@ -699,21 +699,6 @@ export default function BrokerDashboard() {
                       />
                     </div>
                   </div>
-                  <div className="apply-form-group">
-                    <label>Tenure (Months) *</label>
-                    <div className="input-wrap">
-                      <span className="icon">⏱️</span>
-                      <input
-                        type="number"
-                        placeholder="e.g. 180"
-                        value={acTenure}
-                        onChange={(e) => setAcTenure(e.target.value)}
-                        required
-                        min="1"
-                      />
-                    </div>
-                  </div>
-                </div>
 
                 <div className="apply-form-row">
                   <div className="apply-form-group">
@@ -748,6 +733,21 @@ export default function BrokerDashboard() {
                         required
                         min="1"
                         style={{ width: "100%" }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="apply-form-group">
+                    <label>Tenure (Months) *</label>
+                    <div className="input-wrap">
+                      <span className="icon">⏱️</span>
+                      <input
+                        type="number"
+                        placeholder="e.g. 180"
+                        value={acTenure}
+                        onChange={(e) => setAcTenure(e.target.value)}
+                        required
+                        min="1"
                       />
                     </div>
                   </div>
