@@ -42,7 +42,7 @@ export default function BrokerDashboard() {
   const [acEmail, setAcEmail] = useState("");
   const [acAmt, setAcAmt] = useState("");
   const [acLoanPurpose, setAcLoanPurpose] = useState("");
-  const [acTenure, setAcTenure] = useState("180"); // months
+  const [acTenure, setAcTenure] = useState(""); // months
   const [acLoanType, setAcLoanType] = useState("");
   const [acReachMode, setAcReachMode] = useState("direct");
   const [acAddress, setAcAddress] = useState("");
@@ -264,7 +264,7 @@ export default function BrokerDashboard() {
       setAcEmail("");
       setAcAmt("");
       setAcLoanPurpose("");
-      setAcTenure("180");
+      setAcTenure("");
       setAcAddress("");
       setAcPincode("");
       setAcState("");
@@ -700,7 +700,6 @@ export default function BrokerDashboard() {
                     </div>
                   </div>
 
-                <div className="apply-form-row">
                   <div className="apply-form-group">
                     <label>Loan Asset Type *</label>
                     <div className="input-wrap" style={{ padding: "0 6px" }}>
@@ -721,7 +720,9 @@ export default function BrokerDashboard() {
                       </select>
                     </div>
                   </div>
+                </div>
 
+                <div className="apply-form-row">
                   <div className="apply-form-group">
                     <label>Loan Amount (₹) *</label>
                     <div className="input-wrap">
@@ -736,8 +737,8 @@ export default function BrokerDashboard() {
                       />
                     </div>
                   </div>
-                </div>
-                <div className="apply-form-group">
+
+                  <div className="apply-form-group">
                     <label>Tenure (Months) *</label>
                     <div className="input-wrap">
                       <span className="icon">⏱️</span>
