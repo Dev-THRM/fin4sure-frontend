@@ -44,6 +44,8 @@ export default function BrokerDashboard() {
   const [acTenure, setAcTenure] = useState("180"); // months
   const [acLoanType, setAcLoanType] = useState("");
   const [acReachMode, setAcReachMode] = useState("direct");
+  const [acAddress, setAcAddress] = useState("");
+  const [acPincode, setAcPincode] = useState("");
   const [selectedLenders, setSelectedLenders] = useState([]);
 
   // DB-driven data
@@ -208,6 +210,10 @@ export default function BrokerDashboard() {
       showToast("error", "Please enter a valid loan amount");
       return;
     }
+    if (!acAddress || !acPincode || acPincode.length !== 6) {
+      showToast("error", "Please enter a valid address and 6-digit pincode");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -223,6 +229,8 @@ export default function BrokerDashboard() {
         loan_purpose: acLoanPurpose || selectedLoanTypeName,
         preferred_lender_id: firstSelectedLender?.id || null,
         client_preference: acReachMode,
+        address: acAddress,
+        pincode: acPincode,
       };
 
       const res = await fetch("/api/broker/referClient", {
@@ -249,6 +257,8 @@ export default function BrokerDashboard() {
       setAcAmt("");
       setAcLoanPurpose("");
       setAcTenure("180");
+      setAcAddress("");
+      setAcPincode("");
       setSelectedLenders([]);
       if (loanTypes.length > 0) setAcLoanType(String(loanTypes[0].id));
 
@@ -481,7 +491,7 @@ export default function BrokerDashboard() {
 
                     {lead.client_preference && (
                       <div className="cdl-remark" style={{ fontSize: ".76rem", background: "#F4FBF7", border: "1px solid #A7F3D0", color: "#065F46" }}>
-                        🛡️ {lead.client_preference === "partner" ? "Partner Routing — you will be contacted" : "Direct Reach — team will contact client"}
+                        🛡️ {lead.client_preference === "partner_routing" ? "Partner Routing — you will be contacted" : "Direct Reach — team will contact client"}
                       </div>
                     )}
                     {lead.remark && (
@@ -588,6 +598,37 @@ export default function BrokerDashboard() {
                         placeholder="customer@email.com"
                         value={acEmail}
                         onChange={(e) => setAcEmail(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="apply-form-row">
+                  <div className="apply-form-group">
+                    <label>Full Address *</label>
+                    <div className="input-wrap">
+                      <span className="icon">🏠</span>
+                      <input
+                        type="text"
+                        placeholder="Client Address"
+                        value={acAddress}
+                        onChange={(e) => setAcAddress(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="apply-form-group">
+                    <label>Pincode *</label>
+                    <div className="input-wrap">
+                      <span className="icon">📍</span>
+                      <input
+                        type="text"
+                        placeholder="6-digit Pincode"
+                        maxLength={6}
+                        value={acPincode}
+                        onChange={(e) => setAcPincode(e.target.value.replace(/\D/g, ""))}
+                        required
                       />
                     </div>
                   </div>
