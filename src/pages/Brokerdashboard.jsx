@@ -469,7 +469,7 @@ export default function BrokerDashboard() {
                       </div>
                     )}
 
-                    {lead.isApp && lead.client_preference !== 'direct' && (lead.statusName === 'applied' || lead.statusName === 'docs') && (
+                    {lead.isApp && lead.client_preference !== 'direct_reach' && lead.client_preference !== 'direct' && (lead.statusName === 'applied' || lead.statusName === 'docs') && (
                       <div style={{ 
                         marginTop: '20px', 
                         paddingTop: '16px', 
