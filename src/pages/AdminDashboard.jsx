@@ -57,6 +57,14 @@ export default function AdminDashboard() {
   const [editingLead, setEditingLead] = useState(null); // lead being edited
   const [editForm, setEditForm] = useState({});
 
+  const [editingBroker, setEditingBroker] = useState(null); // broker being edited
+  const [editBrokerStatus, setEditBrokerStatus] = useState("active");
+
+  function openEditBroker(broker) {
+    setEditingBroker(broker);
+    setEditBrokerStatus(broker.status?.toLowerCase() === "active" ? "active" : "inactive");
+  }
+
   // Export Range states
   const [exportFilter, setExportFilter] = useState("today");
   const [customFrom, setCustomFrom] = useState("");
@@ -265,16 +273,28 @@ export default function AdminDashboard() {
 
   async function updateBrokerStatus(brokerId, status) {
     try {
-      await fetch("/api/admin/broker-status", {
+      const res = await fetch("/api/admin/broker-status", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ brokerId, status }),
       });
-      fetchBrokers();
-      fetchStats();
+      if (res.ok) {
+        setBrokers((prev) =>
+          prev.map((b) =>
+            String(b.brokerId) === String(brokerId) || String(b.id) === String(brokerId)
+              ? { ...b, status: status }
+              : b
+          )
+        );
+        setCustomAlert({ message: "Partner status updated successfully!", type: "success" });
+      } else {
+        const err = await res.json();
+        setCustomAlert({ message: err.message || "Failed to update partner status", type: "error" });
+      }
     } catch (e) {
       console.error(e);
+      setCustomAlert({ message: "Network error", type: "error" });
     }
   }
 
@@ -963,14 +983,9 @@ export default function AdminDashboard() {
                               </span>
                             </td>
                             <td>
-                              <div style={{ display: 'flex', gap: '4px' }}>
-                                <button onClick={() => setSelectedBroker(b)} className="settings-action-btn" style={{ padding: '4px 8px', fontSize: '.75rem', marginTop: 0 }}>View</button>
-                                {b.status !== 'active' && (
-                                  <>
-                                    <button onClick={() => updateBrokerStatus(b.brokerId, 'approved')} className="settings-action-btn" style={{ padding: '4px 8px', fontSize: '.75rem', marginTop: 0 }}>Approve</button>
-                                    <button onClick={() => updateBrokerStatus(b.brokerId, 'rejected')} className="settings-action-btn" style={{ padding: '4px 8px', fontSize: '.75rem', marginTop: 0, background: '#ef4444' }}>Reject</button>
-                                  </>
-                                )}
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button onClick={() => setSelectedBroker(b)} className="settings-action-btn" style={{ padding: '4px 10px', fontSize: '.75rem', marginTop: 0 }}>View</button>
+                                <button onClick={() => openEditBroker(b)} className="settings-action-btn" style={{ padding: '4px 10px', fontSize: '.75rem', marginTop: 0, background: 'linear-gradient(135deg,#0d2b6b,#1a56db)' }}>Edit</button>
                               </div>
                             </td>
                           </tr>
@@ -1493,6 +1508,55 @@ export default function AdminDashboard() {
                 </button>
                 <button
                   onClick={() => setEditingLead(null)}
+                  style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '.85rem', background: '#f1f5f9', color: '#475569', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ EDIT PARTNER STATUS MODAL ═══ */}
+      {editingBroker && (
+        <div className="cd-modal" onClick={() => setEditingBroker(null)}>
+          <div className="cd-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px' }}>
+            <div className="cd-modal-head">
+              <span>Edit Partner Status — {editingBroker.name}</span>
+              <button onClick={() => setEditingBroker(null)}>&times;</button>
+            </div>
+            <div className="cd-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '.85rem' }}>
+              <div style={{ background: '#f8fafc', borderRadius: '8px', padding: '10px 14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '.8rem' }}>
+                <div><strong>Partner ID:</strong> {editingBroker.brokerId}</div>
+                <div><strong>Current Status:</strong> <span style={{ textTransform: 'capitalize', fontWeight: 700, color: editingBroker.status === 'active' ? '#059669' : '#dc2626' }}>{editingBroker.status}</span></div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontWeight: 600, color: '#0d2b6b', fontSize: '.82rem', textTransform: 'uppercase', letterSpacing: '.04em' }}>Partner Status</label>
+                <select
+                  value={editBrokerStatus}
+                  onChange={(e) => setEditBrokerStatus(e.target.value)}
+                  style={{ padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #e2e8f0', fontSize: '.9rem', outline: 'none', background: '#fff', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  <option value="active">active</option>
+                  <option value="inactive">inactive</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={async () => {
+                    await updateBrokerStatus(editingBroker.brokerId || editingBroker.id, editBrokerStatus);
+                    setEditingBroker(null);
+                  }}
+                  className="settings-action-btn"
+                  style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '.85rem' }}
+                >
+                  Save Status
+                </button>
+                <button
+                  onClick={() => setEditingBroker(null)}
                   style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '.85rem', background: '#f1f5f9', color: '#475569', border: 'none', cursor: 'pointer', fontWeight: 600 }}
                 >
                   Cancel
