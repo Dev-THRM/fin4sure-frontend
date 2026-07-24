@@ -139,6 +139,7 @@ export default function BrokerDashboard() {
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
+    if (!profEditing) return;
     if (user && profNumber !== user.number && !profOtpVerified) {
       showToast("error", "You must verify the new WhatsApp number before saving");
       return;
@@ -804,7 +805,11 @@ export default function BrokerDashboard() {
                     <button
                       type="button"
                       className="btn-primary"
-                      onClick={() => setProfEditing(true)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setProfEditing(true);
+                      }}
                       style={{ height: "42px", padding: "0 24px" }}
                     >
                       ✏️ Edit Profile Details
