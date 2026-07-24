@@ -24,10 +24,8 @@ export default function Products() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [loanTypesRes, lendersRes] = await Promise.all([
-          axios.get('/api/loan-types'),
-          axios.get('/api/lenders')
-        ]);
+        const loanTypesRes = await axios.get('/api/loan-types');
+        const lendersRes = await axios.get('/api/lenders');
         
         if (loanTypesRes.data.success) {
           const mappedTypes = loanTypesRes.data.data.map(lt => {

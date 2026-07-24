@@ -54,8 +54,11 @@ export default function Apply() {
       }
     };
 
-    fetchLoanTypes();
-    fetchLenders();
+    const loadData = async () => {
+      await fetchLoanTypes();
+      await fetchLenders();
+    };
+    loadData();
   }, [productId]);
 
   const getRateForLoanType = (lender, selectedTypeId) => {

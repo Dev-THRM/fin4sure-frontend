@@ -51,11 +51,14 @@ export default function BrokerDashboard() {
   const [allLenders, setAllLenders] = useState([]);
 
   useEffect(() => {
-    fetchProfile();
-    fetchClients();
-    fetchLeads();
-    fetchLoanTypes();
-    fetchLenders();
+    const loadAllData = async () => {
+      await fetchProfile();
+      await fetchClients();
+      await fetchLeads();
+      await fetchLoanTypes();
+      await fetchLenders();
+    };
+    loadAllData();
   }, []);
 
 

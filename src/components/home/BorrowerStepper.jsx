@@ -66,11 +66,9 @@ export default function BorrowerStepper({ onBack }) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [loanTypesRes, lendersRes, statesRes] = await Promise.all([
-          axios.get('/api/loan-types'),
-          axios.get('/api/lenders'),
-          axios.get('/api/location/states')
-        ]);
+        const loanTypesRes = await axios.get('/api/loan-types');
+        const lendersRes = await axios.get('/api/lenders');
+        const statesRes = await axios.get('/api/location/states');
         
         if (loanTypesRes.data.success) {
           const mappedTypes = loanTypesRes.data.data.map(lt => {
