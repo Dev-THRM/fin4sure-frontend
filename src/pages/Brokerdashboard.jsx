@@ -74,8 +74,6 @@ export default function BrokerDashboard() {
       await fetchProfile();
       await fetchClients();
       await fetchLeads();
-      await fetchLoanTypes();
-      await fetchLenders();
     };
     loadAllData();
   }, []);
@@ -86,7 +84,14 @@ export default function BrokerDashboard() {
       const res = await fetch("/api/auth/profile", {
         credentials: "include",
       });
-      if (!res.ok) return navigate("/login");
+      if (res.status === 429) {
+        console.warn("Profile fetch rate-limited (429)");
+        return;
+      }
+      if (res.status === 401 || res.status === 403) {
+        return navigate("/login");
+      }
+      if (!res.ok) return;
       const data = await res.json();
       setUser(data);
       setProfName(data.name || "");
@@ -94,7 +99,7 @@ export default function BrokerDashboard() {
       setProfNumber(data.number || "");
       setProfEmail(data.email || "");
     } catch (e) {
-      navigate("/login");
+      console.error("Fetch profile error:", e.message);
     }
   }
 
@@ -158,17 +163,40 @@ export default function BrokerDashboard() {
         }),
       });
 
+      if (res.status === 429) {
+        showToast("error", "Server rate limit hit — please wait 1 minute and try again");
+        return;
+      }
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to update profile");
 
       showToast("success", "Profile updated successfully!");
       setProfEditing(false);
-      await fetchProfile();
+
+      // In-place state update without triggering another network request
+      setUser((prev) => ({
+        ...prev,
+        name: data.name || profName,
+        email: data.email || profEmail,
+        number: data.number || profNumber,
+        city: data.city || profCity,
+      }));
+      setProfName(data.name || profName);
+      setProfCity(data.city || profCity);
+      setProfNumber(data.number || profNumber);
+      setProfEmail(data.email || profEmail);
     } catch (err) {
       showToast("error", err.message);
     } finally {
       setProfSaving(false);
     }
+  };
+
+  const openReferralModal = () => {
+    if (loanTypes.length === 0) fetchLoanTypes();
+    if (allLenders.length === 0) fetchLenders();
+    setShowAddClientModal(true);
   };
 
   async function fetchClients() {
@@ -446,7 +474,7 @@ export default function BrokerDashboard() {
             </div>
 
             {/* Eye-catching Refer Client banner */}
-            <div className="pdash-addclient-banner animate-fade-up" onClick={() => setShowAddClientModal(true)}>
+            <div className="pdash-addclient-banner animate-fade-up" onClick={openReferralModal}>
               <div className="pacb-glow"></div>
               <div className="pacb-left">
                 <div className="pacb-icon">✨</div>
@@ -464,7 +492,7 @@ export default function BrokerDashboard() {
               <div className="pdash-left">
                 <div className="pdash-section-head">
                   <h3>Referred Clients &amp; Status</h3>
-                  <button className="pdash-add-btn" onClick={() => setShowAddClientModal(true)}>
+                  <button className="pdash-add-btn" onClick={openReferralModal}>
                     + Add Referral
                   </button>
                 </div>
@@ -655,7 +683,7 @@ export default function BrokerDashboard() {
 
                 {/* Quick Links */}
                 <div className="pdash-quick-links">
-                  <div className="pql-item" onClick={() => setShowAddClientModal(true)}>
+                  <div className="pql-item" onClick={openReferralModal}>
                     <span>➕ Refer New Client</span>
                     <span>→</span>
                   </div>
