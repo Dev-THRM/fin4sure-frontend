@@ -47,11 +47,18 @@ export default function Login() {
         }),
       });
 
-      const data = await res.json();
-
       if (!res.ok) {
-        throw new Error(data.message || "Login failed");
+        if (res.status === 429) {
+          throw new Error("Too many login attempts. The server rate limit was reached — please wait 1 minute and try again.");
+        }
+        let errorData = {};
+        try {
+          errorData = await res.json();
+        } catch (_) {}
+        throw new Error(errorData.message || `Login failed (Status ${res.status})`);
       }
+
+      const data = await res.json();
 
       // Store user session state
       login(data);
