@@ -992,10 +992,20 @@ export default function AdminDashboard() {
                             <td>{b.brokerId}</td>
                             <td>{b.clientCount || 0}</td>
                             <td>
-                              <span className={`rate-type-badge ${b.status === 'active' ? 'private' :
-                                  b.status === 'suspended' ? 'nbfc-hfc' : 'psu'
-                                }`}>
-                                {b.status}
+                              <span
+                                style={{
+                                  padding: '4px 12px',
+                                  borderRadius: '12px',
+                                  fontSize: '0.78rem',
+                                  fontWeight: 700,
+                                  textTransform: 'lowercase',
+                                  display: 'inline-block',
+                                  background: b.status === 'active' ? '#ECFDF5' : '#FEF2F2',
+                                  color: b.status === 'active' ? '#059669' : '#DC2626',
+                                  border: `1px solid ${b.status === 'active' ? '#A7F3D0' : '#FECACA'}`
+                                }}
+                              >
+                                {b.status || 'inactive'}
                               </span>
                             </td>
                             <td>
