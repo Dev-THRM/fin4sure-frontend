@@ -40,6 +40,8 @@ export default function BrokerDashboard() {
   const [acName, setAcName] = useState("");
   const [acMobile, setAcMobile] = useState("");
   const [acEmail, setAcEmail] = useState("");
+  const [acDob, setAcDob] = useState("");
+  const [acGender, setAcGender] = useState("");
   const [acAmt, setAcAmt] = useState("");
   const [acLoanPurpose, setAcLoanPurpose] = useState("");
   const [acTenure, setAcTenure] = useState(""); // months
@@ -239,6 +241,8 @@ export default function BrokerDashboard() {
         district: acDistrict,
         city: acCity,
         tenure: acTenure,
+        dob: acDob,
+        gender: acGender,
       };
 
       const res = await fetch("/api/broker/referClient", {
@@ -262,6 +266,8 @@ export default function BrokerDashboard() {
       setAcName("");
       setAcMobile("");
       setAcEmail("");
+      setAcDob("");
+      setAcGender("");
       setAcAmt("");
       setAcLoanPurpose("");
       setAcTenure("");
@@ -610,6 +616,38 @@ export default function BrokerDashboard() {
                         value={acEmail}
                         onChange={(e) => setAcEmail(e.target.value)}
                       />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="apply-form-row">
+                  <div className="apply-form-group">
+                    <label>Date of Birth *</label>
+                    <div className="input-wrap">
+                      <span className="icon">📅</span>
+                      <input
+                        type="date"
+                        value={acDob}
+                        onChange={(e) => setAcDob(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="apply-form-group">
+                    <label>Gender *</label>
+                    <div className="input-wrap" style={{ padding: "0 10px" }}>
+                      <select
+                        value={acGender}
+                        onChange={(e) => setAcGender(e.target.value)}
+                        required
+                        style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".88rem", fontWeight: 600, color: "var(--navy)" }}
+                      >
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
                     </div>
                   </div>
                 </div>
