@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { districtsByState, states } from "../components/Statedata";
 import { fmtINR } from "../utils/formatters";
 import "./styles/brokerDashboard.css";
 
@@ -46,6 +47,9 @@ export default function BrokerDashboard() {
   const [acReachMode, setAcReachMode] = useState("direct");
   const [acAddress, setAcAddress] = useState("");
   const [acPincode, setAcPincode] = useState("");
+  const [acState, setAcState] = useState("");
+  const [acDistrict, setAcDistrict] = useState("");
+  const [acCity, setAcCity] = useState("");
   const [selectedLenders, setSelectedLenders] = useState([]);
 
   // DB-driven data
@@ -231,6 +235,10 @@ export default function BrokerDashboard() {
         client_preference: acReachMode,
         address: acAddress,
         pincode: acPincode,
+        state: acState,
+        district: acDistrict,
+        city: acCity,
+        tenure: acTenure,
       };
 
       const res = await fetch("/api/broker/referClient", {
@@ -259,6 +267,9 @@ export default function BrokerDashboard() {
       setAcTenure("180");
       setAcAddress("");
       setAcPincode("");
+      setAcState("");
+      setAcDistrict("");
+      setAcCity("");
       setSelectedLenders([]);
       if (loanTypes.length > 0) setAcLoanType(String(loanTypes[0].id));
 
@@ -629,6 +640,76 @@ export default function BrokerDashboard() {
                         value={acPincode}
                         onChange={(e) => setAcPincode(e.target.value.replace(/\D/g, ""))}
                         required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="apply-form-row">
+                  <div className="apply-form-group">
+                    <label>State *</label>
+                    <div className="input-wrap" style={{ padding: "0 10px" }}>
+                      <select
+                        value={acState}
+                        onChange={(e) => {
+                          setAcState(e.target.value);
+                          setAcDistrict("");
+                        }}
+                        required
+                        style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".88rem", fontWeight: 600, color: "var(--navy)" }}
+                      >
+                        <option value="">Select State</option>
+                        {states.map((s) => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="apply-form-group">
+                    <label>District *</label>
+                    <div className="input-wrap" style={{ padding: "0 10px" }}>
+                      <select
+                        value={acDistrict}
+                        disabled={!acState}
+                        onChange={(e) => setAcDistrict(e.target.value)}
+                        required
+                        style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".88rem", fontWeight: 600, color: "var(--navy)" }}
+                      >
+                        <option value="">Select District</option>
+                        {acState && districtsByState[acState]?.map((d) => (
+                          <option key={d} value={d}>{d}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="apply-form-row">
+                  <div className="apply-form-group">
+                    <label>City *</label>
+                    <div className="input-wrap">
+                      <span className="icon">🏙️</span>
+                      <input
+                        type="text"
+                        placeholder="City"
+                        value={acCity}
+                        onChange={(e) => setAcCity(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="apply-form-group">
+                    <label>Tenure (Months) *</label>
+                    <div className="input-wrap">
+                      <span className="icon">⏱️</span>
+                      <input
+                        type="number"
+                        placeholder="e.g. 180"
+                        value={acTenure}
+                        onChange={(e) => setAcTenure(e.target.value)}
+                        required
+                        min="1"
                       />
                     </div>
                   </div>
