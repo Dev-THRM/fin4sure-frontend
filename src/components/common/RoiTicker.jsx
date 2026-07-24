@@ -1,8 +1,21 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { LENDERS } from "../../utils/loanConstants";
 import "./roiTicker.css";
 
 export default function RoiTicker() {
+  const [announcementText, setAnnouncementText] = useState("");
+
+  useEffect(() => {
+    fetch("/api/location/public-settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.announcement_banner) {
+          setAnnouncementText(data.announcement_banner.trim());
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const tickerItems = useMemo(() => {
     const TICKER_ORDER = ['home', 'lap', 'business', 'personal', 'vehicle'];
     const typeLabels = {
@@ -38,33 +51,60 @@ export default function RoiTicker() {
     }));
   }, []);
 
-  if (tickerItems.length === 0) return null;
+  if (tickerItems.length === 0 && !announcementText) return null;
 
   // Duplicate sequence for seamless loop animation
   const displayItems = [...tickerItems, ...tickerItems];
 
+  // Repeat announcement for smooth continuous scrolling
+  const announcementRepeats = Array(8).fill(announcementText);
+
   return (
-    <div className="roi-ticker roi-ticker-global" id="roiTicker" aria-label="Lender interest rates">
-      <div className="roi-ticker-label">
-        <span className="roi-live-dot"></span>ROI
-      </div>
-      <div className="roi-ticker-viewport">
-        <div className="roi-ticker-track" id="roiTickerTrack">
-          {displayItems.map((item, index) => (
-            <span key={index} className="roi-item">
-              <span className="roi-name">{item.name}</span>
-              <span className="roi-type">{item.loanLabel}</span>
-              <span className="roi-val">{item.rate.toFixed(2)}%</span>
-              {item.down ? (
-                <span className="roi-arrow down">▼</span>
-              ) : (
-                <span className="roi-arrow up">▲</span>
-              )}
-            </span>
-          ))}
+    <>
+      {tickerItems.length > 0 && (
+        <div className="roi-ticker roi-ticker-global" id="roiTicker" aria-label="Lender interest rates">
+          <div className="roi-ticker-label">
+            <span className="roi-live-dot"></span>ROI
+          </div>
+          <div className="roi-ticker-viewport">
+            <div className="roi-ticker-track" id="roiTickerTrack">
+              {displayItems.map((item, index) => (
+                <span key={index} className="roi-item">
+                  <span className="roi-name">{item.name}</span>
+                  <span className="roi-type">{item.loanLabel}</span>
+                  <span className="roi-val">{item.rate.toFixed(2)}%</span>
+                  {item.down ? (
+                    <span className="roi-arrow down">▼</span>
+                  ) : (
+                    <span className="roi-arrow up">▲</span>
+                  )}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+
+      {announcementText && (
+        <div className="announcement-ticker-global" aria-label="Announcement banner">
+          <div className="announcement-ticker-label">
+            <span className="announcement-pulse-dot"></span>
+            <span>📢 ANNOUNCEMENT</span>
+          </div>
+          <div className="announcement-ticker-viewport">
+            <div className="announcement-ticker-track">
+              {announcementRepeats.map((text, idx) => (
+                <span key={idx} className="announcement-item">
+                  <span className="announcement-badge">Notice</span>
+                  <span>{text}</span>
+                  <span className="announcement-divider">•</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 export { RoiTicker };
