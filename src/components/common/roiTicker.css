@@ -159,6 +159,7 @@
 ═══════════════════════════════════════════ */
 .news-ticker-banner {
   width: 100%;
+  margin-top: 5px;
   background: linear-gradient(90deg, #A16207 0%, #B45309 30%, #D97706 60%, #B45309 100%);
   border-bottom: 1px solid rgba(251, 191, 36, 0.3);
   display: flex;
