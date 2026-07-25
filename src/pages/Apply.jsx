@@ -9,6 +9,7 @@ export default function Apply() {
   const navigate = useNavigate();
 
   const { isAuthenticated, user } = useAuth();
+  const isAdmin = user?.role === "admin" || user?.role === "partner" || user?.role === "broker";
 
   // Form Fields State
   const [product, setProduct] = useState(productId || "");
