@@ -343,17 +343,69 @@ export default function AdminDashboard() {
     }
   }
 
+  const STAGE_SEQUENCE = ['Applied', 'Docs', 'Credit', 'Submitted', 'Sanction', 'Legal', 'Disbursed'];
+
+  async function advanceLeadStage(lead) {
+    const currentStage = lead.stage || lead.status || 'Applied';
+    const currIdx = STAGE_SEQUENCE.findIndex(s => s.toLowerCase() === currentStage.toLowerCase());
+    const nextStage = currIdx >= 0 && currIdx < STAGE_SEQUENCE.length - 1 ? STAGE_SEQUENCE[currIdx + 1] : 'Disbursed';
+    const nextStatus = nextStage === 'Disbursed' ? 'disbursed' : 'in progress';
+
+    try {
+      const res = await fetch(`/api/admin/leads/${lead.id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stage: nextStage, status: nextStatus }),
+      });
+      if (res.ok) {
+        setLeads((prev) =>
+          prev.map((item) =>
+            item.id === lead.id ? { ...item, stage: nextStage, status: nextStatus } : item
+          )
+        );
+        setCustomAlert({ message: `Stage advanced to ${nextStage}!`, type: "success" });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function disburseLead(lead) {
+    try {
+      const res = await fetch(`/api/admin/leads/${lead.id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stage: 'Disbursed', status: 'disbursed' }),
+      });
+      if (res.ok) {
+        setLeads((prev) =>
+          prev.map((item) =>
+            item.id === lead.id ? { ...item, stage: 'Disbursed', status: 'disbursed' } : item
+          )
+        );
+        setCustomAlert({ message: "Application marked as Disbursed!", type: "success" });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   function openEditLead(lead) {
     setEditingLead(lead);
     setEditForm({
-      status: lead.status || "applied",
+      name: lead.name || "",
+      lender: lead.lender || "SBI",
       loan_amount: lead.loan_amount || "",
-      tenure: lead.tenure || "",
-      loan_purpose: lead.loan_purpose || "",
+      status: lead.status || "in progress",
+      stage: lead.stage || "Applied",
+      remark: lead.loan_purpose || "",
     });
   }
 
   async function saveEditLead() {
+    if (!editingLead) return;
     try {
       const res = await fetch(`/api/admin/leads/${editingLead.id}`, {
         method: "PUT",
@@ -366,15 +418,25 @@ export default function AdminDashboard() {
         return;
       }
       if (res.ok) {
-        setEditingLead(null);
-        setEditForm({});
+        const updated = await res.json();
         setLeads((prev) =>
           prev.map((item) =>
             item.id === editingLead.id
-              ? { ...item, ...editForm, statusName: editForm.status || item.statusName }
+              ? {
+                  ...item,
+                  ...updated,
+                  name: editForm.name || item.name,
+                  lender: editForm.lender || item.lender,
+                  loan_amount: editForm.loan_amount || item.loan_amount,
+                  status: editForm.status || item.status,
+                  stage: editForm.stage || item.stage,
+                  loan_purpose: editForm.remark || item.loan_purpose,
+                }
               : item
           )
         );
+        setEditingLead(null);
+        setEditForm({});
         setCustomAlert({ message: "Application updated successfully!", type: "success" });
       } else {
         let errMsg = "Failed to update application";
@@ -998,8 +1060,8 @@ export default function AdminDashboard() {
                             <td>
                               <div style={{ display: 'flex', gap: '6px' }}>
                                 <button
-                                  onClick={() => setSelectedLead(l)}
-                                  title="View Details"
+                                  onClick={() => advanceLeadStage(l)}
+                                  title="Next Stage (+1)"
                                   style={{
                                     width: '32px',
                                     height: '32px',
@@ -1018,8 +1080,8 @@ export default function AdminDashboard() {
                                   ▶
                                 </button>
                                 <button
-                                  onClick={() => updateLeadStatus(l.id, 'disbursed')}
-                                  title="Approve / Disburse"
+                                  onClick={() => disburseLead(l)}
+                                  title="Direct Disburse"
                                   style={{
                                     width: '32px',
                                     height: '32px',
