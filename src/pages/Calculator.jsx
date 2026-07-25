@@ -408,113 +408,6 @@ export default function Calculator() {
             </div>
           </div>
         </div>
-
-        {/* ═══ COMPARE LENDERS LIST ═══ */}
-        <div className="calc-section-card" ref={lenderSectionRef}>
-          <div className="lender-section-header">
-            <div>
-              <h3>Compare &amp; Select Lenders</h3>
-              <div className="lender-sub">
-                Live rates from 30+ lenders for {currentTitle}
-              </div>
-            </div>
-
-            <div className="emi-controls-row">
-              <div className="lender-filters">
-                <button
-                  className={`lf-btn ${lenderFilter === "all" ? "active" : ""}`}
-                  onClick={() => setLenderFilter("all")}
-                >
-                  All
-                </button>
-                <button
-                  className={`lf-btn ${lenderFilter === "psu" ? "active" : ""}`}
-                  onClick={() => setLenderFilter("psu")}
-                >
-                  PSU
-                </button>
-                <button
-                  className={`lf-btn ${lenderFilter === "private" ? "active" : ""}`}
-                  onClick={() => setLenderFilter("private")}
-                >
-                  Private
-                </button>
-                <button
-                  className={`lf-btn ${lenderFilter === "nbfc" ? "active" : ""}`}
-                  onClick={() => setLenderFilter("nbfc")}
-                >
-                  NBFC
-                </button>
-              </div>
-
-              <select
-                className="lender-sort-select"
-                value={lenderSort}
-                onChange={(e) => setLenderSort(e.target.value)}
-              >
-                <option value="rate">↓ Lowest Rate</option>
-                <option value="emi">↓ Lowest EMI</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="lender-grid">
-            {filteredLenders.length > 0 ? (
-              filteredLenders.map((l) => {
-                const rk = rateType === "floating" ? "f" : "x";
-                const ratesArr = l.rates[loanType][rk];
-                const estEmi = calcEMI(amount, ratesArr[0], tenure);
-                const isBest = ratesArr[0] === bestRate;
-
-                return (
-                  <div key={l.name} className={`lc-row ${isBest ? "lc-best" : ""}`}>
-                    <div className="lcr-lender">
-                      <div
-                        className="lcr-icon"
-                        style={{
-                          backgroundColor: `${l.color}1a`,
-                          color: l.color
-                        }}
-                      >
-                        {l.emoji}
-                      </div>
-                      <div className="lcr-info">
-                        <div className="lcr-name">
-                          {l.name}
-                          {isBest && <span className="lcr-best-tag">★ Best</span>}
-                        </div>
-                        <div className="lcr-badge">{l.type.toUpperCase()} Bank</div>
-                      </div>
-                    </div>
-
-                    <div className="lcr-rate">
-                      <span className="lcr-rate-v">{ratesArr[0].toFixed(2)}%</span>
-                      <span className="lcr-rate-r">p.a. onwards</span>
-                    </div>
-
-                    <div className="lcr-emi">
-                      {fmtINRFull(estEmi)}
-                      <span className="lcr-emi-l">/mo</span>
-                    </div>
-
-                    <div className="lcr-act">
-                      <button
-                        className="lcr-btn"
-                        onClick={() => handleApplyLender(l.name)}
-                      >
-                        Apply →
-                      </button>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div style={{ textAlign: "center", padding: "40px", color: "#64748B" }}>
-                No lenders found matching this filter.
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
       {/* ═══ STICKY BOTTOM ACTION BAR ═══ */}
@@ -527,8 +420,8 @@ export default function Calculator() {
           <span>EMI</span> <strong>{fmtINRFull(emi)}/mo</strong>
         </div>
 
-        <button className="calc-bar-next" onClick={handleChooseLenders}>
-          Choose Lenders →
+        <button className="calc-bar-next" onClick={() => navigate("/apply", { state: { loanType, amount, rate, tenure } })}>
+          Apply Now →
         </button>
       </div>
     </div>
