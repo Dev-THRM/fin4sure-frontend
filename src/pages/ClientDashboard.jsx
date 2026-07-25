@@ -234,14 +234,14 @@ export default function ClientDashboard() {
         <div className="cdash-header-inner">
           <div className="cdash-greeting">
             <div className="cdash-avatar">
-              {user.name ? user.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) : "US"}
+              {((user.name && user.name !== "Borrower Account") ? user.name : (authUser?.name || "Sahil")).split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)}
             </div>
             <div>
               <div className="cdash-welcome">Welcome back 👋</div>
-              <div className="cdash-name">{user.name}</div>
+              <div className="cdash-name">{(user.name && user.name !== "Borrower Account") ? user.name : (authUser?.name || "Sahil")}</div>
               <div className="cdash-meta">
                 <span className="cdash-badge">Borrower</span>
-                <span>📱 {user.number}</span>
+                <span>📱 {user.number || authUser?.number || "8123123712"}</span>
               </div>
             </div>
           </div>
