@@ -728,47 +728,57 @@ export default function AdminDashboard() {
                 {/* 1. Total Applications */}
                 <div className="adm-kpi-card-new c-blue">
                   <div className="adm-kpi-card-top">
-                    <span className="adm-kpi-card-icon">📋</span>
+                    <div className="adm-kpi-icon-box">
+                      <svg width="20" height="20" fill="none" stroke="#2563eb" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                    </div>
                   </div>
                   <div className="adm-kpi-card-value">{stats.totalApplications ?? leads.length}</div>
                   <div className="adm-kpi-card-label">TOTAL APPLICATIONS</div>
-                  <div className="adm-kpi-card-subtext">across borrowers & partners</div>
+                  <div className="adm-kpi-card-subtext">{leads.length} across borrowers & partners</div>
                 </div>
 
                 {/* 2. Disbursed */}
                 <div className="adm-kpi-card-new c-green">
                   <div className="adm-kpi-card-top">
-                    <span className="adm-kpi-card-icon">✅</span>
+                    <div className="adm-kpi-icon-box">
+                      <svg width="20" height="20" fill="none" stroke="#16a34a" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    </div>
                   </div>
                   <div className="adm-kpi-card-value">{stats.disbursedCount ?? disbursedCount}</div>
                   <div className="adm-kpi-card-label">DISBURSED</div>
-                  <div className="adm-kpi-card-subtext">successfully paid out</div>
+                  <div className="adm-kpi-card-subtext">Completed &amp; paid out</div>
                 </div>
 
                 {/* 3. In Progress (after docs) */}
                 <div className="adm-kpi-card-new c-orange">
                   <div className="adm-kpi-card-top">
-                    <span className="adm-kpi-card-icon">⏳</span>
+                    <div className="adm-kpi-icon-box">
+                      <svg width="20" height="20" fill="none" stroke="#ea580c" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
                   </div>
                   <div className="adm-kpi-card-value">{stats.inProgressCount ?? inProgressCount}</div>
                   <div className="adm-kpi-card-label">IN PROGRESS</div>
-                  <div className="adm-kpi-card-subtext">credit · sanction · legal</div>
+                  <div className="adm-kpi-card-subtext">Active processing</div>
                 </div>
 
                 {/* 4. Pending (before docs) */}
                 <div className="adm-kpi-card-new c-red">
                   <div className="adm-kpi-card-top">
-                    <span className="adm-kpi-card-icon">🕐</span>
+                    <div className="adm-kpi-icon-box">
+                      <svg width="20" height="20" fill="none" stroke="#dc2626" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    </div>
                   </div>
                   <div className="adm-kpi-card-value">{stats.pendingCount ?? pendingCount}</div>
                   <div className="adm-kpi-card-label">PENDING</div>
-                  <div className="adm-kpi-card-subtext">applied · docs</div>
+                  <div className="adm-kpi-card-subtext">Awaiting docs / action</div>
                 </div>
 
                 {/* 5. Loan Volume */}
                 <div className="adm-kpi-card-new c-purple">
                   <div className="adm-kpi-card-top">
-                    <span className="adm-kpi-card-icon">💰</span>
+                    <div className="adm-kpi-icon-box">
+                      <svg width="20" height="20" fill="none" stroke="#7c3aed" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
                   </div>
                   <div className="adm-kpi-card-value">
                     {(() => {
@@ -780,13 +790,15 @@ export default function AdminDashboard() {
                     })()}
                   </div>
                   <div className="adm-kpi-card-label">LOAN VOLUME</div>
-                  <div className="adm-kpi-card-subtext">total pipeline amount</div>
+                  <div className="adm-kpi-card-subtext">Total active pipeline</div>
                 </div>
 
                 {/* 6. Active Partners */}
                 <div className="adm-kpi-card-new c-teal">
                   <div className="adm-kpi-card-top">
-                    <span className="adm-kpi-card-icon">🤝</span>
+                    <div className="adm-kpi-icon-box">
+                      <svg width="20" height="20" fill="none" stroke="#0d9488" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    </div>
                   </div>
                   <div className="adm-kpi-card-value">{stats.approvedBrokers ?? brokers.filter(b => b.status === 'active').length}</div>
                   <div className="adm-kpi-card-label">ACTIVE PARTNERS</div>
@@ -796,11 +808,13 @@ export default function AdminDashboard() {
                 {/* 7. Lenders Active */}
                 <div className="adm-kpi-card-new c-brown">
                   <div className="adm-kpi-card-top">
-                    <span className="adm-kpi-card-icon">🏦</span>
+                    <div className="adm-kpi-icon-box">
+                      <svg width="20" height="20" fill="none" stroke="#d97706" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" /></svg>
+                    </div>
                   </div>
                   <div className="adm-kpi-card-value">{activeLendersCount}</div>
                   <div className="adm-kpi-card-label">LENDERS ACTIVE</div>
-                  <div className="adm-kpi-card-subtext">lenders in pipeline</div>
+                  <div className="adm-kpi-card-subtext">In network</div>
                 </div>
               </div>
 
