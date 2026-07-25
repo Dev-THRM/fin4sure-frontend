@@ -301,9 +301,30 @@ export default function ClientDashboard() {
                     </div>
                   ) : (
                     applications.map((app) => {
-                      const statusName = app.Status?.name?.toLowerCase() || 'applied';
+                      const rawStatus = (app.Status?.name || "").toLowerCase();
+                      const statusId = Number(app.status_id || 1);
+
+                      let currentStepIndex = 0; // 0: applied, 1: docs, 2: credit, 3: submitted, 4: sanction, 5: legal, 6: disbursed
+
+                      if (statusId === 1 || rawStatus.includes("applied") || rawStatus.includes("new")) {
+                        currentStepIndex = 0;
+                      } else if (statusId === 2 || rawStatus.includes("doc")) {
+                        currentStepIndex = 1;
+                      } else if (statusId === 3 || rawStatus.includes("credit") || rawStatus.includes("under review")) {
+                        currentStepIndex = 2;
+                      } else if (statusId === 4 || rawStatus.includes("submit")) {
+                        currentStepIndex = 3;
+                      } else if (statusId === 5 || rawStatus.includes("sanction")) {
+                        currentStepIndex = 4;
+                      } else if (statusId === 6 || rawStatus.includes("legal")) {
+                        currentStepIndex = 5;
+                      } else if (statusId === 7 || rawStatus.includes("disburs")) {
+                        currentStepIndex = 6;
+                      } else {
+                        currentStepIndex = Math.min(Math.max(statusId - 1, 0), 6);
+                      }
+
                       const steps = ['applied' , 'docs', 'credit', 'submitted', 'sanction', 'legal', 'disbursed'];
-                      let currentStepIndex = steps.indexOf(statusName) !== -1 ? steps.indexOf(statusName) + 1 : 1;
                       
                       return (
                       <div key={app.id || app.application_no} className="cdl-card">
@@ -321,24 +342,26 @@ export default function ClientDashboard() {
                           </div>
                           <div className="cdl-right">
                             <div className="cdl-bank" style={{ textTransform: 'uppercase', fontSize: '.74rem', color: '#64748B', fontWeight: 'bold', marginBottom: '4px' }}>
-                              {statusName === "disbursed"
+                              {statusId === 7 || rawStatus.includes("disburs")
                                 ? "COMPLETED"
-                                : statusName === "rejected"
+                                : rawStatus.includes("reject")
                                 ? "REJECTED"
                                 : "ACTIVE"}
                             </div>
                             <span
                               className={`cdl-status-chip ${
-                                statusName === "disbursed"
+                                statusId === 7 || rawStatus.includes("disburs")
                                   ? "cdl-chip-green"
-                                  : "cdl-chip-amber"
+                                  : rawStatus.includes("reject")
+                                  ? "cdl-chip-amber"
+                                  : "cdl-chip-blue"
                               }`}
                             >
                               <span className="cdl-chip-dot"></span>
                               <span>
-                                {statusName === "disbursed"
+                                {statusId === 7 || rawStatus.includes("disburs")
                                   ? "Completed"
-                                  : statusName === "rejected"
+                                  : rawStatus.includes("reject")
                                   ? "Rejected"
                                   : "In Progress"}
                               </span>
@@ -364,7 +387,7 @@ export default function ClientDashboard() {
                           </div>
                         </div>
 
-                        {(statusName === 'applied' || statusName === 'docs') && (
+                        {(statusId === 1 || statusId === 2) && (
                           <div style={{ 
                             marginTop: '20px', 
                             paddingTop: '16px', 
