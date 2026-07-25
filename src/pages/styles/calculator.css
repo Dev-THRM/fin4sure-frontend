@@ -830,3 +830,36 @@
 .cmc-btn-secondary:hover {
   background: #E2E8F0;
 }
+
+.cmc-icon-badge.success {
+  background: #ECFDF5;
+  border-color: #A7F3D0;
+}
+
+.cmc-app-id-badge {
+  background: #F8FAFC;
+  border: 1px dashed #CBD5E1;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0F2942;
+  margin-bottom: 20px;
+  display: inline-block;
+}
+
+.cmc-btn-success {
+  background: #059669;
+  color: #FFFFFF;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.cmc-btn-success:hover {
+  background: #047857;
+}

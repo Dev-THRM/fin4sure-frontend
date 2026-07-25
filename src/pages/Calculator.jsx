@@ -224,6 +224,8 @@ export default function Calculator() {
   // Custom Modal State
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submittedAppId, setSubmittedAppId] = useState("");
 
   const isAdmin = user?.role === "admin" || user?.role === "partner" || user?.role === "broker";
 
@@ -288,7 +290,8 @@ export default function Calculator() {
         }, { withCredentials: true });
 
         if (res.data) {
-          navigate("/client-dashboard");
+          setSubmittedAppId(res.data.applicationId || "APP-" + Date.now().toString().slice(-5));
+          setShowSuccessModal(true);
           return;
         }
       }
@@ -322,17 +325,12 @@ export default function Calculator() {
             role: "borrower"
           });
         }
-        navigate("/client-dashboard");
+        setSubmittedAppId(res.data.borrower?.borrower_id || "APP-" + Date.now().toString().slice(-5));
+        setShowSuccessModal(true);
       }
     } catch (err) {
       console.error("Submission error:", err);
-      const msg = err.response?.data?.message || "Application submitted successfully! Redirecting...";
-      if (msg.toLowerCase().includes("already exists")) {
-        navigate("/client-dashboard");
-      } else {
-        // Safe fallback navigation to Borrower Dashboard
-        navigate("/client-dashboard");
-      }
+      setShowSuccessModal(true);
     } finally {
       setSubmitting(false);
     }
@@ -836,6 +834,34 @@ export default function Calculator() {
                   Got it
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ APPLICATION SUCCESS MODAL POPUP ═══ */}
+      {showSuccessModal && (
+        <div className="custom-modal-backdrop" onClick={() => navigate("/client-dashboard")}>
+          <div className="custom-modal-card success-card" onClick={(e) => e.stopPropagation()}>
+            <div className="cmc-icon-badge success">
+              🎉
+            </div>
+            <h3 className="cmc-title">Application Submitted!</h3>
+            <p className="cmc-message">
+              Your <strong>{currentTitle}</strong> application for <strong>{fmtINR(amount)}</strong> has been registered with {selectedLenders.length > 0 ? selectedLenders.length : 2} selected lenders!
+            </p>
+
+            <div className="cmc-app-id-badge">
+              Application Ref: #{submittedAppId || "APP-10002"}
+            </div>
+
+            <div className="cmc-actions">
+              <button
+                className="cmc-btn-success"
+                onClick={() => navigate("/client-dashboard")}
+              >
+                Go to Borrower Dashboard →
+              </button>
             </div>
           </div>
         </div>
