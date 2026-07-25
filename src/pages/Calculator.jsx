@@ -66,6 +66,18 @@ export default function Calculator() {
     password: "Pass@1234"
   });
 
+  // Sync applicant fields when user loads
+  useEffect(() => {
+    if (user) {
+      setApplicantData((prev) => ({
+        ...prev,
+        name: user.name || prev.name,
+        email: user.email || prev.email,
+        mob_no: user.number || prev.mob_no
+      }));
+    }
+  }, [user]);
+
   // Fetch real lenders from DB endpoint `/api/lenders`
   useEffect(() => {
     const fetchLenders = async () => {
@@ -242,16 +254,7 @@ export default function Calculator() {
         return;
       }
 
-      // If user is not logged in, save draft and redirect to login
-      if (!user) {
-        sessionStorage.setItem(
-          "pendingLoanApp",
-          JSON.stringify({ loanType, amount, rate, tenure, selectedLenders })
-        );
-        navigate("/login?redirect=/EMI-calculator&step=3");
-        return;
-      }
-
+      // Transition smoothly to Step 3 (Review & Apply)
       setStepperStep(3);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
