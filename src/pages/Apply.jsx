@@ -72,6 +72,12 @@ export default function Apply() {
     e.preventDefault();
     if (loading) return;
 
+    if (isAdmin) {
+      setError("Admin & Partner accounts cannot submit loan applications. Only borrower accounts can apply.");
+      alert("⚠️ Admin & Partner accounts cannot submit loan applications. Only borrower accounts can apply.");
+      return;
+    }
+
     if (selectedLenders.length < 2) {
       setError("Please select at least 2 preferred lenders.");
       return;

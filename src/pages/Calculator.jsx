@@ -248,6 +248,13 @@ export default function Calculator() {
 
   // Final Submit Handler: Registers application and returns to Borrower Dashboard
   const handleFinalSubmit = async () => {
+    if (isAdmin) {
+      const msg = "⚠️ Admin & Partner accounts cannot submit loan applications. Please sign in with a Borrower account to apply.";
+      setSubmitError(msg);
+      alert(msg);
+      return;
+    }
+
     setSubmitting(true);
     setSubmitError("");
 
