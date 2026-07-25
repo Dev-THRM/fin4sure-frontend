@@ -280,33 +280,20 @@ export default function Calculator() {
     const targetLenders = selectedLenders.length > 0 ? selectedLenders : [1, 2];
 
     try {
-      let successData = null;
-
-      // 1. Try apply-loan endpoint if user session exists
+      let res;
       if (user && user.email) {
-        try {
-          const res = await axios.post("/api/client/apply-loan", {
-            product: loanType,
-            loanAmount: amount,
-            tenure: tenure,
-            selectedLenders: targetLenders,
-            loan_purpose: applicantData.loanPurpose || `${currentTitle} Application`
-          }, { withCredentials: true });
-
-          if (res.data) {
-            successData = res.data;
-          }
-        } catch (err) {
-          console.warn("apply-loan endpoint failed, attempting register-borrower fallback...", err);
-        }
-      }
-
-      // 2. Fallback to register-borrower if apply-loan was not successful
-      if (!successData) {
-        const res = await axios.post("/api/auth/register-borrower", {
-          name: applicantData.name || user?.name || "Primary Applicant",
-          email: applicantData.email || user?.email || `applicant${Date.now()}@finn4sure.com`,
-          number: applicantData.mob_no || user?.number || "9876543210",
+        res = await axios.post("/api/client/apply-loan", {
+          product: loanType,
+          loanAmount: amount,
+          tenure: tenure,
+          selectedLenders: targetLenders,
+          loan_purpose: applicantData.loanPurpose || `${currentTitle} Application`
+        }, { withCredentials: true });
+      } else {
+        res = await axios.post("/api/auth/register-borrower", {
+          name: applicantData.name || "Primary Applicant",
+          email: applicantData.email || `applicant${Date.now()}@finn4sure.com`,
+          number: applicantData.mob_no || "9876543210",
           dob: applicantData.dob || "1995-01-01",
           gender: applicantData.gender || "male",
           address: applicantData.address || "Main Street",
@@ -322,27 +309,28 @@ export default function Calculator() {
           selectedLenders: targetLenders
         }, { withCredentials: true });
 
-        if (res.data) {
-          successData = res.data;
-          if (login && res.data.user) {
-            login({
-              name: res.data.user?.name || applicantData.name,
-              email: res.data.user?.email || applicantData.email,
-              number: applicantData.mob_no,
-              role: "borrower"
-            });
-          }
+        if (res.data && login && res.data.user) {
+          login({
+            name: res.data.user?.name || applicantData.name,
+            email: res.data.user?.email || applicantData.email,
+            number: applicantData.mob_no,
+            role: "borrower"
+          });
         }
       }
 
-      if (successData) {
-        setSubmittedAppId(successData.applicationId || successData.borrower?.borrower_id || "APP-" + Date.now().toString().slice(-5));
+      if (res && res.data) {
+        setSubmittedAppId(res.data.applicationId || res.data.borrower?.borrower_id || "APP-" + Date.now().toString().slice(-5));
         setShowSuccessModal(true);
       }
     } catch (err) {
       console.error("Submission error:", err);
-      const errMsg = err.response?.data?.message || "Failed to submit application. Please check details and try again.";
-      setSubmitError(errMsg);
+      if (err.response?.status === 429) {
+        setSubmitError("Rate limit reached: Please wait 30 seconds before clicking submit again.");
+      } else {
+        const errMsg = err.response?.data?.message || "Failed to submit application. Please check details and try again.";
+        setSubmitError(errMsg);
+      }
     } finally {
       setSubmitting(false);
     }
