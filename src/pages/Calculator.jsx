@@ -1,18 +1,25 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEmiCalculator } from "../hooks/useEmiCalculator";
 import { useSliderPaint } from "../hooks/useSliderPaint";
 import { fmtINR, fmtINRFull, fmtTenure } from "../utils/formatters";
-import { LENDERS, LOAN_PARAMS } from "../utils/loanConstants";
+import { LENDERS } from "../utils/loanConstants";
 import { calcEMI } from "../utils/emiCalculator";
-import { EmiDonut } from "../components/emi/EmiDonut"; // We will create this subcomponent next
+import { EmiDonut } from "../components/emi/EmiDonut";
 import "./styles/calculator.css";
 
 export default function Calculator() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Initialize hook with parameters passed from Home page state (if any)
+  // State for 3-step application flow
+  const [stepperStep, setStepperStep] = useState(1);
+  const lenderSectionRef = useRef(null);
+
+  // Derive initial loan type from location.state
+  const initialLoanType = location.state?.loanType || "home";
+  const initialProductName = location.state?.selectedProduct || "Home Loan";
+
   const {
     loanType,
     amount,
@@ -20,7 +27,6 @@ export default function Calculator() {
     tenure,
     rateType,
     params,
-    amountStep,
     emi,
     totalPayable,
     totalInterest,
@@ -37,24 +43,29 @@ export default function Calculator() {
     clampTenure,
     snapAmount
   } = useEmiCalculator(
-    location.state?.loanType || "home",
+    initialLoanType,
     location.state?.amount,
     location.state?.rate,
     location.state?.tenure
   );
 
-  // Local state for Amount text inputs to handle formatting safely
-  const [amtInputVal, setAmtInputVal] = useState("30");
+  // Title map for alert banner
+  const typeTitleMap = {
+    home: "Home Loan",
+    lap: "Loan Against Property",
+    personal: "Personal Loan",
+    business: "Business Loan",
+    vehicle: "Vehicle Loan",
+    education: "Education Loan"
+  };
+
+  const currentTitle = typeTitleMap[loanType] || "Home Loan";
+
+  // Local state for Amount text inputs
+  const [amtInputVal, setAmtInputVal] = useState("50");
   const [amtUnit, setAmtUnit] = useState(100000); // Lakhs vs Crores
 
-  // Local state for Schedule tab selection (summary or amort)
-  const [activeTab, setActiveTab] = useState("summary");
-
-  // Local state for Lender filters
-  const [lenderFilter, setLenderFilter] = useState("all");
-  const [lenderSort, setLenderSort] = useState("rate");
-
-  // Synchronize numeric input formatting with range slider amount changes
+  // Synchronize numeric input formatting
   useEffect(() => {
     if (amount >= 10000000) {
       setAmtUnit(10000000);
@@ -70,7 +81,7 @@ export default function Calculator() {
   const rateRef = useSliderPaint(rate, params.rateMin, params.rateMax);
   const tenureRef = useSliderPaint(tenure, params.tenureMin, params.tenureMax);
 
-  // Amount inputs handlers
+  // Amount input handlers
   const handleAmtInputChange = (e) => {
     const rawVal = e.target.value;
     setAmtInputVal(rawVal);
@@ -85,25 +96,50 @@ export default function Calculator() {
     setAmount(parsed * newUnit);
   };
 
-  // Quick pick helpers for Amount and Tenure
-  const quickAmountOptions = useMemo(() => {
-    const isPersonal = loanType === "personal";
-    const opts = isPersonal
-      ? [500000, 1000000, 1500000, 2000000, 2500000]
-      : [1000000, 2500000, 5000000, 10000000, 25000000];
-    return opts.filter((v) => v >= params.amtMin && v <= params.amtMax).slice(0, 5);
-  }, [loanType, params]);
+  // Quick tenure options (years)
+  const quickTenureYears = [5, 10, 15, 20, 25, 30];
 
-  const quickTenureOptions = useMemo(() => {
-    const opts = [60, 120, 180, 240, 300, 360];
-    return opts.filter((v) => v >= params.tenureMin && v <= params.tenureMax).slice(0, 5);
-  }, [params]);
+  // Loan type cards for row
+  const loanTypeCards = [
+    {
+      id: "home",
+      name: "Home Loan",
+      icon: "🏠",
+      desc: "Buy or build your dream home"
+    },
+    {
+      id: "lap",
+      name: "Loan Against Property",
+      icon: "🏢",
+      desc: "Unlock your property's value"
+    },
+    {
+      id: "personal",
+      name: "Personal Loan",
+      icon: "💳",
+      desc: "For any personal need"
+    },
+    {
+      id: "business",
+      name: "Business Loan",
+      icon: "💼",
+      desc: "Grow your business"
+    },
+    {
+      id: "vehicle",
+      name: "Vehicle Loan",
+      icon: "🚗",
+      desc: "Car, bike or commercial"
+    }
+  ];
+
+  // Local state for Lender filters
+  const [lenderFilter, setLenderFilter] = useState("all");
+  const [lenderSort, setLenderSort] = useState("rate");
 
   // Filter and sort lenders dynamically
   const filteredLenders = useMemo(() => {
     const rk = rateType === "floating" ? "f" : "x";
-    
-    // Filter out lenders without rates for this specific loan type/rate type combination
     let list = LENDERS.filter(
       (l) =>
         !l._hidden &&
@@ -111,12 +147,10 @@ export default function Calculator() {
         l.rates[loanType][rk][0] !== null
     );
 
-    // Apply category filters
     if (lenderFilter !== "all") {
       list = list.filter((l) => l.type === lenderFilter);
     }
 
-    // Determine sorting logic
     if (lenderSort === "rate") {
       list.sort((a, b) => {
         const rateA = a.rates[loanType][rk][0];
@@ -140,11 +174,11 @@ export default function Calculator() {
     return Math.min(...filteredLenders.map((l) => l.rates[loanType][rk][0]));
   }, [filteredLenders, loanType, rateType]);
 
-  const typeLabels = {
-    psu: "PSU",
-    private: "Private",
-    nbfc: "NBFC",
-    small: "SFB"
+  const handleChooseLenders = () => {
+    setStepperStep(2);
+    if (lenderSectionRef.current) {
+      lenderSectionRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   const handleApplyLender = (lenderName) => {
@@ -154,400 +188,279 @@ export default function Calculator() {
   };
 
   return (
-    <div className="emi-page-content animate-fade-up">
-      {/* ═══ HERO STRIP ═══ */}
-      <div className="emi-hero">
-        <div className="emi-hero-text">
-          <div className="emi-hero-tag">✦ EMI Calculator</div>
-          <h1>Plan your loan with confidence</h1>
-          <p>
-            Adjust the amount, rate and tenure to see your monthly EMI instantly — then compare live rates from 35+ lenders.
-          </p>
+    <div className="calc-full-page animate-fade-up">
+      {/* ═══ TOP BLUE/PURPLE GRADIENT HERO ═══ */}
+      <div className="calc-header-gradient">
+        <div className="calc-nav-top">
+          <button className="calc-pill-btn" onClick={() => navigate("/")}>
+            ← Dashboard
+          </button>
+          <button className="calc-pill-btn active" onClick={() => navigate("/apply")}>
+            + New Loan Application
+          </button>
         </div>
 
-        {/* Fixed/Floating Rate Toggle (Only shown for Home and LAP loans) */}
-        {(loanType === "home" || loanType === "lap") && (
-          <div className="rate-toggle" id="emiRateToggle">
-            <button
-              className={`rt-btn ${rateType === "floating" ? "active" : ""}`}
-              onClick={() => setRateType("floating")}
-            >
-              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-              </svg>
-              Floating
-            </button>
-            <button
-              className={`rt-btn ${rateType === "fixed" ? "active" : ""}`}
-              onClick={() => setRateType("fixed")}
-            >
-              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              Fixed
-            </button>
+        <h1 className="calc-hero-title">Let's find your perfect loan</h1>
+        <p className="calc-hero-sub">
+          Choose your loan type, set the amount &amp; tenure — then pick lenders and apply in minutes.
+        </p>
+
+        {/* 3-Step Progress Indicator */}
+        <div className="calc-stepper-bar">
+          <div className={`cs-step ${stepperStep >= 1 ? "active" : ""}`}>
+            <div className="cs-circle">1</div>
+            <span className="cs-label">Loan Type &amp; Details</span>
           </div>
-        )}
+          <div className={`cs-line ${stepperStep >= 2 ? "active" : ""}`}></div>
+          <div className={`cs-step ${stepperStep >= 2 ? "active" : ""}`}>
+            <div className="cs-circle">2</div>
+            <span className="cs-label">Choose Lenders</span>
+          </div>
+          <div className={`cs-line ${stepperStep >= 3 ? "active" : ""}`}></div>
+          <div className={`cs-step ${stepperStep >= 3 ? "active" : ""}`}>
+            <div className="cs-circle">3</div>
+            <span className="cs-label">Review &amp; Apply</span>
+          </div>
+        </div>
       </div>
 
-      {/* Info Banner */}
-      <div className="rate-info-banner" id="rateInfoBanner">
-        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="8" x2="12" y2="12" />
-          <line x1="12" y1="16" x2="12.01" y2="16" />
-        </svg>
-        <span id="rateInfoText">
-          {rateType === "floating"
-            ? "Floating rate: Linked to RBI repo rate (5.25%). Currently favourable as rates are at multi-year lows."
-            : "Fixed rate: Rate stays constant throughout tenure. This loan type is offered on a fixed-rate basis by lenders."}
-        </span>
-      </div>
+      {/* ═══ MAIN CONTENT BODY ═══ */}
+      <div className="calc-body-wrap">
+        {/* Pre-selected Loan Alert Banner */}
+        <div className="preselected-alert-banner">
+          <span className="pab-sparkle">✦</span>
+          <span className="pab-text">
+            <strong>{currentTitle} selected</strong> pre-selected based on your choice — change below if needed
+          </span>
+        </div>
 
-      {/* ═══ CALCULATOR MAIN GRID ═══ */}
-      <div className="emi-calc-grid">
-        {/* Left Column: Inputs */}
-        <div className="emi-inputs-card">
-          <div className="eic-label">Loan Details</div>
+        {/* ═══ CHOOSE YOUR LOAN TYPE ═══ */}
+        <div className="calc-section-card">
+          <h2 className="calc-section-title">Choose your loan type</h2>
 
-          {/* Loan Category Toggle */}
-          <div className="emi-loantype-row">
-            <button
-              className={`hltp ${loanType === "home" ? "active" : ""}`}
-              onClick={() => setLoanType("home")}
-            >
-              <span className="hltp-ic">🏠</span>Home
-            </button>
-            <button
-              className={`hltp ${loanType === "lap" ? "active" : ""}`}
-              onClick={() => setLoanType("lap")}
-            >
-              <span className="hltp-ic">🏢</span>LAP
-            </button>
-            <button
-              className={`hltp ${loanType === "personal" ? "active" : ""}`}
-              onClick={() => setLoanType("personal")}
-            >
-              <span className="hltp-ic">💳</span>Personal
-            </button>
-            <button
-              className={`hltp ${loanType === "business" ? "active" : ""}`}
-              onClick={() => setLoanType("business")}
-            >
-              <span className="hltp-ic">📦</span>Business
-            </button>
-            <button
-              className={`hltp ${loanType === "vehicle" ? "active" : ""}`}
-              onClick={() => setLoanType("vehicle")}
-            >
-              <span className="hltp-ic">🚗</span>Vehicle
-            </button>
-          </div>
-
-          {/* Loan Amount Range Field */}
-          <div className="range-field">
-            <div className="rf-header">
-              <label>Loan Amount</label>
-              <div className="rf-input-wrap">
-                <span className="rf-prefix">₹</span>
-                <input
-                  type="number"
-                  className="rf-input"
-                  value={amtInputVal}
-                  onChange={handleAmtInputChange}
-                  onBlur={clampAmount}
-                  step="0.01"
-                />
-                <select
-                  className="rf-unit"
-                  value={amtUnit}
-                  onChange={handleUnitChange}
+          <div className="calc-type-grid">
+            {loanTypeCards.map((c) => {
+              const isSel = loanType === c.id;
+              return (
+                <div
+                  key={c.id}
+                  className={`calc-type-card ${isSel ? "selected" : ""}`}
+                  onClick={() => setLoanType(c.id)}
                 >
-                  <option value={100000}>Lakh</option>
-                  <option value={10000000}>Crore</option>
-                </select>
-              </div>
-            </div>
-            <input
-              type="range"
-              ref={amtRef}
-              min={params.amtMin}
-              max={params.amtMax}
-              value={amount}
-              onChange={(e) => setAmount(snapAmount(e.target.value))}
-              step="any"
-            />
-            <div className="rf-minmax">
-              <span>₹{params.amtMin >= 10000000 ? `${params.amtMin / 10000000} Cr` : `${params.amtMin / 100000} Lakh`}</span>
-              <span>₹{params.amtMax >= 10000000 ? `${params.amtMax / 10000000} Cr` : `${params.amtMax / 100000} Crores`}</span>
-            </div>
-            <div className="amt-quick-btns">
-              {quickAmountOptions.map((val) => (
-                <button key={val} onClick={() => setAmount(val)}>
-                  {fmtINR(val)}
-                </button>
-              ))}
-            </div>
+                  {isSel && <div className="calc-type-badge">✓</div>}
+                  <div className="calc-type-icon">{c.icon}</div>
+                  <div className="calc-type-name">{c.name}</div>
+                  <div className="calc-type-desc">{c.desc}</div>
+                </div>
+              );
+            })}
           </div>
+        </div>
 
-          {/* Expected ROI Range Field */}
-          <div className="range-field">
-            <div className="rf-header">
-              <label>Expected ROI (p.a.)</label>
-              <div className="rf-input-wrap">
+        {/* ═══ SET AMOUNT, RATE & TENURE ═══ */}
+        <div className="calc-section-card">
+          <div className="calc-sub-tag">SET AMOUNT, RATE &amp; TENURE</div>
+
+          <div className="calc-main-split">
+            {/* Left Inputs Column */}
+            <div className="calc-inputs-left">
+              {/* Loan Amount Range */}
+              <div className="range-field">
+                <div className="rf-header">
+                  <label>Loan Amount</label>
+                  <div className="rf-input-wrap">
+                    <span className="rf-prefix">₹</span>
+                    <input
+                      type="number"
+                      className="rf-input"
+                      value={amtInputVal}
+                      onChange={handleAmtInputChange}
+                      onBlur={clampAmount}
+                      step="0.01"
+                    />
+                    <select
+                      className="rf-unit"
+                      value={amtUnit}
+                      onChange={handleUnitChange}
+                    >
+                      <option value={100000}>Lakh</option>
+                      <option value={10000000}>Crore</option>
+                    </select>
+                  </div>
+                </div>
                 <input
-                  type="number"
-                  className="rf-input"
+                  type="range"
+                  ref={amtRef}
+                  min={params.amtMin}
+                  max={params.amtMax}
+                  value={amount}
+                  onChange={(e) => setAmount(snapAmount(e.target.value))}
+                  step="any"
+                />
+                <div className="rf-minmax">
+                  <span>₹{params.amtMin >= 10000000 ? `${params.amtMin / 10000000} Cr` : `${params.amtMin / 100000} Lakh`}</span>
+                  <span>₹{params.amtMax >= 10000000 ? `${params.amtMax / 10000000} Cr` : `${params.amtMax / 100000} Crores`}</span>
+                </div>
+              </div>
+
+              {/* Expected ROI Range */}
+              <div className="range-field">
+                <div className="rf-header">
+                  <label>Expected ROI</label>
+                  <div className="rf-input-wrap">
+                    <input
+                      type="number"
+                      className="rf-input"
+                      value={rate}
+                      onChange={(e) => setRate(e.target.value)}
+                      onBlur={clampRate}
+                      step="0.05"
+                    />
+                    <span className="rf-suffix">% p.a.</span>
+                  </div>
+                </div>
+                <input
+                  type="range"
+                  ref={rateRef}
+                  min={params.rateMin}
+                  max={params.rateMax}
                   value={rate}
                   onChange={(e) => setRate(e.target.value)}
-                  onBlur={clampRate}
                   step="0.1"
                 />
-                <span className="rf-suffix">% p.a.</span>
+                <div className="rf-minmax">
+                  <span>{params.rateMin}%</span>
+                  <span>{params.rateMax}%</span>
+                </div>
               </div>
-            </div>
-            <input
-              type="range"
-              ref={rateRef}
-              min={params.rateMin}
-              max={params.rateMax}
-              value={rate}
-              onChange={(e) => setRate(e.target.value)}
-              step="0.25"
-            />
-            <div className="rf-minmax">
-              <span>{params.rateMin}%</span>
-              <span>{params.rateMax}%</span>
-            </div>
-          </div>
 
-          {/* Loan Tenure Range Field */}
-          <div className="range-field">
-            <div className="rf-header">
-              <label>Loan Tenure</label>
-              <div className="rf-input-wrap">
+              {/* Loan Tenure Range */}
+              <div className="range-field">
+                <div className="rf-header">
+                  <label>Tenure</label>
+                  <div className="rf-input-wrap">
+                    <input
+                      type="number"
+                      className="rf-input"
+                      value={tenure}
+                      onChange={(e) => setTenure(e.target.value)}
+                      onBlur={clampTenure}
+                    />
+                    <span className="rf-suffix">months</span>
+                  </div>
+                </div>
                 <input
-                  type="number"
-                  className="rf-input"
+                  type="range"
+                  ref={tenureRef}
+                  min={params.tenureMin}
+                  max={params.tenureMax}
                   value={tenure}
                   onChange={(e) => setTenure(e.target.value)}
-                  onBlur={clampTenure}
+                  step="12"
                 />
-                <span className="rf-suffix">Months</span>
+                <div className="rf-minmax">
+                  <span>1 yr</span>
+                  <span>30 yr</span>
+                </div>
+
+                {/* Quick Tenure Year Buttons */}
+                <div className="quick-tenure-row">
+                  {quickTenureYears.map((yr) => {
+                    const mo = yr * 12;
+                    const isSel = tenure === mo;
+                    return (
+                      <button
+                        key={yr}
+                        className={`qt-btn ${isSel ? "active" : ""}`}
+                        onClick={() => setTenure(mo)}
+                      >
+                        {yr} yr
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-            <input
-              type="range"
-              ref={tenureRef}
-              min={params.tenureMin}
-              max={params.tenureMax}
-              value={tenure}
-              onChange={(e) => setTenure(e.target.value)}
-              step="6"
-            />
-            <div className="rf-minmax">
-              <span>{params.tenureMin / 12} Year</span>
-              <span>{params.tenureMax / 12} Years</span>
+
+            {/* Right Navy EMI Card */}
+            <div className="calc-navy-emi-card">
+              <div className="cne-label">ESTIMATED MONTHLY EMI</div>
+              <div className="cne-emi-val">{fmtINRFull(emi)}</div>
+
+              <div className="cne-breakdown">
+                <div className="cne-row">
+                  <span className="cne-lbl">Principal</span>
+                  <span className="cne-val">{fmtINR(amount)}</span>
+                </div>
+                <div className="cne-row">
+                  <span className="cne-lbl">Total Interest</span>
+                  <span className="cne-val">{fmtINR(totalInterest)}</span>
+                </div>
+                <div className="cne-row highlight">
+                  <span className="cne-lbl">Total Payable</span>
+                  <span className="cne-val">{fmtINR(totalPayable)}</span>
+                </div>
+              </div>
+
+              <div className="cne-note">
+                💡 This is an indicative EMI. Actual EMI depends on the lender's approved rate.
+              </div>
             </div>
-            <div className="amt-quick-btns">
-              {quickTenureOptions.map((val) => (
-                <button key={val} onClick={() => setTenure(val)}>
-                  {val / 12} yr
+          </div>
+        </div>
+
+        {/* ═══ COMPARE LENDERS LIST ═══ */}
+        <div className="calc-section-card" ref={lenderSectionRef}>
+          <div className="lender-section-header">
+            <div>
+              <h3>Compare &amp; Select Lenders</h3>
+              <div className="lender-sub">
+                Live rates from 30+ lenders for {currentTitle}
+              </div>
+            </div>
+
+            <div className="emi-controls-row">
+              <div className="lender-filters">
+                <button
+                  className={`lf-btn ${lenderFilter === "all" ? "active" : ""}`}
+                  onClick={() => setLenderFilter("all")}
+                >
+                  All
                 </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Calculations & Donut */}
-        <div className="emi-result-card">
-          <div className="emi-result-top">
-            <div className="erp-label">Your Monthly EMI</div>
-            <div className="erp-emi">{fmtINRFull(emi)}</div>
-            <div className="erp-sub">{fmtTenure(tenure)}</div>
-          </div>
-
-          <EmiDonut
-            principal={amount}
-            interest={totalInterest}
-            principalPercentage={principalPercentage}
-          />
-
-          <div className="pie-legend">
-            <span>
-              <span className="legend-dot" style={{ backgroundColor: "#22D3EE" }}></span>
-              Principal
-            </span>
-            <span>
-              <span className="legend-dot" style={{ backgroundColor: "#D4AF37" }}></span>
-              Interest
-            </span>
-          </div>
-
-          <div className="breakdown-grid">
-            <div className="bkd-box">
-              <div className="val">{fmtINRFull(amount)}</div>
-              <div className="lbl">Principal</div>
-            </div>
-            <div className="bkd-box">
-              <div className="val">{fmtINRFull(totalInterest)}</div>
-              <div className="lbl">Total Interest</div>
-            </div>
-            <div className="bkd-box bkd-full">
-              <div className="val">{fmtINRFull(totalPayable)}</div>
-              <div className="lbl">Total Amount Payable</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ═══ SCHEDULE ACCORDIONS / DETAIL TABS ═══ */}
-      <div className="emi-detail-tabs">
-        <button
-          className={`edt-tab ${activeTab === "summary" ? "active" : ""}`}
-          onClick={() => setActiveTab("summary")}
-        >
-          📊 Schedule Summary
-        </button>
-        <button
-          className={`edt-tab ${activeTab === "amort" ? "active" : ""}`}
-          onClick={() => setActiveTab("amort")}
-        >
-          📅 Amortisation Schedule
-        </button>
-      </div>
-
-      {/* Tab Panel: Summary */}
-      {activeTab === "summary" && (
-        <div className="emi-detail-panel animate-fade-up">
-          <div className="emi-summary-grid">
-            <div className="esg-card">
-              <div className="esg-ic">💰</div>
-              <div className="esg-v">{fmtINRFull(emi)}</div>
-              <div className="esg-l">Monthly EMI</div>
-            </div>
-            <div className="esg-card">
-              <div className="esg-ic">🏦</div>
-              <div className="esg-v">{fmtINR(amount)}</div>
-              <div className="esg-l">Principal</div>
-            </div>
-            <div className="esg-card">
-              <div className="esg-ic">📈</div>
-              <div className="esg-v">{fmtINR(totalInterest)}</div>
-              <div className="esg-l">Total Interest</div>
-            </div>
-            <div className="esg-card">
-              <div className="esg-ic">🧾</div>
-              <div className="esg-v">{fmtINR(totalPayable)}</div>
-              <div className="esg-l">Total Payable</div>
-            </div>
-          </div>
-          <div className="emi-summary-note">
-            Over <strong>{fmtTenure(tenure)}</strong>, you’ll pay <strong>{fmtINR(totalInterest)}</strong> in interest — about <strong>{interestPercentage}%</strong> of your total outgo. Choosing a lower expected ROI or shorter tenure reduces this. <em>Final ROI will be confirmed post credit assessment of the case.</em>
-          </div>
-        </div>
-      )}
-
-      {/* Tab Panel: Amortisation Table */}
-      {activeTab === "amort" && (
-        <div className="emi-detail-panel animate-fade-up">
-          <div className="amort-scroll">
-            <table className="amort-table">
-              <thead>
-                <tr>
-                  <th style={{ textAlign: "left" }}>Year</th>
-                  <th>EMI Paid</th>
-                  <th>Principal</th>
-                  <th>Interest</th>
-                  <th>Balance</th>
-                </tr>
-              </thead>
-              <tbody>
-                {amortizationSchedule.map((row) => (
-                  <tr key={row.year}>
-                    <td style={{ textAlign: "left", fontWeight: "600" }}>
-                      Year {row.year}
-                    </td>
-                    <td>{fmtINRFull(row.emiPaid)}</td>
-                    <td>{fmtINRFull(row.principalPaid)}</td>
-                    <td>{fmtINRFull(row.interestPaid)}</td>
-                    <td>{fmtINRFull(row.outstandingBalance)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* ═══ COMPARE LENDERS SECTION ═══ */}
-      <div className="lender-section">
-        <div className="lender-section-header">
-          <div>
-            <h3>Compare Lenders</h3>
-            <div className="lender-sub">
-              Live rates from 29 banks & NBFCs · sorted for your profile
-            </div>
-          </div>
-
-          <div className="emi-controls-row">
-            <div className="lender-filters">
-              <button
-                className={`lf-btn ${lenderFilter === "all" ? "active" : ""}`}
-                onClick={() => setLenderFilter("all")}
-              >
-                All
-              </button>
-              <button
-                className={`lf-btn ${lenderFilter === "psu" ? "active" : ""}`}
-                onClick={() => setLenderFilter("psu")}
-              >
-                PSU
-              </button>
-              <button
-                className={`lf-btn ${lenderFilter === "private" ? "active" : ""}`}
-                onClick={() => setLenderFilter("private")}
-              >
-                Private
-              </button>
-              <button
-                className={`lf-btn ${lenderFilter === "nbfc" ? "active" : ""}`}
-                onClick={() => setLenderFilter("nbfc")}
-              >
-                NBFC/HFC
-              </button>
-              <button
-                className={`lf-btn ${lenderFilter === "small" ? "active" : ""}`}
-                onClick={() => setLenderFilter("small")}
-              >
-                SFB
-              </button>
-            </div>
-
-            <select
-              className="lender-sort-select"
-              value={lenderSort}
-              onChange={(e) => setLenderSort(e.target.value)}
-            >
-              <option value="rate">↓ Lowest Rate</option>
-              <option value="emi">↓ Lowest EMI</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Lender rows list */}
-        <div className="lender-grid">
-          {filteredLenders.length > 0 ? (
-            <>
-              {/* Header row */}
-              <div className="lc-row lc-row-head">
-                <div className="lcr-lender">Lender</div>
-                <div className="lcr-rate">Expected ROI</div>
-                <div className="lcr-emi">Est. EMI</div>
-                <div className="lcr-act"></div>
+                <button
+                  className={`lf-btn ${lenderFilter === "psu" ? "active" : ""}`}
+                  onClick={() => setLenderFilter("psu")}
+                >
+                  PSU
+                </button>
+                <button
+                  className={`lf-btn ${lenderFilter === "private" ? "active" : ""}`}
+                  onClick={() => setLenderFilter("private")}
+                >
+                  Private
+                </button>
+                <button
+                  className={`lf-btn ${lenderFilter === "nbfc" ? "active" : ""}`}
+                  onClick={() => setLenderFilter("nbfc")}
+                >
+                  NBFC
+                </button>
               </div>
 
-              {filteredLenders.map((l) => {
+              <select
+                className="lender-sort-select"
+                value={lenderSort}
+                onChange={(e) => setLenderSort(e.target.value)}
+              >
+                <option value="rate">↓ Lowest Rate</option>
+                <option value="emi">↓ Lowest EMI</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="lender-grid">
+            {filteredLenders.length > 0 ? (
+              filteredLenders.map((l) => {
                 const rk = rateType === "floating" ? "f" : "x";
                 const ratesArr = l.rates[loanType][rk];
                 const estEmi = calcEMI(amount, ratesArr[0], tenure);
@@ -570,25 +483,13 @@ export default function Calculator() {
                           {l.name}
                           {isBest && <span className="lcr-best-tag">★ Best</span>}
                         </div>
-                        <div className="lcr-badge">
-                          {typeLabels[l.type] || ""}{" "}
-                          {l.offer && (
-                            <>
-                              {" · "}
-                              <span className="lcr-offer">{l.offer}</span>
-                            </>
-                          )}
-                        </div>
+                        <div className="lcr-badge">{l.type.toUpperCase()} Bank</div>
                       </div>
                     </div>
 
                     <div className="lcr-rate">
-                      <span className="lcr-rate-v" style={isBest ? { color: "#059669" } : {}}>
-                        {ratesArr[0].toFixed(2)}%
-                      </span>
-                      <span className="lcr-rate-r">
-                        {ratesArr[0].toFixed(2)}–{ratesArr[1].toFixed(2)}
-                      </span>
+                      <span className="lcr-rate-v">{ratesArr[0].toFixed(2)}%</span>
+                      <span className="lcr-rate-r">p.a. onwards</span>
                     </div>
 
                     <div className="lcr-emi">
@@ -606,27 +507,32 @@ export default function Calculator() {
                     </div>
                   </div>
                 );
-              })}
-            </>
-          ) : (
-            <div style={{ textAlign: "center", padding: "40px", color: "var(--text2)" }}>
-              No lenders available for this filter/loan type combination.
-            </div>
-          )}
+              })
+            ) : (
+              <div style={{ textAlign: "center", padding: "40px", color: "#64748B" }}>
+                No lenders found matching this filter.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ STICKY BOTTOM ACTION BAR ═══ */}
+      <div className="calc-bottom-bar">
+        <button className="calc-bar-back" onClick={() => navigate("/")}>
+          ← Dashboard
+        </button>
+
+        <div className="calc-bar-center">
+          <span>EMI</span> <strong>{fmtINRFull(emi)}/mo</strong>
         </div>
 
-        <div className="roi-confirm-note">
-          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
-          </svg>
-          <span>
-            <strong>Note:</strong> Final ROI will be confirmed post credit assessment of the case. Processing fee, where applicable, is confirmed by the lender at sanction. Rates shown are indicative, updated June 2026.
-          </span>
-        </div>
+        <button className="calc-bar-next" onClick={handleChooseLenders}>
+          Choose Lenders →
+        </button>
       </div>
     </div>
   );
 }
+
 export { Calculator };

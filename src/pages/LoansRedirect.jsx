@@ -6,7 +6,21 @@ export default function LoansRedirect() {
   const navigate = useNavigate();
 
   const handleApplyClick = (productName) => {
-    navigate("/", { state: { activeView: "borrowerStepper", selectedProduct: productName } });
+    const typeMap = {
+      "Home Loan": "home",
+      "Loan Against Property": "lap",
+      "Personal Loan": "personal",
+      "Business Loan": "business",
+      "Vehicle Loan": "vehicle",
+      "Education Loan": "education"
+    };
+    const loanTypeId = typeMap[productName] || "home";
+    navigate("/EMI-calculator", { 
+      state: { 
+        loanType: loanTypeId, 
+        selectedProduct: productName 
+      } 
+    });
   };
 
   const loanProducts = [
