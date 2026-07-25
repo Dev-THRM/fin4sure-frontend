@@ -1700,54 +1700,121 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ═══ EDIT APPLICATION MODAL (Status only) ═══ */}
+      {/* ✏️ EDIT APPLICATION MODAL (Screenshot 3 Match) */}
       {editingLead && (
-        <div className="cd-modal" onClick={() => setEditingLead(null)}>
-          <div className="cd-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px' }}>
-            <div className="cd-modal-head">
-              <span>Update Status — {editingLead.application_no ?? `#${editingLead.id}`}</span>
-              <button onClick={() => setEditingLead(null)}>&times;</button>
+        <div className="adm-modal-overlay animate-fade-in" style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }} onClick={() => setEditingLead(null)}>
+          <div className="adm-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '580px', width: '92%', borderRadius: '16px', overflow: 'hidden', padding: 0, border: 'none', background: '#FFFFFF', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.3)' }}>
+            {/* Modal Header Bar */}
+            <div style={{ background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)', padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h3 style={{ margin: 0, color: '#FFFFFF', fontSize: '1.15rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>✏️</span> Edit Application — {editingLead.application_no ?? (String(editingLead.id).startsWith('F4S') ? editingLead.id : `F4S-${2000 + editingLead.id}`)}
+              </h3>
+              <button onClick={() => setEditingLead(null)} style={{ background: 'rgba(255, 255, 255, 0.2)', border: 'none', color: '#FFFFFF', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
             </div>
-            <div className="cd-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '.85rem' }}>
-              {/* Read-only info */}
-              <div style={{ background: '#f8fafc', borderRadius: '8px', padding: '10px 14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '.8rem' }}>
-                <div><strong>Borrower:</strong> {editingLead.name}</div>
-                <div><strong>Loan Type:</strong> {editingLead.product}</div>
-                <div><strong>Amount:</strong> {editingLead.loan_amount ? `₹${Number(editingLead.loan_amount).toLocaleString('en-IN')}` : '-'}</div>
-                <div><strong>Source:</strong> {editingLead.source}</div>
+
+            <div style={{ padding: '24px', maxHeight: '80vh', overflowY: 'auto' }}>
+              {/* Top Light Blue Summary Card */}
+              <div style={{ background: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '12px', padding: '14px 18px', marginBottom: '20px', fontSize: '0.85rem', color: '#0369A1' }}>
+                <div><strong>Borrower:</strong> {editingLead.name} &nbsp;&nbsp;&nbsp; <strong>Mobile:</strong> {editingLead.number || '-'} &nbsp;&nbsp;&nbsp; <strong>Type:</strong> {editingLead.product || 'Home Loan'}</div>
+                <div style={{ marginTop: '6px' }}><strong>Applied:</strong> {editingLead.createdAt ? new Date(editingLead.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '18 Jan 2025'}</div>
               </div>
 
-              {/* Status selector */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontWeight: 600, color: '#0d2b6b', fontSize: '.82rem', textTransform: 'uppercase', letterSpacing: '.04em' }}>Application Status</label>
-                <select
-                  value={editForm.status || ''}
-                  onChange={(e) => setEditForm(f => ({ ...f, status: e.target.value }))}
-                  style={{ padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #e2e8f0', fontSize: '.9rem', outline: 'none', background: '#fff', cursor: 'pointer' }}
-                >
-                  <option value="applied">Applied</option>
-                  <option value="docs">Docs</option>
-                  <option value="credit">Credit</option>
-                  <option value="submitted">Submitted</option>
-                  <option value="sanction">Sanction</option>
-                  <option value="legal">Legal</option>
-                  <option value="disbursed">Disbursed</option>
-                  <option value="rejected">Rejected</option>
-                </select>
+              {/* Form Fields */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>Borrower Name</label>
+                  <input
+                    type="text"
+                    value={editForm.name || ''}
+                    onChange={(e) => setEditForm(f => ({ ...f, name: e.target.value }))}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', outline: 'none' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>Assigned Lender</label>
+                  <select
+                    value={editForm.lender || 'SBI'}
+                    onChange={(e) => setEditForm(f => ({ ...f, lender: e.target.value }))}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', background: '#FFFFFF', cursor: 'pointer', outline: 'none' }}
+                  >
+                    <option value="HDFC Bank">🏦 HDFC Bank</option>
+                    <option value="SBI">🏦 SBI</option>
+                    <option value="ICICI Bank">🏦 ICICI Bank</option>
+                    <option value="Axis Bank">🏦 Axis Bank</option>
+                    <option value="Bajaj Finserv">🏦 Bajaj Finserv</option>
+                    <option value="PNB Housing">🏦 PNB Housing</option>
+                    <option value="Bank of Baroda">🏦 Bank of Baroda</option>
+                    <option value="Canara Bank">🏦 Canara Bank</option>
+                    <option value="Union Bank">🏦 Union Bank</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>Loan Amount (₹)</label>
+                  <input
+                    type="number"
+                    value={editForm.loan_amount || ''}
+                    onChange={(e) => setEditForm(f => ({ ...f, loan_amount: e.target.value }))}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', outline: 'none' }}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>Status</label>
+                    <select
+                      value={editForm.status || 'in progress'}
+                      onChange={(e) => setEditForm(f => ({ ...f, status: e.target.value }))}
+                      style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', background: '#FFFFFF', cursor: 'pointer', outline: 'none' }}
+                    >
+                      <option value="in progress">In Progress</option>
+                      <option value="disbursed">Disbursed</option>
+                      <option value="rejected">Rejected</option>
+                      <option value="pending">Pending</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>Stage</label>
+                    <select
+                      value={editForm.stage || 'Applied'}
+                      onChange={(e) => setEditForm(f => ({ ...f, stage: e.target.value }))}
+                      style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', background: '#FFFFFF', cursor: 'pointer', outline: 'none' }}
+                    >
+                      <option value="Applied">Applied</option>
+                      <option value="Docs">Docs</option>
+                      <option value="Credit">Credit</option>
+                      <option value="Submitted">Submitted</option>
+                      <option value="Sanction">Sanction</option>
+                      <option value="Legal">Legal</option>
+                      <option value="Disbursed">Disbursed</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>Remark / Notes</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Documents submitted, awaiting sanction."
+                    value={editForm.remark || ''}
+                    onChange={(e) => setEditForm(f => ({ ...f, remark: e.target.value }))}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', outline: 'none', resize: 'vertical' }}
+                  />
+                </div>
               </div>
 
-              {/* Action buttons */}
-              <div style={{ display: 'flex', gap: '10px' }}>
+              {/* Modal Buttons */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '24px' }}>
                 <button
                   onClick={saveEditLead}
-                  className="settings-action-btn"
-                  style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '.85rem' }}
+                  style={{ padding: '12px 20px', borderRadius: '8px', background: '#0F2942', color: '#FFFFFF', border: 'none', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
-                  Update Status
+                  <span>💾</span> Save Changes
                 </button>
                 <button
                   onClick={() => setEditingLead(null)}
-                  style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '.85rem', background: '#f1f5f9', color: '#475569', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                  style={{ padding: '12px 20px', borderRadius: '8px', background: '#FFFFFF', color: '#475569', border: '1px solid #CBD5E1', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer' }}
                 >
                   Cancel
                 </button>
