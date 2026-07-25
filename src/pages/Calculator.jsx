@@ -309,13 +309,19 @@ export default function Calculator() {
           selectedLenders: targetLenders
         }, { withCredentials: true });
 
-        if (res.data && login && res.data.user) {
+        if (res.data && login) {
+          const uObj = res.data.user || res.data;
           login({
-            name: res.data.user?.name || applicantData.name,
-            email: res.data.user?.email || applicantData.email,
-            number: applicantData.mob_no,
+            _id: uObj._id || uObj.id || 1,
+            id: uObj.id || uObj._id || 1,
+            name: uObj.name || applicantData.name || "Borrower",
+            email: uObj.email || applicantData.email || "",
+            number: applicantData.mob_no || uObj.number || uObj.mob_no || "",
             role: "borrower"
           });
+          if (fetchProfile) {
+            fetchProfile();
+          }
         }
       }
 
@@ -858,7 +864,13 @@ export default function Calculator() {
             <div className="cmc-actions">
               <button
                 className="cmc-btn-success"
-                onClick={() => navigate("/client-dashboard")}
+                onClick={async () => {
+                  setShowSuccessModal(false);
+                  if (fetchProfile) {
+                    await fetchProfile();
+                  }
+                  navigate("/client-dashboard");
+                }}
               >
                 Go to Borrower Dashboard →
               </button>
