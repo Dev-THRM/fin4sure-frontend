@@ -202,14 +202,24 @@ export default function Calculator() {
     })).sort((a, b) => a.rate - b.rate);
   }, [dbLenders, loanType, rateType]);
 
-  // Toggle lender selection
-  const toggleLenderSelection = (lenderId) => {
-    setSelectedLenders((prev) =>
-      prev.includes(lenderId) ? prev.filter((id) => id !== lenderId) : [...prev, lenderId]
-    );
-  };
+  const isAdmin = user?.role === "admin" || user?.role === "partner" || user?.role === "broker";
+
+  // Check if page opened with location.state.step === 3 or from session draft
+  useEffect(() => {
+    if (location.state?.step === 3) {
+      setStepperStep(3);
+    }
+    if (location.state?.selectedLenders && Array.isArray(location.state.selectedLenders)) {
+      setSelectedLenders(location.state.selectedLenders);
+    }
+  }, [location.state]);
 
   const handleNextStep = () => {
+    if (isAdmin) {
+      alert("Admin and Partner accounts cannot apply for loans. Only borrower accounts can submit applications.");
+      return;
+    }
+
     if (stepperStep === 1) {
       setStepperStep(2);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -218,6 +228,17 @@ export default function Calculator() {
         alert("Please select at least 1 lender to review your application.");
         return;
       }
+
+      // If user is not logged in, save draft and redirect to login
+      if (!user) {
+        sessionStorage.setItem(
+          "pendingLoanApp",
+          JSON.stringify({ loanType, amount, rate, tenure, selectedLenders })
+        );
+        navigate("/login?redirect=/EMI-calculator&step=3");
+        return;
+      }
+
       setStepperStep(3);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
@@ -332,6 +353,11 @@ export default function Calculator() {
 
       {/* ═══ MAIN CONTENT BODY ═══ */}
       <div className="calc-body-wrap">
+        {isAdmin && (
+          <div style={{ marginBottom: "24px", padding: "14px 20px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "12px", color: "#991B1B", fontSize: ".88rem", fontWeight: 700, textAlign: "center" }}>
+            ⚠️ Admin &amp; Partner accounts cannot submit loan applications. Please sign out and log in with a Borrower account to apply.
+          </div>
+        )}
         {stepperStep === 1 ? (
           <>
             {/* Pre-selected Loan Alert Banner */}

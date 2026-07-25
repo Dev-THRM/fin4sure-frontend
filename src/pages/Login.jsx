@@ -1,11 +1,13 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./styles/login.css";
 
 export default function Login() {
   const { login, fetchProfile } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTarget = searchParams.get("redirect");
 
   // Active view tab state: "borrower" (Client) vs "partner" (Broker)
   const [activeTab, setActiveTab] = useState("borrower");
@@ -72,7 +74,13 @@ export default function Login() {
       } else if (data.role === "broker" || data.role === "partner") {
         navigate("/broker-dashboard");
       } else {
-        navigate("/client-dashboard");
+        if (redirectTarget) {
+          const draftStr = sessionStorage.getItem("pendingLoanApp");
+          const draftState = draftStr ? JSON.parse(draftStr) : {};
+          navigate(redirectTarget, { state: { ...draftState, step: 3 } });
+        } else {
+          navigate("/client-dashboard");
+        }
       }
     } catch (err) {
       setError(err.message || "Network error");
@@ -90,6 +98,12 @@ export default function Login() {
     <div className="login-page-wrap">
       <div className="login-page-content animate-fade-up">
         <div className="login-form-card">
+          {redirectTarget && (
+            <div style={{ marginBottom: "20px", padding: "12px 16px", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "12px", color: "#1E40AF", fontSize: ".85rem", textAlign: "center", fontWeight: 600 }}>
+              🔒 Please sign in to your Borrower account to review and submit your loan application.
+            </div>
+          )}
+
           {/* Form Header */}
           <div style={{ textAlign: "center", marginBottom: "24px" }}>
             <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.8rem", color: "var(--navy)", fontWeight: 700, marginBottom: "6px" }}>
