@@ -1,11 +1,11 @@
 /* ═══════════════════════════════════════════
-   Calculator & Loan Flow Stylesheet (Matching Screenshot 4)
+   Calculator & 2-Step Loan Flow Stylesheet (Matching Screenshot 1 & 2)
    ═══════════════════════════════════════════ */
 
 .calc-full-page {
   background: #F4F8FC;
   min-height: 100vh;
-  padding-bottom: 80px;
+  padding-bottom: 90px;
   box-sizing: border-box;
 }
 
@@ -75,7 +75,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  opacity: 0.6;
+  opacity: 0.65;
   transition: opacity 0.2s ease;
 }
 
@@ -351,6 +351,184 @@
   border-radius: 10px;
 }
 
+/* ═══════════════════════════════════════════
+   STEP 2: AVAILABLE LENDERS STYLES
+   ═══════════════════════════════════════════ */
+
+.calc-step2-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.calc-step2-header {
+  margin-bottom: 28px;
+}
+
+.calc-step2-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #0F2942;
+  margin: 0 0 8px 0;
+}
+
+.calc-step2-sub {
+  font-size: 0.9rem;
+  color: #64748B;
+  margin-bottom: 24px;
+}
+
+.smart-tip-box {
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 0.86rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.smart-tip-box.green {
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #065F46;
+}
+
+.smart-tip-box.blue {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #1E40AF;
+  margin-bottom: 28px;
+}
+
+.stb-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* Lender Selection Cards List */
+.calc-lenders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.calc-lender-card {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 18px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.02);
+}
+
+.calc-lender-card:hover {
+  border-color: #38BDF8;
+  transform: translateY(-2px);
+}
+
+.calc-lender-card.selected {
+  border: 2px solid #0284C7;
+  background: #F0F9FF;
+  box-shadow: 0 6px 22px rgba(2, 132, 199, 0.12);
+}
+
+.clc-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.clc-checkbox {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  border: 2px solid #CBD5E1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  transition: all 0.15s ease;
+}
+
+.clc-checkbox.checked {
+  background: #0284C7;
+  border-color: #0284C7;
+}
+
+.clc-icon {
+  font-size: 1.6rem;
+}
+
+.clc-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.clc-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.clc-name {
+  font-weight: 700;
+  color: #0F2942;
+  font-size: 1.05rem;
+}
+
+.clc-best-badge {
+  background: #DCFCE7;
+  color: #15803D;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.clc-sub-row {
+  font-size: 0.78rem;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.clc-bullet {
+  color: #CBD5E1;
+}
+
+.clc-offer {
+  color: #059669;
+  font-weight: 600;
+}
+
+.clc-right {
+  text-align: right;
+}
+
+.clc-rate {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0F2942;
+}
+
+.clc-emi {
+  font-size: 0.78rem;
+  color: #64748B;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
 /* Bottom Sticky Action Bar */
 .calc-bottom-bar {
   position: fixed;
@@ -405,155 +583,6 @@
 
 .calc-bar-next:hover {
   background: #4F46E5;
-}
-
-/* Lenders List Styles */
-.lender-section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.lender-section-header h3 {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 1.35rem;
-  color: #0F2942;
-  margin: 0;
-}
-
-.lender-sub {
-  font-size: 0.8rem;
-  color: #64748B;
-  margin-top: 4px;
-}
-
-.emi-controls-row {
-  display: flex;
-  gap: 12px;
-}
-
-.lender-filters {
-  display: flex;
-  gap: 4px;
-  background: #F1F5F9;
-  padding: 3px;
-  border-radius: 8px;
-}
-
-.lf-btn {
-  border: none;
-  background: transparent;
-  padding: 6px 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #64748B;
-  cursor: pointer;
-  border-radius: 6px;
-}
-
-.lf-btn.active {
-  background: #FFFFFF;
-  color: #0F2942;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.lender-sort-select {
-  border: 1px solid #CBD5E1;
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 0.78rem;
-  color: #0F2942;
-}
-
-.lender-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.lc-row {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 0.8fr;
-  align-items: center;
-  padding: 14px 20px;
-  border: 1px solid #E2E8F0;
-  border-radius: 12px;
-  background: #FFFFFF;
-}
-
-.lc-row.lc-best {
-  border-color: #38BDF8;
-  background: #F0F9FF;
-}
-
-.lcr-lender {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.lcr-icon {
-  font-size: 1.5rem;
-}
-
-.lcr-name {
-  font-weight: 700;
-  color: #0F2942;
-  font-size: 0.9rem;
-}
-
-.lcr-best-tag {
-  background: #E0F2FE;
-  color: #0284C7;
-  font-size: 0.65rem;
-  font-weight: 800;
-  padding: 2px 6px;
-  border-radius: 10px;
-  margin-left: 6px;
-}
-
-.lcr-badge {
-  font-size: 0.72rem;
-  color: #64748B;
-}
-
-.lcr-rate-v {
-  font-weight: 700;
-  color: #0F2942;
-  font-size: 0.95rem;
-}
-
-.lcr-rate-r {
-  font-size: 0.72rem;
-  color: #64748B;
-  margin-left: 4px;
-}
-
-.lcr-emi {
-  font-weight: 700;
-  color: #0F2942;
-  font-size: 0.95rem;
-}
-
-.lcr-emi-l {
-  font-size: 0.72rem;
-  color: #64748B;
-}
-
-.lcr-act {
-  text-align: right;
-}
-
-.lcr-btn {
-  background: #0F2942;
-  color: #FFFFFF;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
 }
 
 @media (max-width: 992px) {
