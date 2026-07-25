@@ -263,6 +263,10 @@ export default function BrokerDashboard() {
       setShowAddClientModal(false);
 
       // Reset form
+      if (data.waCredentials) {
+        console.log(`[WHATSAPP SIMULATION] Message to 91${acMobile}`);
+        console.log(`Your Fin4Sure account has been created.\nUsername: ${data.waCredentials.username}\nPassword: ${data.waCredentials.password}\n\nPlease log in and change your password if you want.`);
+      }
       setAcName("");
       setAcMobile("");
       setAcEmail("");
