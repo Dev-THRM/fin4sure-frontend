@@ -123,7 +123,7 @@
 /* Main Body Wrapper */
 .calc-body-wrap {
   max-width: 1080px;
-  margin: -20px auto 40px;
+  margin: 32px auto 40px;
   padding: 0 20px;
   box-sizing: border-box;
 }
@@ -133,11 +133,12 @@
   background: #EFF6FF;
   border: 1px solid #BFDBFE;
   border-radius: 14px;
-  padding: 14px 20px;
+  padding: 16px 24px;
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 24px;
+  margin-top: 12px;
+  margin-bottom: 28px;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
 }
 
