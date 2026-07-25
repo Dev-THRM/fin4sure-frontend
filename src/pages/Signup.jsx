@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import validator from "validator";
 import "./styles/login.css";
+import { BASE_PATH } from "../config";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ export default function Signup() {
   const [resendTimer, setResendTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
-  const API_BASE = "/api/auth";
+  const API_BASE = `${BASE_PATH}/api/auth`;
 
   // ---------------- RESEND TIMER LOGIC ----------------
   useEffect(() => {

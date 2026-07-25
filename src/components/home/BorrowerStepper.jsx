@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import '../../pages/styles/stepper.css';
+import { BASE_PATH } from "../../config";
 
 
 export default function BorrowerStepper({ onBack }) {
@@ -66,9 +67,9 @@ export default function BorrowerStepper({ onBack }) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const loanTypesRes = await axios.get('/api/loan-types');
-        const lendersRes = await axios.get('/api/lenders');
-        const statesRes = await axios.get('/api/location/states');
+        const loanTypesRes = await axios.get(`${BASE_PATH}/api/loan-types`);
+        const lendersRes = await axios.get(`${BASE_PATH}/api/lenders`);
+        const statesRes = await axios.get(`${BASE_PATH}/api/location/states`);
         
         if (loanTypesRes.data.success) {
           const mappedTypes = loanTypesRes.data.data.map(lt => {
@@ -139,15 +140,15 @@ export default function BorrowerStepper({ onBack }) {
     
     if (val.length === 6) {
       try {
-        const res = await axios.get(`/api/location/pincode/${val}`);
+        const res = await axios.get(`${BASE_PATH}/api/location/pincode/${val}`);
         if (res.data.success) {
           setPincodeNotFound(false);
           const { city, district, state } = res.data.data;
           
           // Fetch districts for the state and cities for the district to populate dropdowns
           const [districtsRes, citiesRes] = await Promise.all([
-            axios.get(`/api/location/districts/${state.id}`),
-            axios.get(`/api/location/cities/${district.id}`)
+            axios.get(`${BASE_PATH}/api/location/districts/${state.id}`),
+            axios.get(`${BASE_PATH}/api/location/cities/${district.id}`)
           ]);
 
           if (districtsRes.data.success) setDistrictsList(districtsRes.data.data);
@@ -184,7 +185,7 @@ export default function BorrowerStepper({ onBack }) {
     
     if (stateId) {
       try {
-        const res = await axios.get(`/api/location/districts/${stateId}`);
+        const res = await axios.get(`${BASE_PATH}/api/location/districts/${stateId}`);
         if (res.data.success) setDistrictsList(res.data.data);
         setCitiesList([]);
       } catch (err) {
@@ -203,7 +204,7 @@ export default function BorrowerStepper({ onBack }) {
 
     if (districtId) {
       try {
-        const res = await axios.get(`/api/location/cities/${districtId}`);
+        const res = await axios.get(`${BASE_PATH}/api/location/cities/${districtId}`);
         if (res.data.success) setCitiesList(res.data.data);
       } catch (err) {
         console.error("Error fetching cities:", err);
@@ -222,7 +223,7 @@ export default function BorrowerStepper({ onBack }) {
   const handleFinalSubmit = async () => {
     setSubmitError('');
     try {
-      const response = await axios.post('/api/auth/register-borrower', {
+      const response = await axios.post(`${BASE_PATH}/api/auth/register-borrower`, {
         name: formData.name,
         email: formData.email,
         number: formData.mob_no,

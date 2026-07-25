@@ -3,6 +3,7 @@ import { useState } from "react";
 import logo from "../../assets/images/logo.jpeg";
 import { useAuth } from "../../context/AuthContext";
 import "./navbar.css";
+import { BASE_PATH } from "../../config";
 
 export default function Navbar() {
   const { role, isAuthenticated, logout, login, fetchProfile } = useAuth();
@@ -15,7 +16,7 @@ export default function Navbar() {
   const handleAdminSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("/api/auth/admin-login", {
+      const res = await fetch(`${BASE_PATH}/api/auth/admin-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: adminPassword }),

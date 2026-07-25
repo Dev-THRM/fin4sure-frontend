@@ -8,6 +8,7 @@ import { fmtINR, fmtINRFull } from "../utils/formatters";
 import { LENDERS } from "../utils/loanConstants";
 import { calcEMI } from "../utils/emiCalculator";
 import "./styles/calculator.css";
+import { BASE_PATH } from "../config";
 
 export default function Calculator() {
   const location = useLocation();
@@ -78,12 +79,12 @@ export default function Calculator() {
     }
   }, [user]);
 
-  // Fetch real lenders from DB endpoint `/api/lenders`
+  // Fetch real lenders from DB endpoint `${BASE_PATH}/api/lenders`
   useEffect(() => {
     const fetchLenders = async () => {
       try {
         setLoadingLenders(true);
-        const res = await fetch("/api/lenders");
+        const res = await fetch(`${BASE_PATH}/api/lenders`);
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
           setDbLenders(json.data);
@@ -282,7 +283,7 @@ export default function Calculator() {
     try {
       let res;
       if (user && user.email) {
-        res = await axios.post("/api/client/apply-loan", {
+        res = await axios.post(`${BASE_PATH}/api/client/apply-loan`, {
           product: loanType,
           loanAmount: amount,
           tenure: tenure,
@@ -290,7 +291,7 @@ export default function Calculator() {
           loan_purpose: applicantData.loanPurpose || `${currentTitle} Application`
         }, { withCredentials: true });
       } else {
-        res = await axios.post("/api/auth/register-borrower", {
+        res = await axios.post(`${BASE_PATH}/api/auth/register-borrower`, {
           name: applicantData.name || "Primary Applicant",
           email: applicantData.email || `applicant${Date.now()}@finn4sure.com`,
           number: applicantData.mob_no || "9876543210",

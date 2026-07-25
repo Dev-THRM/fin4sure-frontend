@@ -10,6 +10,7 @@ import { useAuth } from "../context/AuthContext";
 import { LOAN_PRODUCTS } from "../utils/constants";
 import { states, districtsByState } from "../components/Statedata";
 import "./styles/clientDashboard.css";
+import { BASE_PATH } from "../config";
 
 export default function ClientDashboard() {
   const { logout } = useAuth();
@@ -49,7 +50,7 @@ export default function ClientDashboard() {
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch("/api/auth/profile", {
+      const res = await fetch(`${BASE_PATH}/api/auth/profile`, {
         method: "GET",
         headers: { "content-type": "application/json" },
         credentials: "include",
@@ -81,7 +82,7 @@ export default function ClientDashboard() {
 
   const fetchApplications = async () => {
     try {
-      const res = await fetch("/api/client/my-applications", {
+      const res = await fetch(`${BASE_PATH}/api/client/my-applications`, {
         method: "GET",
         headers: { "content-type": "application/json" },
         credentials: "include",
@@ -103,7 +104,7 @@ export default function ClientDashboard() {
         return;
       }
       const res = await fetch(
-        "/api/auth/update-number-otp",
+        `${BASE_PATH}/api/auth/update-number-otp`,
         {
           method: "POST",
           credentials: "include",
@@ -128,7 +129,7 @@ export default function ClientDashboard() {
     }
     try {
       const res = await fetch(
-        "/api/auth/verify-update-number-otp",
+        `${BASE_PATH}/api/auth/verify-update-number-otp`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -152,7 +153,7 @@ export default function ClientDashboard() {
       return;
     }
     try {
-      const res = await fetch("/api/auth/profileupdate", {
+      const res = await fetch(`${BASE_PATH}/api/auth/profileupdate`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         credentials: "include",

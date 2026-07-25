@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./styles/uploadDocs.css";
+import { BASE_PATH } from "../config";
 
 export default function UploadDocs() {
   const { applicationId } = useParams();
@@ -64,7 +65,7 @@ export default function UploadDocs() {
         { type: "bank statement", name: docs.bankStatement.name },
       ];
 
-      const res = await fetch(`/api/client/upload-docs/${applicationId}`, {
+      const res = await fetch(`${BASE_PATH}/api/client/upload-docs/${applicationId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ files: filesPayload }),

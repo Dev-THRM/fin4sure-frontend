@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { districtsByState, states } from "../components/Statedata";
 import { fmtINR } from "../utils/formatters";
 import "./styles/brokerDashboard.css";
+import { BASE_PATH } from "../config";
 
 export default function BrokerDashboard() {
   const { logout } = useAuth();
@@ -81,7 +82,7 @@ export default function BrokerDashboard() {
 
   async function fetchProfile() {
     try {
-      const res = await fetch("/api/auth/profile", {
+      const res = await fetch(`${BASE_PATH}/api/auth/profile`, {
         credentials: "include",
       });
       if (res.status === 429) {
@@ -109,7 +110,7 @@ export default function BrokerDashboard() {
       return;
     }
     try {
-      const res = await fetch("/api/auth/update-number-otp", {
+      const res = await fetch(`${BASE_PATH}/api/auth/update-number-otp`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -128,7 +129,7 @@ export default function BrokerDashboard() {
       return;
     }
     try {
-      const res = await fetch("/api/auth/verify-update-number-otp", {
+      const res = await fetch(`${BASE_PATH}/api/auth/verify-update-number-otp`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -151,7 +152,7 @@ export default function BrokerDashboard() {
     }
     setProfSaving(true);
     try {
-      const res = await fetch("/api/auth/profileupdate", {
+      const res = await fetch(`${BASE_PATH}/api/auth/profileupdate`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -204,7 +205,7 @@ export default function BrokerDashboard() {
 
   async function fetchClients() {
     try {
-      const res = await fetch("/api/broker/getRefferedClients", {
+      const res = await fetch(`${BASE_PATH}/api/broker/getRefferedClients`, {
         credentials: "include",
       });
       if (res.ok) {
@@ -218,7 +219,7 @@ export default function BrokerDashboard() {
 
   async function fetchLeads() {
     try {
-      const res = await fetch("/api/broker/getBrokerLeads", {
+      const res = await fetch(`${BASE_PATH}/api/broker/getBrokerLeads`, {
         credentials: "include",
       });
       if (res.ok) {
@@ -232,7 +233,7 @@ export default function BrokerDashboard() {
 
   async function fetchLoanTypes() {
     try {
-      const res = await fetch("/api/loan-types");
+      const res = await fetch(`${BASE_PATH}/api/loan-types`);
       if (res.ok) {
         const data = await res.json();
         const types = data.data || [];
@@ -246,7 +247,7 @@ export default function BrokerDashboard() {
 
   async function fetchLenders() {
     try {
-      const res = await fetch("/api/lenders");
+      const res = await fetch(`${BASE_PATH}/api/lenders`);
       if (res.ok) {
         const data = await res.json();
         setAllLenders(data.data || []);
@@ -365,7 +366,7 @@ export default function BrokerDashboard() {
         gender: acGender,
       };
 
-      const res = await fetch("/api/broker/referClient", {
+      const res = await fetch(`${BASE_PATH}/api/broker/referClient`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

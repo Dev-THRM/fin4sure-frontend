@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./styles/apply.css";
+import { BASE_PATH } from "../config";
 
 export default function Apply() {
   const [searchParams] = useSearchParams();
@@ -29,7 +30,7 @@ export default function Apply() {
   useEffect(() => {
     const fetchLoanTypes = async () => {
       try {
-        const res = await fetch("/api/loan-types");
+        const res = await fetch(`${BASE_PATH}/api/loan-types`);
         const data = await res.json();
         if (data.success) {
           setLoanTypes(data.data);
@@ -45,7 +46,7 @@ export default function Apply() {
 
     const fetchLenders = async () => {
       try {
-        const res = await fetch("/api/lenders");
+        const res = await fetch(`${BASE_PATH}/api/lenders`);
         const data = await res.json();
         if (data.success) {
           setLenders(data.data);
@@ -100,7 +101,7 @@ export default function Apply() {
       setLoading(true);
 
       const res = await fetch(
-        "/api/client/apply-loan",
+        `${BASE_PATH}/api/client/apply-loan`,
         {
           method: "POST",
           credentials: "include",
