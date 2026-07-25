@@ -66,6 +66,18 @@ export default function Calculator() {
     password: "Pass@1234"
   });
 
+  // Sync applicant fields when user loads
+  useEffect(() => {
+    if (user) {
+      setApplicantData((prev) => ({
+        ...prev,
+        name: user.name || prev.name,
+        email: user.email || prev.email,
+        mob_no: user.number || prev.mob_no
+      }));
+    }
+  }, [user]);
+
   // Fetch real lenders from DB endpoint `/api/lenders`
   useEffect(() => {
     const fetchLenders = async () => {
@@ -209,15 +221,42 @@ export default function Calculator() {
     );
   };
 
+  // Custom Modal State
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submittedAppId, setSubmittedAppId] = useState("");
+
+  const isAdmin = user?.role === "admin" || user?.role === "partner" || user?.role === "broker";
+
+  // Check if page opened with location.state.step === 3 or from session draft
+  useEffect(() => {
+    if (location.state?.step === 3) {
+      setStepperStep(3);
+    }
+    if (location.state?.selectedLenders && Array.isArray(location.state.selectedLenders)) {
+      setSelectedLenders(location.state.selectedLenders);
+    }
+  }, [location.state]);
+
   const handleNextStep = () => {
+    if (isAdmin) {
+      setModalMessage("Admin and Partner accounts cannot apply for loans. Only borrower accounts can submit applications.");
+      setShowAdminModal(true);
+      return;
+    }
+
     if (stepperStep === 1) {
       setStepperStep(2);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else if (stepperStep === 2) {
       if (selectedLenders.length === 0) {
-        alert("Please select at least 1 lender to review your application.");
+        setModalMessage("Please select at least 1 lender to review your application.");
+        setShowAdminModal(true);
         return;
       }
+
+      // Transition smoothly to Step 3 (Review & Apply)
       setStepperStep(3);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
@@ -227,67 +266,83 @@ export default function Calculator() {
 
   // Final Submit Handler: Registers application and returns to Borrower Dashboard
   const handleFinalSubmit = async () => {
+    if (isAdmin) {
+      const msg = "Admin & Partner accounts cannot submit loan applications. Please sign in with a Borrower account to apply.";
+      setSubmitError(msg);
+      setModalMessage(msg);
+      setShowAdminModal(true);
+      return;
+    }
+
     setSubmitting(true);
     setSubmitError("");
 
     const targetLenders = selectedLenders.length > 0 ? selectedLenders : [1, 2];
 
     try {
+      let successData = null;
+
+      // 1. Try apply-loan endpoint if user session exists
       if (user && user.email) {
-        const res = await axios.post("/api/client/apply-loan", {
-          product: loanType,
-          loanAmount: amount,
-          tenure: tenure,
-          selectedLenders: targetLenders,
-          loan_purpose: applicantData.loanPurpose || `${currentTitle} Application`
+        try {
+          const res = await axios.post("/api/client/apply-loan", {
+            product: loanType,
+            loanAmount: amount,
+            tenure: tenure,
+            selectedLenders: targetLenders,
+            loan_purpose: applicantData.loanPurpose || `${currentTitle} Application`
+          }, { withCredentials: true });
+
+          if (res.data) {
+            successData = res.data;
+          }
+        } catch (err) {
+          console.warn("apply-loan endpoint failed, attempting register-borrower fallback...", err);
+        }
+      }
+
+      // 2. Fallback to register-borrower if apply-loan was not successful
+      if (!successData) {
+        const res = await axios.post("/api/auth/register-borrower", {
+          name: applicantData.name || user?.name || "Primary Applicant",
+          email: applicantData.email || user?.email || `applicant${Date.now()}@finn4sure.com`,
+          number: applicantData.mob_no || user?.number || "9876543210",
+          dob: applicantData.dob || "1995-01-01",
+          gender: applicantData.gender || "male",
+          address: applicantData.address || "Main Street",
+          pincode: applicantData.pincode || "110001",
+          state: applicantData.state || "Delhi",
+          district: applicantData.district || "Central",
+          city: applicantData.city || "New Delhi",
+          password: applicantData.password || "Pass@1234",
+          loanAmount: String(amount),
+          tenure: String(tenure),
+          loanPurpose: applicantData.loanPurpose || `${currentTitle} Application`,
+          loanType: loanType,
+          selectedLenders: targetLenders
         }, { withCredentials: true });
 
         if (res.data) {
-          navigate("/client-dashboard");
-          return;
+          successData = res.data;
+          if (login && res.data.user) {
+            login({
+              name: res.data.user?.name || applicantData.name,
+              email: res.data.user?.email || applicantData.email,
+              number: applicantData.mob_no,
+              role: "borrower"
+            });
+          }
         }
       }
 
-      // Guest or auto-registration path
-      const res = await axios.post("/api/auth/register-borrower", {
-        name: applicantData.name || "Primary Applicant",
-        email: applicantData.email || `applicant${Date.now()}@finn4sure.com`,
-        number: applicantData.mob_no || "9876543210",
-        dob: applicantData.dob || "1995-01-01",
-        gender: applicantData.gender || "male",
-        address: applicantData.address || "Main Street",
-        pincode: applicantData.pincode || "110001",
-        state: applicantData.state || "Delhi",
-        district: applicantData.district || "Central",
-        city: applicantData.city || "New Delhi",
-        password: applicantData.password || "Pass@1234",
-        loanAmount: String(amount),
-        tenure: String(tenure),
-        loanPurpose: applicantData.loanPurpose || `${currentTitle} Application`,
-        loanType: loanType,
-        selectedLenders: targetLenders
-      }, { withCredentials: true });
-
-      if (res.data) {
-        if (login) {
-          login({
-            name: res.data.user?.name || applicantData.name,
-            email: res.data.user?.email || applicantData.email,
-            number: applicantData.mob_no,
-            role: "borrower"
-          });
-        }
-        navigate("/client-dashboard");
+      if (successData) {
+        setSubmittedAppId(successData.applicationId || successData.borrower?.borrower_id || "APP-" + Date.now().toString().slice(-5));
+        setShowSuccessModal(true);
       }
     } catch (err) {
       console.error("Submission error:", err);
-      const msg = err.response?.data?.message || "Application submitted successfully! Redirecting...";
-      if (msg.toLowerCase().includes("already exists")) {
-        navigate("/client-dashboard");
-      } else {
-        // Safe fallback navigation to Borrower Dashboard
-        navigate("/client-dashboard");
-      }
+      const errMsg = err.response?.data?.message || "Failed to submit application. Please check details and try again.";
+      setSubmitError(errMsg);
     } finally {
       setSubmitting(false);
     }
@@ -332,6 +387,11 @@ export default function Calculator() {
 
       {/* ═══ MAIN CONTENT BODY ═══ */}
       <div className="calc-body-wrap">
+        {isAdmin && (
+          <div style={{ marginBottom: "24px", padding: "14px 20px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "12px", color: "#991B1B", fontSize: ".88rem", fontWeight: 700, textAlign: "center" }}>
+            ⚠️ Admin &amp; Partner accounts cannot submit loan applications. Please sign out and log in with a Borrower account to apply.
+          </div>
+        )}
         {stepperStep === 1 ? (
           <>
             {/* Pre-selected Loan Alert Banner */}
@@ -744,6 +804,80 @@ export default function Calculator() {
           {submitting ? "Submitting Application..." : stepperStep === 1 ? "Choose Lenders →" : stepperStep === 2 ? "Review Your Application →" : "Submit & Go to Dashboard →"}
         </button>
       </div>
+
+      {/* ═══ CUSTOM MODAL POPUP ═══ */}
+      {showAdminModal && (
+        <div className="custom-modal-backdrop" onClick={() => setShowAdminModal(false)}>
+          <div className="custom-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="cmc-icon-badge">
+              ⚠️
+            </div>
+            <h3 className="cmc-title">
+              {isAdmin ? "Borrower Account Required" : "Selection Required"}
+            </h3>
+            <p className="cmc-message">
+              {modalMessage}
+            </p>
+
+            <div className="cmc-actions">
+              {isAdmin ? (
+                <>
+                  <button
+                    className="cmc-btn-primary"
+                    onClick={() => {
+                      setShowAdminModal(false);
+                      navigate("/login");
+                    }}
+                  >
+                    Sign In as Borrower →
+                  </button>
+                  <button
+                    className="cmc-btn-secondary"
+                    onClick={() => setShowAdminModal(false)}
+                  >
+                    Dismiss
+                  </button>
+                </>
+              ) : (
+                <button
+                  className="cmc-btn-primary"
+                  onClick={() => setShowAdminModal(false)}
+                >
+                  Got it
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ APPLICATION SUCCESS MODAL POPUP ═══ */}
+      {showSuccessModal && (
+        <div className="custom-modal-backdrop" onClick={() => navigate("/client-dashboard")}>
+          <div className="custom-modal-card success-card" onClick={(e) => e.stopPropagation()}>
+            <div className="cmc-icon-badge success">
+              🎉
+            </div>
+            <h3 className="cmc-title">Application Submitted!</h3>
+            <p className="cmc-message">
+              Your <strong>{currentTitle}</strong> application for <strong>{fmtINR(amount)}</strong> has been registered with {selectedLenders.length > 0 ? selectedLenders.length : 2} selected lenders!
+            </p>
+
+            <div className="cmc-app-id-badge">
+              Application Ref: #{submittedAppId || "APP-10002"}
+            </div>
+
+            <div className="cmc-actions">
+              <button
+                className="cmc-btn-success"
+                onClick={() => navigate("/client-dashboard")}
+              >
+                Go to Borrower Dashboard →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
