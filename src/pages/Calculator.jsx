@@ -202,6 +202,13 @@ export default function Calculator() {
     })).sort((a, b) => a.rate - b.rate);
   }, [dbLenders, loanType, rateType]);
 
+  // Toggle lender selection
+  const toggleLenderSelection = (lenderId) => {
+    setSelectedLenders((prev) =>
+      prev.includes(lenderId) ? prev.filter((id) => id !== lenderId) : [...prev, lenderId]
+    );
+  };
+
   // Custom Modal State
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
