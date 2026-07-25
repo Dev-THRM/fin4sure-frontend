@@ -84,9 +84,9 @@ export default function AdminDashboard() {
   useEffect(() => {
     const loadAdminData = async () => {
       try {
-        const [resBundle, resLeads, resBrokers, resStats] = await Promise.allSettled([
+        const [resBundle, /*resLeads,*/ resBrokers, resStats] = await Promise.allSettled([
           fetch("/api/admin/dashboard-bundle", { credentials: "include" }),
-          fetch("/api/admin/leads", { credentials: "include" }),
+          // fetch("/api/admin/leads", { credentials: "include" }), // TODO: endpoint not yet available
           fetch("/api/admin/brokers", { credentials: "include" }),
           fetch("/api/admin/stats", { credentials: "include" })
         ]);
@@ -102,12 +102,12 @@ export default function AdminDashboard() {
           }
         }
 
-        if (resLeads.status === "fulfilled" && resLeads.value.ok) {
-          const leadsData = await resLeads.value.json();
-          if (Array.isArray(leadsData) && leadsData.length > 0) {
-            setLeads(leadsData);
-          }
-        }
+        // if (resLeads.status === "fulfilled" && resLeads.value.ok) { // TODO: endpoint not yet available
+        //   const leadsData = await resLeads.value.json();
+        //   if (Array.isArray(leadsData) && leadsData.length > 0) {
+        //     setLeads(leadsData);
+        //   }
+        // }
 
         if (resBrokers.status === "fulfilled" && resBrokers.value.ok) {
           const brokersData = await resBrokers.value.json();
@@ -156,21 +156,22 @@ export default function AdminDashboard() {
   }
 
   async function fetchLeads(retryCount = 0) {
-    try {
-      const res = await fetch("/api/admin/leads", { credentials: "include" });
-      if (res.status === 429 && retryCount < 3) {
-        await new Promise((r) => setTimeout(r, 1000 * (retryCount + 1)));
-        return fetchLeads(retryCount + 1);
-      }
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setLeads(data);
-        }
-      }
-    } catch (e) {
-      console.error("fetchLeads error:", e);
-    }
+    // TODO: /api/admin/leads endpoint not yet available — commented out to suppress 404
+    // try {
+    //   const res = await fetch("/api/admin/leads", { credentials: "include" });
+    //   if (res.status === 429 && retryCount < 3) {
+    //     await new Promise((r) => setTimeout(r, 1000 * (retryCount + 1)));
+    //     return fetchLeads(retryCount + 1);
+    //   }
+    //   if (res.ok) {
+    //     const data = await res.json();
+    //     if (Array.isArray(data)) {
+    //       setLeads(data);
+    //     }
+    //   }
+    // } catch (e) {
+    //   console.error("fetchLeads error:", e);
+    // }
   }
 
   async function fetchBorrowers() {
