@@ -543,22 +543,32 @@ export default function AdminDashboard() {
 
   const filteredLeads = useMemo(() => {
     return leads.filter((l) => {
-      const term = searchTerm.toLowerCase();
+      const term = searchTerm.trim().toLowerCase();
       const matchesSearch = !term ||
-        l.name?.toLowerCase().includes(term) ||
-        l.email?.toLowerCase().includes(term) ||
-        l.product?.toLowerCase().includes(term);
+        (l.name && l.name.toLowerCase().includes(term)) ||
+        (l.email && l.email.toLowerCase().includes(term)) ||
+        (l.number && l.number.toLowerCase().includes(term)) ||
+        (l.product && l.product.toLowerCase().includes(term)) ||
+        (l.application_no && l.application_no.toLowerCase().includes(term));
+
+      const statusLower = (l.status || '').toLowerCase();
+      const stageLower = (l.stage || '').toLowerCase();
+      const filterLower = leadStatusFilter.toLowerCase();
 
       const matchesStatus =
-        leadStatusFilter === "all_statuses" ||
-        l.status?.toLowerCase() === leadStatusFilter.toLowerCase();
+        filterLower === "all_statuses" ||
+        statusLower === filterLower ||
+        stageLower === filterLower ||
+        (filterLower === "applied" && (statusLower === "in progress" || statusLower === "applied" || !statusLower));
 
+      const typeLower = leadTypeFilter.toLowerCase();
+      const productLower = (l.product || '').toLowerCase();
       const matchesType =
-        leadTypeFilter === "all_loan_types" ||
-        (leadTypeFilter === "home" && l.product?.toLowerCase().includes("home")) ||
-        (leadTypeFilter === "personal" && l.product?.toLowerCase().includes("personal")) ||
-        (leadTypeFilter === "business" && l.product?.toLowerCase().includes("business")) ||
-        (leadTypeFilter === "vehicle" && l.product?.toLowerCase().includes("vehicle"));
+        typeLower === "all_loan_types" ||
+        (typeLower === "home" && productLower.includes("home")) ||
+        (typeLower === "personal" && productLower.includes("personal")) ||
+        (typeLower === "business" && productLower.includes("business")) ||
+        (typeLower === "vehicle" && productLower.includes("vehicle"));
 
       return matchesSearch && matchesStatus && matchesType;
     });
