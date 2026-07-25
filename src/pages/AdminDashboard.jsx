@@ -82,13 +82,39 @@ export default function AdminDashboard() {
   const [customTo, setCustomTo] = useState("");
 
   useEffect(() => {
-    const loadAdminData = async () => {
-      await fetchStats();
-      await fetchLeads();
-      await fetchBrokers();
-      await fetchBorrowers();
-      await fetchTimeline();
+    const loadAdminData = async (retryCount = 0) => {
+      try {
+        const res = await fetch("/api/admin/dashboard-bundle", { credentials: "include" });
+        if (res.status === 401 || res.status === 403) {
+          return navigate("/login");
+        }
+        if (res.status === 429 && retryCount < 3) {
+          await new Promise((r) => setTimeout(r, 1000 * (retryCount + 1)));
+          return loadAdminData(retryCount + 1);
+        }
+        if (res.ok) {
+          const data = await res.json();
+          if (data) {
+            if (data.stats) setStats(data.stats);
+            if (Array.isArray(data.leads)) setLeads(data.leads);
+            if (Array.isArray(data.brokers)) setBrokers(data.brokers);
+            if (Array.isArray(data.clients)) setBorrowers(data.clients);
+            if (Array.isArray(data.timeline)) setTimeline(data.timeline);
+            return;
+          }
+        }
+      } catch (e) {
+        console.error("loadAdminData bundle error:", e);
+      }
+
+      // Fallback: Individual calls
+      fetchStats();
+      fetchLeads();
+      fetchBrokers();
+      fetchBorrowers();
+      fetchTimeline();
     };
+
     loadAdminData();
   }, []);
 
