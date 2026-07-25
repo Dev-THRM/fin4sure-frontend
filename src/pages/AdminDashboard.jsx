@@ -3,6 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./styles/adminDashboard.css";
 
+function getLoanIcon(name) {
+  if (!name) return "📋";
+  const lower = String(name).toLowerCase();
+  if (lower.includes("home")) return "🏠";
+  if (lower.includes("personal")) return "💳";
+  if (lower.includes("business")) return "💼";
+  if (lower.includes("vehicle") || lower.includes("car") || lower.includes("auto")) return "🚗";
+  if (lower.includes("lap") || lower.includes("property")) return "🏬";
+  return "📋";
+}
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -57,30 +68,79 @@ export default function AdminDashboard() {
   const [editingLead, setEditingLead] = useState(null); // lead being edited
   const [editForm, setEditForm] = useState({});
 
+  const [editingBroker, setEditingBroker] = useState(null); // broker being edited
+  const [editBrokerStatus, setEditBrokerStatus] = useState("active");
+
+  function openEditBroker(broker) {
+    setEditingBroker(broker);
+    setEditBrokerStatus(broker.status?.toLowerCase() === "active" ? "active" : "inactive");
+  }
+
   // Export Range states
   const [exportFilter, setExportFilter] = useState("today");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
 
   useEffect(() => {
-    fetchStats();
-    fetchBrokers();
-    fetchLeads();
-    fetchBorrowers();
-    fetchTimeline();
-    fetchLenderRates();
-    fetchSettings();
-  }, [leadFilter, selectedLoanCategory]);
+    const loadAdminData = async () => {
+      try {
+        const [resBundle, resLeads, resBrokers, resStats] = await Promise.allSettled([
+          fetch("/api/admin/dashboard-bundle", { credentials: "include" }),
+          fetch("/api/admin/leads", { credentials: "include" }),
+          fetch("/api/admin/brokers", { credentials: "include" }),
+          fetch("/api/admin/stats", { credentials: "include" })
+        ]);
+
+        if (resBundle.status === "fulfilled" && resBundle.value.ok) {
+          const data = await resBundle.value.json();
+          if (data) {
+            if (data.stats && Object.keys(data.stats).length > 0) setStats(data.stats);
+            if (Array.isArray(data.leads) && data.leads.length > 0) setLeads(data.leads);
+            if (Array.isArray(data.brokers) && data.brokers.length > 0) setBrokers(data.brokers);
+            if (Array.isArray(data.clients) && data.clients.length > 0) setBorrowers(data.clients);
+            if (Array.isArray(data.timeline) && data.timeline.length > 0) setTimeline(data.timeline);
+          }
+        }
+
+        if (resLeads.status === "fulfilled" && resLeads.value.ok) {
+          const leadsData = await resLeads.value.json();
+          if (Array.isArray(leadsData) && leadsData.length > 0) {
+            setLeads(leadsData);
+          }
+        }
+
+        if (resBrokers.status === "fulfilled" && resBrokers.value.ok) {
+          const brokersData = await resBrokers.value.json();
+          if (Array.isArray(brokersData) && brokersData.length > 0) {
+            setBrokers(brokersData);
+          }
+        }
+
+        if (resStats.status === "fulfilled" && resStats.value.ok) {
+          const statsData = await resStats.value.json();
+          if (statsData && Object.keys(statsData).length > 0) {
+            setStats(statsData);
+          }
+        }
+      } catch (e) {
+        console.error("loadAdminData error:", e);
+      }
+    };
+
+    loadAdminData();
+  }, []);
 
   async function fetchStats() {
     try {
       const res = await fetch("/api/admin/stats", {
         credentials: "include",
       });
-      if (!res.ok) return navigate("/login");
-      setStats(await res.json());
+      if (res.status === 401 || res.status === 403) {
+        return navigate("/login");
+      }
+      if (res.ok) setStats(await res.json());
     } catch (e) {
-      navigate("/login");
+      console.error("fetchStats error:", e);
     }
   }
 
@@ -95,15 +155,21 @@ export default function AdminDashboard() {
     }
   }
 
-  async function fetchLeads() {
+  async function fetchLeads(retryCount = 0) {
     try {
-      const res = await fetch(
-        `/api/admin/leads`,
-        { credentials: "include" }
-      );
-      if (res.ok) setLeads(await res.json());
+      const res = await fetch("/api/admin/leads", { credentials: "include" });
+      if (res.status === 429 && retryCount < 3) {
+        await new Promise((r) => setTimeout(r, 1000 * (retryCount + 1)));
+        return fetchLeads(retryCount + 1);
+      }
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setLeads(data);
+        }
+      }
     } catch (e) {
-      console.error(e);
+      console.error("fetchLeads error:", e);
     }
   }
 
@@ -262,29 +328,103 @@ export default function AdminDashboard() {
 
   async function updateBrokerStatus(brokerId, status) {
     try {
-      await fetch("/api/admin/broker-status", {
+      const res = await fetch("/api/admin/broker-status", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ brokerId, status }),
       });
-      fetchBrokers();
-      fetchStats();
+      if (res.status === 429) {
+        setCustomAlert({ message: "Server rate limit reached — please wait 1 minute and try again.", type: "error" });
+        return;
+      }
+      if (res.ok) {
+        setBrokers((prev) =>
+          prev.map((b) =>
+            String(b.brokerId) === String(brokerId) || String(b.id) === String(brokerId)
+              ? { ...b, status: status }
+              : b
+          )
+        );
+        setCustomAlert({ message: "Partner status updated successfully!", type: "success" });
+      } else {
+        let errMsg = "Failed to update partner status";
+        try {
+          const errData = await res.json();
+          if (errData?.message) errMsg = errData.message;
+        } catch (_) {}
+        setCustomAlert({ message: errMsg, type: "error" });
+      }
     } catch (e) {
       console.error(e);
+      setCustomAlert({ message: "Network error. Please try again.", type: "error" });
     }
   }
 
   async function updateLeadStatus(leadId, status) {
     try {
-      await fetch("/api/admin/lead-status", {
+      const res = await fetch("/api/admin/lead-status", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ leadId, status }),
       });
-      fetchLeads();
-      fetchStats();
+      if (res.ok) {
+        setLeads((prev) =>
+          prev.map((item) =>
+            item.id === leadId ? { ...item, status, statusName: status } : item
+          )
+        );
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  const STAGE_SEQUENCE = ['Applied', 'Docs', 'Credit', 'Submitted', 'Sanction', 'Legal', 'Disbursed'];
+
+  async function advanceLeadStage(lead) {
+    const currentStage = lead.stage || lead.status || 'Applied';
+    const currIdx = STAGE_SEQUENCE.findIndex(s => s.toLowerCase() === currentStage.toLowerCase());
+    const nextStage = currIdx >= 0 && currIdx < STAGE_SEQUENCE.length - 1 ? STAGE_SEQUENCE[currIdx + 1] : 'Disbursed';
+    const nextStatus = nextStage === 'Disbursed' ? 'disbursed' : 'in progress';
+
+    try {
+      const res = await fetch(`/api/admin/leads/${lead.id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stage: nextStage, status: nextStatus }),
+      });
+      if (res.ok) {
+        setLeads((prev) =>
+          prev.map((item) =>
+            item.id === lead.id ? { ...item, stage: nextStage, status: nextStatus } : item
+          )
+        );
+        setCustomAlert({ message: `Stage advanced to ${nextStage}!`, type: "success" });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function disburseLead(lead) {
+    try {
+      const res = await fetch(`/api/admin/leads/${lead.id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stage: 'Disbursed', status: 'disbursed' }),
+      });
+      if (res.ok) {
+        setLeads((prev) =>
+          prev.map((item) =>
+            item.id === lead.id ? { ...item, stage: 'Disbursed', status: 'disbursed' } : item
+          )
+        );
+        setCustomAlert({ message: "Application marked as Disbursed!", type: "success" });
+      }
     } catch (e) {
       console.error(e);
     }
@@ -293,10 +433,12 @@ export default function AdminDashboard() {
   function openEditLead(lead) {
     setEditingLead(lead);
     setEditForm({
-      status: lead.status || "applied",
+      name: lead.name || "",
+      lender: lead.lender || "SBI",
       loan_amount: lead.loan_amount || "",
-      tenure: lead.tenure || "",
-      loan_purpose: lead.loan_purpose || "",
+      status: lead.status || "in progress",
+      stage: lead.stage || "Applied",
+      remark: lead.loan_purpose || "",
     });
   }
 
@@ -389,22 +531,32 @@ export default function AdminDashboard() {
 
   const filteredLeads = useMemo(() => {
     return leads.filter((l) => {
-      const term = searchTerm.toLowerCase();
+      const term = searchTerm.trim().toLowerCase();
       const matchesSearch = !term ||
-        l.name?.toLowerCase().includes(term) ||
-        l.email?.toLowerCase().includes(term) ||
-        l.product?.toLowerCase().includes(term);
+        (l.name && l.name.toLowerCase().includes(term)) ||
+        (l.email && l.email.toLowerCase().includes(term)) ||
+        (l.number && l.number.toLowerCase().includes(term)) ||
+        (l.product && l.product.toLowerCase().includes(term)) ||
+        (l.application_no && l.application_no.toLowerCase().includes(term));
+
+      const statusLower = (l.status || '').toLowerCase();
+      const stageLower = (l.stage || '').toLowerCase();
+      const filterLower = leadStatusFilter.toLowerCase();
 
       const matchesStatus =
-        leadStatusFilter === "all_statuses" ||
-        l.status?.toLowerCase() === leadStatusFilter.toLowerCase();
+        filterLower === "all_statuses" ||
+        statusLower === filterLower ||
+        stageLower === filterLower ||
+        (filterLower === "applied" && (statusLower === "in progress" || statusLower === "applied" || !statusLower));
 
+      const typeLower = leadTypeFilter.toLowerCase();
+      const productLower = (l.product || '').toLowerCase();
       const matchesType =
-        leadTypeFilter === "all_loan_types" ||
-        (leadTypeFilter === "home" && l.product?.toLowerCase().includes("home")) ||
-        (leadTypeFilter === "personal" && l.product?.toLowerCase().includes("personal")) ||
-        (leadTypeFilter === "business" && l.product?.toLowerCase().includes("business")) ||
-        (leadTypeFilter === "vehicle" && l.product?.toLowerCase().includes("vehicle"));
+        typeLower === "all_loan_types" ||
+        (typeLower === "home" && productLower.includes("home")) ||
+        (typeLower === "personal" && productLower.includes("personal")) ||
+        (typeLower === "business" && productLower.includes("business")) ||
+        (typeLower === "vehicle" && productLower.includes("vehicle"));
 
       return matchesSearch && matchesStatus && matchesType;
     });
@@ -853,7 +1005,8 @@ export default function AdminDashboard() {
                         <th>BORROWER</th>
                         <th>LOAN TYPE</th>
                         <th>AMOUNT</th>
-                        <th>SOURCE</th>
+                        <th>LENDER</th>
+                        <th>STAGE</th>
                         <th>STATUS</th>
                         <th>ACTION</th>
                       </tr>
@@ -861,27 +1014,134 @@ export default function AdminDashboard() {
                     <tbody>
                       {filteredLeads.length === 0 ? (
                         <tr>
-                          <td colSpan="7" className="no-data-cell" style={{ padding: '40px 20px' }}>No applications match</td>
+                          <td colSpan="8" className="no-data-cell" style={{ padding: '40px 20px' }}>No applications match</td>
                         </tr>
                       ) : (
                         filteredLeads.map((l) => (
                           <tr key={l.id}>
-                            <td style={{ fontWeight: 700, color: 'var(--accent-primary)', fontSize: '0.8rem', letterSpacing: '0.02em' }}>
-                              {l.application_no ?? `#${l.id}`}
+                            <td style={{ fontWeight: 700, color: '#1E293B', fontSize: '0.82rem', letterSpacing: '0.02em' }}>
+                              {l.application_no ?? (String(l.id).startsWith('F4S') ? l.id : `F4S-${2000 + l.id}`)}
                             </td>
-                            <td style={{ fontWeight: 600 }}>{l.name}</td>
-                            <td>{l.product}</td>
-                            <td>{l.loan_amount ? `₹${Number(l.loan_amount).toLocaleString('en-IN')}` : "-"}</td>
-                            <td>{l.source || "Direct"}</td>
                             <td>
-                              <span style={{ textTransform: 'capitalize' }} className={`rate-type-badge ${['completed', 'disbursed', 'approved'].includes(l.status) ? 'private' : l.status === 'rejected' ? 'nbfc-hfc' : 'psu'}`}>
-                                {l.status || 'Unknown'}
+                              <div>
+                                <div style={{ fontWeight: 700, color: '#1E293B', fontSize: '0.85rem' }}>{l.name}</div>
+                                <div style={{ marginTop: '2px', display: 'inline-flex', alignItems: 'center', gap: '3px', background: '#F1F5F9', color: '#475569', padding: '1px 7px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600 }}>
+                                  {l.partner_name || (l.source && l.source !== 'Direct') ? `🤝 ${l.partner_name || l.source}` : '👤 Direct'}
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: 600, color: '#334155' }}>
+                                <span>{getLoanIcon(l.product)}</span>
+                                <span>{l.product}</span>
+                              </div>
+                            </td>
+                            <td style={{ fontWeight: 800, color: '#1E293B', fontSize: '0.85rem' }}>
+                              {l.loan_amount ? Number(l.loan_amount).toLocaleString('en-IN') : "-"}
+                            </td>
+                            <td style={{ fontWeight: 600, color: '#0F2942', fontSize: '0.82rem' }}>
+                              {l.lender || 'SBI'}
+                            </td>
+                            <td>
+                              <button
+                                onClick={() => openEditLead(l)}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  padding: '4px 10px',
+                                  borderRadius: '14px',
+                                  background: '#EFF6FF',
+                                  color: '#2563EB',
+                                  border: '1px solid #BFDBFE',
+                                  fontSize: '0.78rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  textTransform: 'capitalize'
+                                }}
+                                title="Click to update application stage"
+                              >
+                                <span>{l.stage || l.status || 'Applied'}</span>
+                                <span style={{ fontSize: '0.7rem' }}>✏️</span>
+                              </button>
+                            </td>
+                            <td>
+                              <span
+                                style={{
+                                  padding: '4px 12px',
+                                  borderRadius: '12px',
+                                  fontSize: '0.76rem',
+                                  fontWeight: 700,
+                                  display: 'inline-block',
+                                  textTransform: 'lowercase',
+                                  background: l.status === 'disbursed' || l.status === 'completed' ? '#DCFCE7' : l.status === 'rejected' ? '#FEE2E2' : '#DBEAFE',
+                                  color: l.status === 'disbursed' || l.status === 'completed' ? '#166534' : l.status === 'rejected' ? '#991B1B' : '#1E40AF'
+                                }}
+                              >
+                                {l.status || 'in progress'}
                               </span>
                             </td>
                             <td>
-                              <div style={{ display: 'flex', gap: '5px' }}>
-                                <button onClick={() => setSelectedLead(l)} className="settings-action-btn" style={{ padding: '4px 10px', fontSize: '.75rem', marginTop: 0 }}>View</button>
-                                <button onClick={() => openEditLead(l)} className="settings-action-btn" style={{ padding: '4px 10px', fontSize: '.75rem', marginTop: 0, background: 'linear-gradient(135deg,#0d2b6b,#1a56db)' }}>Edit</button>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button
+                                  onClick={() => advanceLeadStage(l)}
+                                  title="Next Stage (+1)"
+                                  style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '6px',
+                                    border: '1px solid #CBD5E1',
+                                    background: '#FFFFFF',
+                                    color: '#1E293B',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    fontSize: '0.7rem',
+                                    fontWeight: 700
+                                  }}
+                                >
+                                  ▶
+                                </button>
+                                <button
+                                  onClick={() => disburseLead(l)}
+                                  title="Direct Disburse"
+                                  style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '6px',
+                                    border: '1px solid #CBD5E1',
+                                    background: '#FFFFFF',
+                                    color: '#166534',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 700
+                                  }}
+                                >
+                                  ✓
+                                </button>
+                                <button
+                                  onClick={() => openEditLead(l)}
+                                  title="Edit Application"
+                                  style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '6px',
+                                    border: '1px solid #CBD5E1',
+                                    background: '#FFFFFF',
+                                    color: '#EA580C',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    fontSize: '0.8rem'
+                                  }}
+                                >
+                                  ✏️
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -943,21 +1203,26 @@ export default function AdminDashboard() {
                             <td>{b.brokerId}</td>
                             <td>{b.clientCount || 0}</td>
                             <td>
-                              <span className={`rate-type-badge ${b.status === 'active' ? 'private' :
-                                  b.status === 'suspended' ? 'nbfc-hfc' : 'psu'
-                                }`}>
-                                {b.status}
+                              <span
+                                style={{
+                                  padding: '4px 12px',
+                                  borderRadius: '12px',
+                                  fontSize: '0.78rem',
+                                  fontWeight: 700,
+                                  textTransform: 'lowercase',
+                                  display: 'inline-block',
+                                  background: b.status === 'active' ? '#ECFDF5' : '#FEF2F2',
+                                  color: b.status === 'active' ? '#059669' : '#DC2626',
+                                  border: `1px solid ${b.status === 'active' ? '#A7F3D0' : '#FECACA'}`
+                                }}
+                              >
+                                {b.status || 'inactive'}
                               </span>
                             </td>
                             <td>
-                              <div style={{ display: 'flex', gap: '4px' }}>
-                                <button onClick={() => setSelectedBroker(b)} className="settings-action-btn" style={{ padding: '4px 8px', fontSize: '.75rem', marginTop: 0 }}>View</button>
-                                {b.status !== 'active' && (
-                                  <>
-                                    <button onClick={() => updateBrokerStatus(b.brokerId, 'approved')} className="settings-action-btn" style={{ padding: '4px 8px', fontSize: '.75rem', marginTop: 0 }}>Approve</button>
-                                    <button onClick={() => updateBrokerStatus(b.brokerId, 'rejected')} className="settings-action-btn" style={{ padding: '4px 8px', fontSize: '.75rem', marginTop: 0, background: '#ef4444' }}>Reject</button>
-                                  </>
-                                )}
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button onClick={() => setSelectedBroker(b)} className="settings-action-btn" style={{ padding: '4px 10px', fontSize: '.75rem', marginTop: 0 }}>View</button>
+                                <button onClick={() => openEditBroker(b)} className="settings-action-btn" style={{ padding: '4px 10px', fontSize: '.75rem', marginTop: 0, background: 'linear-gradient(135deg,#0d2b6b,#1a56db)' }}>Edit</button>
                               </div>
                             </td>
                           </tr>
@@ -1433,53 +1698,169 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ═══ EDIT APPLICATION MODAL (Status only) ═══ */}
+      {/* ✏️ EDIT APPLICATION MODAL (Screenshot 3 Match) */}
       {editingLead && (
-        <div className="cd-modal" onClick={() => setEditingLead(null)}>
-          <div className="cd-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px' }}>
-            <div className="cd-modal-head">
-              <span>Update Status — {editingLead.application_no ?? `#${editingLead.id}`}</span>
-              <button onClick={() => setEditingLead(null)}>&times;</button>
+        <div className="adm-modal-overlay animate-fade-in" style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }} onClick={() => setEditingLead(null)}>
+          <div className="adm-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '580px', width: '92%', borderRadius: '16px', overflow: 'hidden', padding: 0, border: 'none', background: '#FFFFFF', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.3)' }}>
+            {/* Modal Header Bar */}
+            <div style={{ background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)', padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h3 style={{ margin: 0, color: '#FFFFFF', fontSize: '1.15rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>✏️</span> Edit Application — {editingLead.application_no ?? (String(editingLead.id).startsWith('F4S') ? editingLead.id : `F4S-${2000 + editingLead.id}`)}
+              </h3>
+              <button onClick={() => setEditingLead(null)} style={{ background: 'rgba(255, 255, 255, 0.2)', border: 'none', color: '#FFFFFF', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
             </div>
-            <div className="cd-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '.85rem' }}>
-              {/* Read-only info */}
-              <div style={{ background: '#f8fafc', borderRadius: '8px', padding: '10px 14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '.8rem' }}>
-                <div><strong>Borrower:</strong> {editingLead.name}</div>
-                <div><strong>Loan Type:</strong> {editingLead.product}</div>
-                <div><strong>Amount:</strong> {editingLead.loan_amount ? `₹${Number(editingLead.loan_amount).toLocaleString('en-IN')}` : '-'}</div>
-                <div><strong>Source:</strong> {editingLead.source}</div>
+
+            <div style={{ padding: '24px', maxHeight: '80vh', overflowY: 'auto' }}>
+              {/* Top Light Blue Summary Card */}
+              <div style={{ background: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '12px', padding: '14px 18px', marginBottom: '20px', fontSize: '0.85rem', color: '#0369A1' }}>
+                <div><strong>Borrower:</strong> {editingLead.name} &nbsp;&nbsp;&nbsp; <strong>Mobile:</strong> {editingLead.number || '-'} &nbsp;&nbsp;&nbsp; <strong>Type:</strong> {editingLead.product || 'Home Loan'}</div>
+                <div style={{ marginTop: '6px' }}><strong>Applied:</strong> {editingLead.createdAt ? new Date(editingLead.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '18 Jan 2025'}</div>
               </div>
 
-              {/* Status selector */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontWeight: 600, color: '#0d2b6b', fontSize: '.82rem', textTransform: 'uppercase', letterSpacing: '.04em' }}>Application Status</label>
-                <select
-                  value={editForm.status || ''}
-                  onChange={(e) => setEditForm(f => ({ ...f, status: e.target.value }))}
-                  style={{ padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #e2e8f0', fontSize: '.9rem', outline: 'none', background: '#fff', cursor: 'pointer' }}
-                >
-                  <option value="applied">Applied</option>
-                  <option value="docs">Docs</option>
-                  <option value="credit">Credit</option>
-                  <option value="submitted">Submitted</option>
-                  <option value="sanction">Sanction</option>
-                  <option value="legal">Legal</option>
-                  <option value="disbursed">Disbursed</option>
-                  <option value="rejected">Rejected</option>
-                </select>
+              {/* Form Fields */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>Borrower Name</label>
+                  <input
+                    type="text"
+                    value={editForm.name || ''}
+                    onChange={(e) => setEditForm(f => ({ ...f, name: e.target.value }))}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', outline: 'none' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>Assigned Lender</label>
+                  <select
+                    value={editForm.lender || 'SBI'}
+                    onChange={(e) => setEditForm(f => ({ ...f, lender: e.target.value }))}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', background: '#FFFFFF', cursor: 'pointer', outline: 'none' }}
+                  >
+                    <option value="HDFC Bank">🏦 HDFC Bank</option>
+                    <option value="SBI">🏦 SBI</option>
+                    <option value="ICICI Bank">🏦 ICICI Bank</option>
+                    <option value="Axis Bank">🏦 Axis Bank</option>
+                    <option value="Bajaj Finserv">🏦 Bajaj Finserv</option>
+                    <option value="PNB Housing">🏦 PNB Housing</option>
+                    <option value="Bank of Baroda">🏦 Bank of Baroda</option>
+                    <option value="Canara Bank">🏦 Canara Bank</option>
+                    <option value="Union Bank">🏦 Union Bank</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>Loan Amount (₹)</label>
+                  <input
+                    type="number"
+                    value={editForm.loan_amount || ''}
+                    onChange={(e) => setEditForm(f => ({ ...f, loan_amount: e.target.value }))}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', outline: 'none' }}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>Status</label>
+                    <select
+                      value={editForm.status || 'in progress'}
+                      onChange={(e) => setEditForm(f => ({ ...f, status: e.target.value }))}
+                      style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', background: '#FFFFFF', cursor: 'pointer', outline: 'none' }}
+                    >
+                      <option value="in progress">In Progress</option>
+                      <option value="disbursed">Disbursed</option>
+                      <option value="rejected">Rejected</option>
+                      <option value="pending">Pending</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>Stage</label>
+                    <select
+                      value={editForm.stage || 'Applied'}
+                      onChange={(e) => setEditForm(f => ({ ...f, stage: e.target.value }))}
+                      style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', background: '#FFFFFF', cursor: 'pointer', outline: 'none' }}
+                    >
+                      <option value="Applied">Applied</option>
+                      <option value="Docs">Docs</option>
+                      <option value="Credit">Credit</option>
+                      <option value="Submitted">Submitted</option>
+                      <option value="Sanction">Sanction</option>
+                      <option value="Legal">Legal</option>
+                      <option value="Disbursed">Disbursed</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>Remark / Notes</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Documents submitted, awaiting sanction."
+                    value={editForm.remark || ''}
+                    onChange={(e) => setEditForm(f => ({ ...f, remark: e.target.value }))}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', outline: 'none', resize: 'vertical' }}
+                  />
+                </div>
               </div>
 
-              {/* Action buttons */}
-              <div style={{ display: 'flex', gap: '10px' }}>
+              {/* Modal Buttons */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '24px' }}>
                 <button
                   onClick={saveEditLead}
-                  className="settings-action-btn"
-                  style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '.85rem' }}
+                  style={{ padding: '12px 20px', borderRadius: '8px', background: '#0F2942', color: '#FFFFFF', border: 'none', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
-                  Update Status
+                  <span>💾</span> Save Changes
                 </button>
                 <button
                   onClick={() => setEditingLead(null)}
+                  style={{ padding: '12px 20px', borderRadius: '8px', background: '#FFFFFF', color: '#475569', border: '1px solid #CBD5E1', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ EDIT PARTNER STATUS MODAL ═══ */}
+      {editingBroker && (
+        <div className="cd-modal" onClick={() => setEditingBroker(null)}>
+          <div className="cd-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px' }}>
+            <div className="cd-modal-head">
+              <span>Edit Partner Status — {editingBroker.name}</span>
+              <button onClick={() => setEditingBroker(null)}>&times;</button>
+            </div>
+            <div className="cd-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '.85rem' }}>
+              <div style={{ background: '#f8fafc', borderRadius: '8px', padding: '10px 14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '.8rem' }}>
+                <div><strong>Partner ID:</strong> {editingBroker.brokerId}</div>
+                <div><strong>Current Status:</strong> <span style={{ textTransform: 'capitalize', fontWeight: 700, color: editingBroker.status === 'active' ? '#059669' : '#dc2626' }}>{editingBroker.status}</span></div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontWeight: 600, color: '#0d2b6b', fontSize: '.82rem', textTransform: 'uppercase', letterSpacing: '.04em' }}>Partner Status</label>
+                <select
+                  value={editBrokerStatus}
+                  onChange={(e) => setEditBrokerStatus(e.target.value)}
+                  style={{ padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #e2e8f0', fontSize: '.9rem', outline: 'none', background: '#fff', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  <option value="active">active</option>
+                  <option value="inactive">inactive</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={async () => {
+                    await updateBrokerStatus(editingBroker.brokerId || editingBroker.id, editBrokerStatus);
+                    setEditingBroker(null);
+                  }}
+                  className="settings-action-btn"
+                  style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '.85rem' }}
+                >
+                  Save Status
+                </button>
+                <button
+                  onClick={() => setEditingBroker(null)}
                   style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '.85rem', background: '#f1f5f9', color: '#475569', border: 'none', cursor: 'pointer', fontWeight: 600 }}
                 >
                   Cancel

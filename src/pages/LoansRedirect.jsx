@@ -5,45 +5,176 @@ import "./styles/loansRedirect.css";
 export default function LoansRedirect() {
   const navigate = useNavigate();
 
-  const handleApplyClick = () => {
-    navigate("/", { state: { activeView: "borrowerStepper" } });
+  const handleApplyClick = (productName) => {
+    const typeMap = {
+      "Home Loan": "home",
+      "Loan Against Property": "lap",
+      "Personal Loan": "personal",
+      "Business Loan": "business",
+      "Vehicle Loan": "vehicle",
+      "Education Loan": "education"
+    };
+    const loanTypeId = typeMap[productName] || "home";
+    navigate("/EMI-calculator", { 
+      state: { 
+        loanType: loanTypeId, 
+        selectedProduct: productName 
+      } 
+    });
   };
+
+  const loanProducts = [
+    {
+      id: "home-loan",
+      name: "Home Loan",
+      icon: "🏠",
+      tag: "MOST POPULAR",
+      tagBg: "#DCE5F2",
+      tagColor: "#2A4165",
+      headerBg: "#F0F4FA",
+      rate: "8.50%",
+      features: [
+        "Up to ₹30 Crore",
+        "Up to 30 years tenure",
+        "Balance transfer available"
+      ],
+      btnBg: "#1C3A60"
+    },
+    {
+      id: "lap",
+      name: "Loan Against Property",
+      icon: "🏢",
+      tag: "UNLOCK EQUITY",
+      tagBg: "#E9D5FF",
+      tagColor: "#7E22CE",
+      headerBg: "#F5F3FF",
+      rate: "9.00%",
+      features: [
+        "Up to 75% of property value",
+        "Residential & commercial",
+        "Overdraft facility available"
+      ],
+      btnBg: "#7C3AED"
+    },
+    {
+      id: "personal-loan",
+      name: "Personal Loan",
+      icon: "💳",
+      tag: "INSTANT APPROVAL",
+      tagBg: "#FED7AA",
+      tagColor: "#C2410C",
+      headerBg: "#FFF7ED",
+      rate: "10.50%",
+      features: [
+        "Up to ₹50 Lakh",
+        "No collateral required",
+        "Disbursal in 24–48 hours"
+      ],
+      btnBg: "#EA580C"
+    },
+    {
+      id: "business-loan",
+      name: "Business Loan",
+      icon: "💼",
+      tag: "MSME FRIENDLY",
+      tagBg: "#A7F3D0",
+      tagColor: "#047857",
+      headerBg: "#ECFDF5",
+      rate: "11.00%",
+      features: [
+        "Up to ₹10 Crore",
+        "Collateral-free options",
+        "Flexible repayment schedule"
+      ],
+      btnBg: "#059669"
+    },
+    {
+      id: "vehicle-loan",
+      name: "Vehicle Loan",
+      icon: "🚗",
+      tag: "NEW & USED",
+      tagBg: "#FECDD3",
+      tagColor: "#BE123C",
+      headerBg: "#FFF1F2",
+      rate: "8.75%",
+      features: [
+        "Up to 100% on-road funding",
+        "New & pre-owned vehicles",
+        "Up to 7-year tenure"
+      ],
+      btnBg: "#DC2626"
+    },
+    {
+      id: "education-loan",
+      name: "Education Loan",
+      icon: "🎓",
+      tag: "TAX BENEFIT U/S 80E",
+      tagBg: "#C7D2FE",
+      tagColor: "#3730A3",
+      headerBg: "#EEF2FF",
+      rate: "9.00%",
+      features: [
+        "India & abroad studies",
+        "Moratorium period available",
+        "Tax deduction on interest"
+      ],
+      btnBg: "#1E40AF"
+    }
+  ];
 
   return (
     <div className="loans-redirect-layout animate-fade-up">
-      <div className="loans-redirect-wrap">
-        <div className="loans-icon-container">
-          <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="72" height="72" rx="18" fill="#E2E5F8" />
-            <path d="M12 20H60M12 32H60M12 44H60M12 56H60" stroke="#C3C9E9" strokeWidth="1" />
-            <path d="M20 12V60M32 12V60M44 12V60M56 12V60" stroke="#C3C9E9" strokeWidth="1" />
-            <path d="M16 50L30 36L44 42L58 20" stroke="#3B82F6" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+      <div className="loans-header-wrap">
+        <div className="loans-badge-pill">
+          <span>✦</span> LOAN PRODUCTS
         </div>
-        
-        <h2 className="loans-redirect-title">Compare &amp; Apply for a Loan</h2>
-        <p className="loans-redirect-sub">
-          Use our EMI calculator to compare live rates from <strong>60+ lenders</strong><br/>
-          across all loan types — then apply in minutes.
+        <h1 className="loans-main-heading">Find the right loan for every need</h1>
+        <p className="loans-sub-heading">
+          Competitive rates from 60+ lenders · Doorstep service · Sign in to apply in minutes
         </p>
+      </div>
 
-        <div className="loans-redirect-btns">
-          <button onClick={() => navigate("/EMI-calculator")} className="loans-btn-calc">
-            <span className="btn-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', verticalAlign: 'middle' }}>
-                <path d="M3 3v18h18" />
-                <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
-              </svg>
-            </span>
-            Open EMI Calculator
-          </button>
-          
-          <button onClick={handleApplyClick} className="loans-btn-apply">
-            Apply for a Loan →
-          </button>
-        </div>
+      <div className="loans-cards-grid">
+        {loanProducts.map((p) => (
+          <div key={p.id} className="loan-product-card">
+            <div className="loan-card-top" style={{ background: p.headerBg }}>
+              <div className="loan-card-circle-bg"></div>
+              <div className="loan-card-icon">{p.icon}</div>
+              <div className="loan-card-tag" style={{ background: p.tagBg, color: p.tagColor }}>
+                {p.tag}
+              </div>
+            </div>
+
+            <div className="loan-card-body">
+              <h3 className="loan-card-title">{p.name}</h3>
+              <div className="loan-card-rate-row">
+                <span className="loan-rate-val">{p.rate}</span>
+                <span className="loan-rate-lbl">p.a. onwards</span>
+              </div>
+
+              <ul className="loan-card-features">
+                {p.features.map((feat, idx) => (
+                  <li key={idx}>
+                    <span className="check-icon">✓</span> {feat}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="loan-card-footer">
+              <button
+                className="loan-apply-btn"
+                style={{ background: p.btnBg }}
+                onClick={() => handleApplyClick(p.name)}
+              >
+                Apply Now →
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
+
 export { LoansRedirect };
