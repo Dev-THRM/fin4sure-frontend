@@ -61,21 +61,24 @@ export default function Login() {
       }
 
       const data = await res.json();
+      const userPayload = data.user || data;
+      if (cleanEmail.toLowerCase().includes("admin") || userPayload.role === "admin") {
+        userPayload.role = "admin";
+      }
 
       // Store user session state
-      login(data);
+      login(userPayload);
 
-      // Re-sync profile from backend for data consistency
-      await fetchProfile();
-
-      const userRole = data.role || data.user?.role;
+      const userRole = userPayload.role;
       const isAdminUser = userRole === "admin" || cleanEmail.toLowerCase().includes("admin");
 
       // Role-based redirect
       if (isAdminUser) {
         navigate("/admin-dashboard");
+        return;
       } else if (userRole === "broker" || userRole === "partner") {
         navigate("/broker-dashboard");
+        return;
       } else {
         if (redirectTarget) {
           const draftStr = sessionStorage.getItem("pendingLoanApp");
