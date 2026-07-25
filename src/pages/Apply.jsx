@@ -73,6 +73,12 @@ export default function Apply() {
     e.preventDefault();
     if (loading) return;
 
+    if (!user || !user.email) {
+      alert("Please log in or register a borrower account to complete your loan application.");
+      navigate("/login", { state: { redirectTarget: "/apply" } });
+      return;
+    }
+
     if (isAdmin) {
       setError("Admin & Partner accounts cannot submit loan applications. Only borrower accounts can apply.");
       alert("⚠️ Admin & Partner accounts cannot submit loan applications. Only borrower accounts can apply.");
@@ -99,7 +105,7 @@ export default function Apply() {
       setSuccess("");
       setLoading(true);
 
-      let res = await fetch("/api/client/apply-loan", {
+      const res = await fetch("/api/client/apply-loan", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -112,37 +118,10 @@ export default function Apply() {
         }),
       });
 
-      if (res.status === 401 || res.status === 403) {
-        res = await fetch("/api/auth/register-borrower", {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: "Borrower",
-            email: `borrower_${Date.now()}@finn4sure.com`,
-            number: "9876543210",
-            loanAmount: String(loanAmount),
-            tenure: String(tenure),
-            loanType: product,
-            selectedLenders: selectedLenders
-          }),
-        });
-      }
-
       const data = await res.json();
 
       if (!res.ok) {
         throw new Error(data.message || "Application failed");
-      }
-
-      if (login) {
-        login({
-          _id: data._id || data.user?.id || 1,
-          id: data._id || data.user?.id || 1,
-          name: data.name || data.user?.name || "Borrower",
-          email: data.email || data.user?.email || "",
-          role: "borrower"
-        });
       }
 
       setSuccess("Application submitted successfully!");
