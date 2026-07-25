@@ -202,6 +202,10 @@ export default function Calculator() {
     })).sort((a, b) => a.rate - b.rate);
   }, [dbLenders, loanType, rateType]);
 
+  // Custom Modal State
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+
   const isAdmin = user?.role === "admin" || user?.role === "partner" || user?.role === "broker";
 
   // Check if page opened with location.state.step === 3 or from session draft
@@ -216,7 +220,8 @@ export default function Calculator() {
 
   const handleNextStep = () => {
     if (isAdmin) {
-      alert("Admin and Partner accounts cannot apply for loans. Only borrower accounts can submit applications.");
+      setModalMessage("Admin and Partner accounts cannot apply for loans. Only borrower accounts can submit applications.");
+      setShowAdminModal(true);
       return;
     }
 
@@ -225,7 +230,8 @@ export default function Calculator() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else if (stepperStep === 2) {
       if (selectedLenders.length === 0) {
-        alert("Please select at least 1 lender to review your application.");
+        setModalMessage("Please select at least 1 lender to review your application.");
+        setShowAdminModal(true);
         return;
       }
 
@@ -249,9 +255,10 @@ export default function Calculator() {
   // Final Submit Handler: Registers application and returns to Borrower Dashboard
   const handleFinalSubmit = async () => {
     if (isAdmin) {
-      const msg = "⚠️ Admin & Partner accounts cannot submit loan applications. Please sign in with a Borrower account to apply.";
+      const msg = "Admin & Partner accounts cannot submit loan applications. Please sign in with a Borrower account to apply.";
       setSubmitError(msg);
-      alert(msg);
+      setModalMessage(msg);
+      setShowAdminModal(true);
       return;
     }
 
@@ -777,6 +784,52 @@ export default function Calculator() {
           {submitting ? "Submitting Application..." : stepperStep === 1 ? "Choose Lenders →" : stepperStep === 2 ? "Review Your Application →" : "Submit & Go to Dashboard →"}
         </button>
       </div>
+
+      {/* ═══ CUSTOM MODAL POPUP ═══ */}
+      {showAdminModal && (
+        <div className="custom-modal-backdrop" onClick={() => setShowAdminModal(false)}>
+          <div className="custom-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="cmc-icon-badge">
+              ⚠️
+            </div>
+            <h3 className="cmc-title">
+              {isAdmin ? "Borrower Account Required" : "Selection Required"}
+            </h3>
+            <p className="cmc-message">
+              {modalMessage}
+            </p>
+
+            <div className="cmc-actions">
+              {isAdmin ? (
+                <>
+                  <button
+                    className="cmc-btn-primary"
+                    onClick={() => {
+                      setShowAdminModal(false);
+                      navigate("/login");
+                    }}
+                  >
+                    Sign In as Borrower →
+                  </button>
+                  <button
+                    className="cmc-btn-secondary"
+                    onClick={() => setShowAdminModal(false)}
+                  >
+                    Dismiss
+                  </button>
+                </>
+              ) : (
+                <button
+                  className="cmc-btn-primary"
+                  onClick={() => setShowAdminModal(false)}
+                >
+                  Got it
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
