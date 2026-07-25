@@ -15,24 +15,24 @@ export default function LoansRedirect() {
       name: "Home Loan",
       icon: "🏠",
       tag: "MOST POPULAR",
-      tagBg: "#E2E8F0",
-      tagColor: "#475569",
-      headerBg: "#FFF7ED",
+      tagBg: "#DCE5F2",
+      tagColor: "#2A4165",
+      headerBg: "#F0F4FA",
       rate: "8.50%",
       features: [
         "Up to ₹30 Crore",
         "Up to 30 years tenure",
         "Balance transfer available"
       ],
-      btnBg: "#0F2942"
+      btnBg: "#1C3A60"
     },
     {
       id: "lap",
       name: "Loan Against Property",
       icon: "🏢",
       tag: "UNLOCK EQUITY",
-      tagBg: "#F3E8FF",
-      tagColor: "#9333EA",
+      tagBg: "#E9D5FF",
+      tagColor: "#7E22CE",
       headerBg: "#F5F3FF",
       rate: "9.00%",
       features: [
@@ -47,8 +47,8 @@ export default function LoansRedirect() {
       name: "Personal Loan",
       icon: "💳",
       tag: "INSTANT APPROVAL",
-      tagBg: "#FFEDD5",
-      tagColor: "#EA580C",
+      tagBg: "#FED7AA",
+      tagColor: "#C2410C",
       headerBg: "#FFF7ED",
       rate: "10.50%",
       features: [
@@ -63,8 +63,8 @@ export default function LoansRedirect() {
       name: "Business Loan",
       icon: "💼",
       tag: "MSME FRIENDLY",
-      tagBg: "#D1FAE5",
-      tagColor: "#059669",
+      tagBg: "#A7F3D0",
+      tagColor: "#047857",
       headerBg: "#ECFDF5",
       rate: "11.00%",
       features: [
@@ -79,8 +79,8 @@ export default function LoansRedirect() {
       name: "Vehicle Loan",
       icon: "🚗",
       tag: "NEW & USED",
-      tagBg: "#FFE4E6",
-      tagColor: "#E11D48",
+      tagBg: "#FECDD3",
+      tagColor: "#BE123C",
       headerBg: "#FFF1F2",
       rate: "8.75%",
       features: [
@@ -95,8 +95,8 @@ export default function LoansRedirect() {
       name: "Education Loan",
       icon: "🎓",
       tag: "TAX BENEFIT U/S 80E",
-      tagBg: "#E0E7FF",
-      tagColor: "#4F46E5",
+      tagBg: "#C7D2FE",
+      tagColor: "#3730A3",
       headerBg: "#EEF2FF",
       rate: "9.00%",
       features: [
@@ -124,6 +124,7 @@ export default function LoansRedirect() {
         {loanProducts.map((p) => (
           <div key={p.id} className="loan-product-card">
             <div className="loan-card-top" style={{ background: p.headerBg }}>
+              <div className="loan-card-circle-bg"></div>
               <div className="loan-card-icon">{p.icon}</div>
               <div className="loan-card-tag" style={{ background: p.tagBg, color: p.tagColor }}>
                 {p.tag}
