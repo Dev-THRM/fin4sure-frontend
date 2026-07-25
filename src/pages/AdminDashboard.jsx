@@ -569,13 +569,17 @@ export default function AdminDashboard() {
     });
   }, [borrowers, searchTerm, borrowerStatusFilter]);
 
-  const disbursedCount = leads.filter(l => ['disbursed', 'completed', 'approved'].includes(l.status)).length;
-  const pendingCount = leads.filter(l => l.status === 'rejected').length;
-  const inProgressCount = leads.length - disbursedCount - pendingCount;
+  // Status buckets (derived from leads array)
+  const AFTER_DOCS_STATUSES = ['credit', 'submitted', 'sanction', 'legal'];
+  const BEFORE_DOCS_STATUSES = ['applied', 'docs', 'in progress', 'pending'];
+  const disbursedCount = leads.filter(l => (l.status || '').toLowerCase() === 'disbursed').length;
+  const inProgressCount = leads.filter(l => AFTER_DOCS_STATUSES.includes((l.status || '').toLowerCase()) || AFTER_DOCS_STATUSES.includes((l.stage || '').toLowerCase())).length;
+  const pendingCount = leads.filter(l => BEFORE_DOCS_STATUSES.includes((l.status || '').toLowerCase()) || (!l.status && !l.stage)).length;
+  const activeLendersCount = stats.activeLenders ?? new Set(leads.map(l => l.lender).filter(Boolean)).size;
   const totalLeadsCount = leads.length || 1;
   const disbursedPct = Math.round((disbursedCount / totalLeadsCount) * 100);
   const pendingPct = Math.round((pendingCount / totalLeadsCount) * 100);
-  const inProgressPct = 100 - disbursedPct - pendingPct;
+  const inProgressPct = Math.round((inProgressCount / totalLeadsCount) * 100);
 
   return (
     <div className="adm-wrap animate-fade-up">
@@ -731,67 +735,49 @@ export default function AdminDashboard() {
                   <div className="adm-kpi-card-subtext">across borrowers & partners</div>
                 </div>
 
-                {/* 2. In Progress */}
-                <div className="adm-kpi-card-new c-orange">
-                  <div className="adm-kpi-card-top">
-                    <span className="adm-kpi-card-icon">⏳</span>
-                  </div>
-                  <div className="adm-kpi-card-value">{stats.inProgressCount ?? 0}</div>
-                  <div className="adm-kpi-card-label">IN PROGRESS</div>
-                  <div className="adm-kpi-card-subtext">docs, credit, sanction, legal</div>
-                </div>
-
-                {/* 3. Completed */}
+                {/* 2. Disbursed */}
                 <div className="adm-kpi-card-new c-green">
                   <div className="adm-kpi-card-top">
                     <span className="adm-kpi-card-icon">✅</span>
                   </div>
-                  <div className="adm-kpi-card-value">{stats.completedCount ?? 0}</div>
-                  <div className="adm-kpi-card-label">COMPLETED</div>
-                  <div className="adm-kpi-card-subtext">disbursed & paid out</div>
+                  <div className="adm-kpi-card-value">{stats.disbursedCount ?? disbursedCount}</div>
+                  <div className="adm-kpi-card-label">DISBURSED</div>
+                  <div className="adm-kpi-card-subtext">successfully paid out</div>
                 </div>
 
-                {/* 4. Rejected */}
+                {/* 3. In Progress (after docs) */}
+                <div className="adm-kpi-card-new c-orange">
+                  <div className="adm-kpi-card-top">
+                    <span className="adm-kpi-card-icon">⏳</span>
+                  </div>
+                  <div className="adm-kpi-card-value">{stats.inProgressCount ?? inProgressCount}</div>
+                  <div className="adm-kpi-card-label">IN PROGRESS</div>
+                  <div className="adm-kpi-card-subtext">credit · sanction · legal</div>
+                </div>
+
+                {/* 4. Pending (before docs) */}
                 <div className="adm-kpi-card-new c-red">
                   <div className="adm-kpi-card-top">
-                    <span className="adm-kpi-card-icon">❌</span>
+                    <span className="adm-kpi-card-icon">🕐</span>
                   </div>
-                  <div className="adm-kpi-card-value">{stats.rejectedCount ?? 0}</div>
-                  <div className="adm-kpi-card-label">REJECTED</div>
-                  <div className="adm-kpi-card-subtext">declined applications</div>
+                  <div className="adm-kpi-card-value">{stats.pendingCount ?? pendingCount}</div>
+                  <div className="adm-kpi-card-label">PENDING</div>
+                  <div className="adm-kpi-card-subtext">applied · docs</div>
                 </div>
 
-                {/* 5. Disbursed Amount */}
-                <div className="adm-kpi-card-new c-green">
-                  <div className="adm-kpi-card-top">
-                    <span className="adm-kpi-card-icon">💸</span>
-                  </div>
-                  <div className="adm-kpi-card-value">
-                    {stats.disbursedAmount != null
-                      ? stats.disbursedAmount >= 10000000
-                        ? `₹${(stats.disbursedAmount / 10000000).toFixed(2)}Cr`
-                        : stats.disbursedAmount >= 100000
-                          ? `₹${(stats.disbursedAmount / 100000).toFixed(1)}L`
-                          : `₹${stats.disbursedAmount.toLocaleString('en-IN')}`
-                      : "₹0"}
-                  </div>
-                  <div className="adm-kpi-card-label">DISBURSED AMOUNT</div>
-                  <div className="adm-kpi-card-subtext">total paid out to borrowers</div>
-                </div>
-
-                {/* 6. Loan Volume */}
+                {/* 5. Loan Volume */}
                 <div className="adm-kpi-card-new c-purple">
                   <div className="adm-kpi-card-top">
                     <span className="adm-kpi-card-icon">💰</span>
                   </div>
                   <div className="adm-kpi-card-value">
-                    {stats.loanVolume != null
-                      ? stats.loanVolume >= 10000000
-                        ? `₹${(stats.loanVolume / 10000000).toFixed(2)}Cr`
-                        : stats.loanVolume >= 100000
-                          ? `₹${(stats.loanVolume / 100000).toFixed(1)}L`
-                          : `₹${stats.loanVolume.toLocaleString('en-IN')}`
-                      : "—"}
+                    {(() => {
+                      const vol = stats.loanVolume ?? leads.reduce((sum, l) => sum + (parseFloat(l.loan_amount) || 0), 0);
+                      if (!vol) return "—";
+                      if (vol >= 10000000) return `₹${(vol / 10000000).toFixed(2)}Cr`;
+                      if (vol >= 100000) return `₹${(vol / 100000).toFixed(1)}L`;
+                      return `₹${vol.toLocaleString('en-IN')}`;
+                    })()}
                   </div>
                   <div className="adm-kpi-card-label">LOAN VOLUME</div>
                   <div className="adm-kpi-card-subtext">total pipeline amount</div>
@@ -802,19 +788,19 @@ export default function AdminDashboard() {
                   <div className="adm-kpi-card-top">
                     <span className="adm-kpi-card-icon">🤝</span>
                   </div>
-                  <div className="adm-kpi-card-value">{stats.approvedBrokers ?? 0}</div>
+                  <div className="adm-kpi-card-value">{stats.approvedBrokers ?? brokers.filter(b => b.status === 'active').length}</div>
                   <div className="adm-kpi-card-label">ACTIVE PARTNERS</div>
-                  <div className="adm-kpi-card-subtext">of {stats.totalBrokers ?? 0} total partners</div>
+                  <div className="adm-kpi-card-subtext">of {stats.totalBrokers ?? brokers.length} total partners</div>
                 </div>
 
-                {/* 7. Active Borrowers */}
+                {/* 7. Lenders Active */}
                 <div className="adm-kpi-card-new c-brown">
                   <div className="adm-kpi-card-top">
-                    <span className="adm-kpi-card-icon">👥</span>
+                    <span className="adm-kpi-card-icon">🏦</span>
                   </div>
-                  <div className="adm-kpi-card-value">{stats.activeBorrowers ?? 0}</div>
-                  <div className="adm-kpi-card-label">ACTIVE BORROWERS</div>
-                  <div className="adm-kpi-card-subtext">registered clients</div>
+                  <div className="adm-kpi-card-value">{activeLendersCount}</div>
+                  <div className="adm-kpi-card-label">LENDERS ACTIVE</div>
+                  <div className="adm-kpi-card-subtext">lenders in pipeline</div>
                 </div>
               </div>
 
