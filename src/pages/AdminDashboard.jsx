@@ -3,6 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./styles/adminDashboard.css";
 
+function getLoanIcon(name) {
+  if (!name) return "📋";
+  const lower = String(name).toLowerCase();
+  if (lower.includes("home")) return "🏠";
+  if (lower.includes("personal")) return "💳";
+  if (lower.includes("business")) return "💼";
+  if (lower.includes("vehicle") || lower.includes("car") || lower.includes("auto")) return "🚗";
+  if (lower.includes("lap") || lower.includes("property")) return "🏬";
+  return "📋";
+}
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -902,7 +913,8 @@ export default function AdminDashboard() {
                         <th>BORROWER</th>
                         <th>LOAN TYPE</th>
                         <th>AMOUNT</th>
-                        <th>SOURCE</th>
+                        <th>LENDER</th>
+                        <th>STAGE</th>
                         <th>STATUS</th>
                         <th>ACTION</th>
                       </tr>
@@ -910,27 +922,134 @@ export default function AdminDashboard() {
                     <tbody>
                       {filteredLeads.length === 0 ? (
                         <tr>
-                          <td colSpan="7" className="no-data-cell" style={{ padding: '40px 20px' }}>No applications match</td>
+                          <td colSpan="8" className="no-data-cell" style={{ padding: '40px 20px' }}>No applications match</td>
                         </tr>
                       ) : (
                         filteredLeads.map((l) => (
                           <tr key={l.id}>
-                            <td style={{ fontWeight: 700, color: 'var(--accent-primary)', fontSize: '0.8rem', letterSpacing: '0.02em' }}>
-                              {l.application_no ?? `#${l.id}`}
+                            <td style={{ fontWeight: 700, color: '#1E293B', fontSize: '0.82rem', letterSpacing: '0.02em' }}>
+                              {l.application_no ?? (String(l.id).startsWith('F4S') ? l.id : `F4S-${2000 + l.id}`)}
                             </td>
-                            <td style={{ fontWeight: 600 }}>{l.name}</td>
-                            <td>{l.product}</td>
-                            <td>{l.loan_amount ? `₹${Number(l.loan_amount).toLocaleString('en-IN')}` : "-"}</td>
-                            <td>{l.source || "Direct"}</td>
                             <td>
-                              <span style={{ textTransform: 'capitalize' }} className={`rate-type-badge ${['completed', 'disbursed', 'approved'].includes(l.status) ? 'private' : l.status === 'rejected' ? 'nbfc-hfc' : 'psu'}`}>
-                                {l.status || 'Unknown'}
+                              <div>
+                                <div style={{ fontWeight: 700, color: '#1E293B', fontSize: '0.85rem' }}>{l.name}</div>
+                                <div style={{ marginTop: '2px', display: 'inline-flex', alignItems: 'center', gap: '3px', background: '#F1F5F9', color: '#475569', padding: '1px 7px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600 }}>
+                                  {l.partner_name || (l.source && l.source !== 'Direct') ? `🤝 ${l.partner_name || l.source}` : '👤 Direct'}
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: 600, color: '#334155' }}>
+                                <span>{getLoanIcon(l.product)}</span>
+                                <span>{l.product}</span>
+                              </div>
+                            </td>
+                            <td style={{ fontWeight: 800, color: '#1E293B', fontSize: '0.85rem' }}>
+                              {l.loan_amount ? Number(l.loan_amount).toLocaleString('en-IN') : "-"}
+                            </td>
+                            <td style={{ fontWeight: 600, color: '#0F2942', fontSize: '0.82rem' }}>
+                              {l.lender || 'SBI'}
+                            </td>
+                            <td>
+                              <button
+                                onClick={() => openEditLead(l)}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  padding: '4px 10px',
+                                  borderRadius: '14px',
+                                  background: '#EFF6FF',
+                                  color: '#2563EB',
+                                  border: '1px solid #BFDBFE',
+                                  fontSize: '0.78rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  textTransform: 'capitalize'
+                                }}
+                                title="Click to update application stage"
+                              >
+                                <span>{l.stage || l.status || 'Applied'}</span>
+                                <span style={{ fontSize: '0.7rem' }}>✏️</span>
+                              </button>
+                            </td>
+                            <td>
+                              <span
+                                style={{
+                                  padding: '4px 12px',
+                                  borderRadius: '12px',
+                                  fontSize: '0.76rem',
+                                  fontWeight: 700,
+                                  display: 'inline-block',
+                                  textTransform: 'lowercase',
+                                  background: l.status === 'disbursed' || l.status === 'completed' ? '#DCFCE7' : l.status === 'rejected' ? '#FEE2E2' : '#DBEAFE',
+                                  color: l.status === 'disbursed' || l.status === 'completed' ? '#166534' : l.status === 'rejected' ? '#991B1B' : '#1E40AF'
+                                }}
+                              >
+                                {l.status || 'in progress'}
                               </span>
                             </td>
                             <td>
-                              <div style={{ display: 'flex', gap: '5px' }}>
-                                <button onClick={() => setSelectedLead(l)} className="settings-action-btn" style={{ padding: '4px 10px', fontSize: '.75rem', marginTop: 0 }}>View</button>
-                                <button onClick={() => openEditLead(l)} className="settings-action-btn" style={{ padding: '4px 10px', fontSize: '.75rem', marginTop: 0, background: 'linear-gradient(135deg,#0d2b6b,#1a56db)' }}>Edit</button>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button
+                                  onClick={() => setSelectedLead(l)}
+                                  title="View Details"
+                                  style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '6px',
+                                    border: '1px solid #CBD5E1',
+                                    background: '#FFFFFF',
+                                    color: '#1E293B',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    fontSize: '0.7rem',
+                                    fontWeight: 700
+                                  }}
+                                >
+                                  ▶
+                                </button>
+                                <button
+                                  onClick={() => updateLeadStatus(l.id, 'disbursed')}
+                                  title="Approve / Disburse"
+                                  style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '6px',
+                                    border: '1px solid #CBD5E1',
+                                    background: '#FFFFFF',
+                                    color: '#166534',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 700
+                                  }}
+                                >
+                                  ✓
+                                </button>
+                                <button
+                                  onClick={() => openEditLead(l)}
+                                  title="Edit Application"
+                                  style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '6px',
+                                    border: '1px solid #CBD5E1',
+                                    background: '#FFFFFF',
+                                    color: '#EA580C',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    fontSize: '0.8rem'
+                                  }}
+                                >
+                                  ✏️
+                                </button>
                               </div>
                             </td>
                           </tr>
