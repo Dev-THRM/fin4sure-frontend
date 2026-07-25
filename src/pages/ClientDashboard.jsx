@@ -45,6 +45,8 @@ export default function ClientDashboard() {
     fetchApplications();
   }, []);
 
+  const { user: authUser } = useAuth();
+
   const fetchProfile = async () => {
     try {
       const res = await fetch("/api/auth/profile", {
@@ -53,22 +55,27 @@ export default function ClientDashboard() {
         credentials: "include",
       });
 
-      if (!res.ok) {
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+        setName(data.name || "");
+        setEmail(data.email || "");
+        setNumber(data.number || "");
+        setAddress(data.address || "");
+        setPincode(data.pincode || "");
+        setState(data.state || "");
+        setDistrict(data.district || "");
+      } else if (authUser) {
+        setUser(authUser);
+        setName(authUser.name || "Sahil");
+        setEmail(authUser.email || "");
+      } else if (res.status === 401) {
         navigate("/login");
-        return;
       }
-
-      const data = await res.json();
-      setUser(data);
-      setName(data.name || "");
-      setEmail(data.email || "");
-      setNumber(data.number || "");
-      setAddress(data.address || "");
-      setPincode(data.pincode || "");
-      setState(data.state || "");
-      setDistrict(data.district || "");
     } catch (e) {
-      showNotification("Error", "Error fetching profile: " + e.message, "error");
+      if (authUser) {
+        setUser(authUser);
+      }
     }
   };
 
