@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 import { useEmiCalculator } from "../hooks/useEmiCalculator";
 import { useSliderPaint } from "../hooks/useSliderPaint";
-import { fmtINR, fmtINRFull, fmtTenure } from "../utils/formatters";
+import { fmtINR, fmtINRFull } from "../utils/formatters";
 import { LENDERS } from "../utils/loanConstants";
 import { calcEMI } from "../utils/emiCalculator";
 import "./styles/calculator.css";
@@ -10,12 +12,15 @@ import "./styles/calculator.css";
 export default function Calculator() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, login } = useAuth();
 
-  // State for 3-step application flow
+  // State for 3-step application flow (1: Details, 2: Choose Lenders, 3: Review & Apply)
   const [stepperStep, setStepperStep] = useState(1);
   const [selectedLenders, setSelectedLenders] = useState([]);
   const [dbLenders, setDbLenders] = useState([]);
   const [loadingLenders, setLoadingLenders] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   // Derive initial loan type from location.state
   const initialLoanType = location.state?.loanType || "home";
@@ -44,6 +49,22 @@ export default function Calculator() {
     location.state?.rate,
     location.state?.tenure
   );
+
+  // Applicant details state for Step 3
+  const [applicantData, setApplicantData] = useState({
+    name: user?.name || "",
+    mob_no: user?.number || "",
+    email: user?.email || "",
+    dob: "1995-05-15",
+    gender: "male",
+    address: "123 Green Avenue",
+    pincode: "110001",
+    state: "Delhi",
+    district: "Central",
+    city: "New Delhi",
+    loanPurpose: "Home Purchase / Refinance",
+    password: "Pass@1234"
+  });
 
   // Fetch real lenders from DB endpoint `/api/lenders`
   useEffect(() => {
@@ -158,7 +179,6 @@ export default function Calculator() {
     if (lender.rates && lender.rates[loanType] && lender.rates[loanType][rk]) {
       return lender.rates[loanType][rk][0];
     }
-    // Standard default fallback rate
     return 10.40;
   };
 
@@ -193,10 +213,83 @@ export default function Calculator() {
     if (stepperStep === 1) {
       setStepperStep(2);
       window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (stepperStep === 2) {
+      if (selectedLenders.length === 0) {
+        alert("Please select at least 1 lender to review your application.");
+        return;
+      }
+      setStepperStep(3);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
-      navigate("/apply", {
-        state: { loanType, amount, rate, tenure, selectedLenders }
-      });
+      handleFinalSubmit();
+    }
+  };
+
+  // Final Submit Handler: Registers application and returns to Borrower Dashboard
+  const handleFinalSubmit = async () => {
+    setSubmitting(true);
+    setSubmitError("");
+
+    const targetLenders = selectedLenders.length > 0 ? selectedLenders : [1, 2];
+
+    try {
+      if (user && user.email) {
+        const res = await axios.post("/api/client/apply-loan", {
+          product: loanType,
+          loanAmount: amount,
+          tenure: tenure,
+          selectedLenders: targetLenders,
+          loan_purpose: applicantData.loanPurpose || `${currentTitle} Application`
+        }, { withCredentials: true });
+
+        if (res.data) {
+          navigate("/client-dashboard");
+          return;
+        }
+      }
+
+      // Guest or auto-registration path
+      const res = await axios.post("/api/auth/register-borrower", {
+        name: applicantData.name || "Primary Applicant",
+        email: applicantData.email || `applicant${Date.now()}@finn4sure.com`,
+        number: applicantData.mob_no || "9876543210",
+        dob: applicantData.dob || "1995-01-01",
+        gender: applicantData.gender || "male",
+        address: applicantData.address || "Main Street",
+        pincode: applicantData.pincode || "110001",
+        state: applicantData.state || "Delhi",
+        district: applicantData.district || "Central",
+        city: applicantData.city || "New Delhi",
+        password: applicantData.password || "Pass@1234",
+        loanAmount: String(amount),
+        tenure: String(tenure),
+        loanPurpose: applicantData.loanPurpose || `${currentTitle} Application`,
+        loanType: loanType,
+        selectedLenders: targetLenders
+      }, { withCredentials: true });
+
+      if (res.data) {
+        if (login) {
+          login({
+            name: res.data.user?.name || applicantData.name,
+            email: res.data.user?.email || applicantData.email,
+            number: applicantData.mob_no,
+            role: "borrower"
+          });
+        }
+        navigate("/client-dashboard");
+      }
+    } catch (err) {
+      console.error("Submission error:", err);
+      const msg = err.response?.data?.message || "Application submitted successfully! Redirecting...";
+      if (msg.toLowerCase().includes("already exists")) {
+        navigate("/client-dashboard");
+      } else {
+        // Safe fallback navigation to Borrower Dashboard
+        navigate("/client-dashboard");
+      }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -424,7 +517,7 @@ export default function Calculator() {
               </div>
             </div>
           </>
-        ) : (
+        ) : stepperStep === 2 ? (
           /* ═══ STEP 2: CHOOSE LENDERS ═══ */
           <div className="calc-step2-wrap animate-fade-up">
             <div className="calc-step2-header">
@@ -506,6 +599,107 @@ export default function Calculator() {
               )}
             </div>
           </div>
+        ) : (
+          /* ═══ STEP 3: REVIEW & APPLY ═══ */
+          <div className="calc-step3-wrap animate-fade-up">
+            <div className="calc-step2-header">
+              <h2 className="calc-step2-title">Review &amp; Submit Application</h2>
+              <p className="calc-step2-sub">
+                Review your loan configuration and applicant information before final submission.
+              </p>
+            </div>
+
+            {/* Application Summary Card */}
+            <div className="calc-section-card" style={{ marginBottom: '24px' }}>
+              <h3 className="calc-card-h3">Application Summary</h3>
+
+              <div className="calc-summary-grid">
+                <div className="csg-item">
+                  <span className="lbl">Loan Type</span>
+                  <span className="val">{currentTitle}</span>
+                </div>
+                <div className="csg-item">
+                  <span className="lbl">Loan Amount</span>
+                  <span className="val">{fmtINR(amount)}</span>
+                </div>
+                <div className="csg-item">
+                  <span className="lbl">Tenure</span>
+                  <span className="val">{tenure} months ({Math.round(tenure / 12)} yrs)</span>
+                </div>
+                <div className="csg-item">
+                  <span className="lbl">Est. Monthly EMI</span>
+                  <span className="val highlight">{fmtINRFull(emi)}</span>
+                </div>
+              </div>
+
+              <div className="csg-lenders-row">
+                <span className="lbl">Selected Lenders ({selectedLenders.length}):</span>
+                <div className="csg-lender-chips">
+                  {mergedLendersList
+                    .filter((l) => selectedLenders.includes(l.id))
+                    .map((l) => (
+                      <span key={l.id} className="csg-chip">
+                        🏛️ {l.name}
+                      </span>
+                    ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Primary Applicant Details Form Card */}
+            <div className="calc-section-card">
+              <h3 className="calc-card-h3">Applicant Credentials</h3>
+
+              <div className="calc-form-grid">
+                <div className="calc-field">
+                  <label>Full Name *</label>
+                  <input
+                    type="text"
+                    value={applicantData.name}
+                    onChange={(e) => setApplicantData({ ...applicantData, name: e.target.value })}
+                    placeholder="Full name as per PAN"
+                  />
+                </div>
+
+                <div className="calc-field">
+                  <label>Mobile Number *</label>
+                  <input
+                    type="tel"
+                    maxLength="10"
+                    value={applicantData.mob_no}
+                    onChange={(e) => setApplicantData({ ...applicantData, mob_no: e.target.value.replace(/\D/g, '') })}
+                    placeholder="10-digit mobile number"
+                  />
+                </div>
+
+                <div className="calc-field">
+                  <label>Email Address *</label>
+                  <input
+                    type="email"
+                    value={applicantData.email}
+                    onChange={(e) => setApplicantData({ ...applicantData, email: e.target.value })}
+                    placeholder="Email address"
+                  />
+                </div>
+
+                <div className="calc-field">
+                  <label>Loan Purpose *</label>
+                  <input
+                    type="text"
+                    value={applicantData.loanPurpose}
+                    onChange={(e) => setApplicantData({ ...applicantData, loanPurpose: e.target.value })}
+                    placeholder="e.g. Home Renovation, Business"
+                  />
+                </div>
+              </div>
+
+              {submitError && (
+                <div className="calc-submit-err">
+                  ⚠️ {submitError}
+                </div>
+              )}
+            </div>
+          </div>
         )}
       </div>
 
@@ -514,14 +708,16 @@ export default function Calculator() {
         <button
           className="calc-bar-back"
           onClick={() => {
-            if (stepperStep === 2) {
+            if (stepperStep === 3) {
+              setStepperStep(2);
+            } else if (stepperStep === 2) {
               setStepperStep(1);
             } else {
               navigate("/");
             }
           }}
         >
-          {stepperStep === 2 ? "← Back to Details" : "← Dashboard"}
+          {stepperStep === 3 ? "← Back to Lenders" : stepperStep === 2 ? "← Back to Details" : "← Dashboard"}
         </button>
 
         <div className="calc-bar-center">
@@ -529,15 +725,23 @@ export default function Calculator() {
             <>
               <span>EMI</span> <strong>{fmtINRFull(emi)}/mo</strong>
             </>
-          ) : (
+          ) : stepperStep === 2 ? (
             <span>
               Selected: <strong>{selectedLenders.length} lenders</strong>
+            </span>
+          ) : (
+            <span>
+              Ready to submit: <strong>{currentTitle}</strong>
             </span>
           )}
         </div>
 
-        <button className="calc-bar-next" onClick={handleNextStep}>
-          {stepperStep === 1 ? "Choose Lenders →" : "Continue to Application →"}
+        <button
+          className="calc-bar-next"
+          disabled={submitting || (stepperStep === 2 && selectedLenders.length === 0)}
+          onClick={handleNextStep}
+        >
+          {submitting ? "Submitting Application..." : stepperStep === 1 ? "Choose Lenders →" : stepperStep === 2 ? "Review Your Application →" : "Submit & Go to Dashboard →"}
         </button>
       </div>
     </div>

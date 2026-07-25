@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════
-   Calculator & 2-Step Loan Flow Stylesheet (Matching Screenshot 1 & 2)
+   Calculator & 3-Step Loan Flow Stylesheet (Matching Screenshots 1, 2, 3)
    ═══════════════════════════════════════════ */
 
 .calc-full-page {
@@ -529,6 +529,127 @@
   margin-top: 2px;
 }
 
+/* ═══════════════════════════════════════════
+   STEP 3: REVIEW & APPLY STYLES
+   ═══════════════════════════════════════════ */
+
+.calc-step3-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.calc-card-h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0F2942;
+  margin: 0 0 18px 0;
+}
+
+.calc-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #F1F5F9;
+  margin-bottom: 20px;
+}
+
+.csg-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.csg-item .lbl {
+  font-size: 0.72rem;
+  color: #64748B;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.csg-item .val {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F2942;
+}
+
+.csg-item .val.highlight {
+  color: #0284C7;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.35rem;
+}
+
+.csg-lenders-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.csg-lender-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.csg-chip {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #1E40AF;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.calc-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.calc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.calc-field label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0F2942;
+}
+
+.calc-field input {
+  padding: 12px 16px;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0F2942;
+  outline: none;
+  background: #FFFFFF;
+  transition: border-color 0.2s;
+}
+
+.calc-field input:focus {
+  border-color: #0284C7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+}
+
+.calc-submit-err {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #991B1B;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 /* Bottom Sticky Action Bar */
 .calc-bottom-bar {
   position: fixed;
@@ -578,10 +699,15 @@
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, opacity 0.2s;
 }
 
-.calc-bar-next:hover {
+.calc-bar-next:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.calc-bar-next:hover:not(:disabled) {
   background: #4F46E5;
 }
 
@@ -589,7 +715,7 @@
   .calc-type-grid {
     grid-template-columns: repeat(3, 1fr);
   }
-  .calc-main-split {
+  .calc-main-split, .calc-form-grid, .calc-summary-grid {
     grid-template-columns: 1fr;
   }
 }
