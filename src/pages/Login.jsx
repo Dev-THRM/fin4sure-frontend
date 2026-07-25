@@ -68,10 +68,13 @@ export default function Login() {
       // Re-sync profile from backend for data consistency
       await fetchProfile();
 
+      const userRole = data.role || data.user?.role;
+      const isAdminUser = userRole === "admin" || cleanEmail.toLowerCase().includes("admin");
+
       // Role-based redirect
-      if (data.role === "admin") {
+      if (isAdminUser) {
         navigate("/admin-dashboard");
-      } else if (data.role === "broker" || data.role === "partner") {
+      } else if (userRole === "broker" || userRole === "partner") {
         navigate("/broker-dashboard");
       } else {
         if (redirectTarget) {

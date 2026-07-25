@@ -5,7 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import "./navbar.css";
 
 export default function Navbar() {
-  const { role, isAuthenticated, logout, login, fetchProfile } = useAuth();
+  const { user, role, isAuthenticated, logout, login, fetchProfile } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [adminPassword, setAdminPassword] = useState("");
@@ -44,8 +44,8 @@ export default function Navbar() {
   };
 
   const getDashboardPath = () => {
-    if (role === "admin") return "/admin-dashboard";
-    if (role === "broker" || role === "partner") return "/broker-dashboard";
+    if (role === "admin" || user?.role === "admin" || user?.email === "admin@finn4sure.com") return "/admin-dashboard";
+    if (role === "broker" || role === "partner" || user?.role === "broker" || user?.role === "partner") return "/broker-dashboard";
     return "/client-dashboard";
   };
 
