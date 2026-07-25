@@ -12,7 +12,7 @@ import "./styles/calculator.css";
 export default function Calculator() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, login } = useAuth();
+  const { user, login, fetchProfile } = useAuth();
 
   // State for 3-step application flow (1: Details, 2: Choose Lenders, 3: Review & Apply)
   const [stepperStep, setStepperStep] = useState(1);
