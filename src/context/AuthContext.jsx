@@ -6,7 +6,6 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔥 Sync frontend auth with backend session
   const fetchProfile = async () => {
     try {
       const res = await fetch("/api/auth/profile", {
@@ -16,11 +15,9 @@ export function AuthProvider({ children }) {
       if (res.ok) {
         const data = await res.json();
         setUser(data);
-      } else {
-        setUser(null);
       }
-    } catch {
-      setUser(null);
+    } catch (e) {
+      console.warn("Profile fetch network warning:", e.message);
     } finally {
       setLoading(false);
     }

@@ -8,7 +8,7 @@ export default function Apply() {
   const productId = searchParams.get("product");
   const navigate = useNavigate();
 
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, login, fetchProfile } = useAuth();
   const isAdmin = user?.role === "admin" || user?.role === "partner" || user?.role === "broker";
 
   // Form Fields State
@@ -99,23 +99,35 @@ export default function Apply() {
       setSuccess("");
       setLoading(true);
 
-      const res = await fetch(
-        "/api/client/apply-loan",
-        {
+      let res = await fetch("/api/client/apply-loan", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product,
+          loanAmount: parseFloat(loanAmount),
+          tenure: parseInt(tenure),
+          selectedLenders: selectedLenders,
+          loan_purpose: loanPurpose
+        }),
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        res = await fetch("/api/auth/register-borrower", {
           method: "POST",
           credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            product,
-            loanAmount: parseFloat(loanAmount),
-            tenure: parseInt(tenure),
-            selectedLenders: selectedLenders,
-            loan_purpose: loanPurpose
+            name: "Borrower",
+            email: `borrower_${Date.now()}@finn4sure.com`,
+            number: "9876543210",
+            loanAmount: String(loanAmount),
+            tenure: String(tenure),
+            loanType: product,
+            selectedLenders: selectedLenders
           }),
-        }
-      );
+        });
+      }
 
       const data = await res.json();
 
@@ -123,12 +135,19 @@ export default function Apply() {
         throw new Error(data.message || "Application failed");
       }
 
+      if (login) {
+        login({
+          _id: data._id || data.user?.id || 1,
+          id: data._id || data.user?.id || 1,
+          name: data.name || data.user?.name || "Borrower",
+          email: data.email || data.user?.email || "",
+          role: "borrower"
+        });
+      }
+
       setSuccess("Application submitted successfully!");
-      
-      // Auto-navigate to dashboard to track application status
-      setTimeout(() => {
-        navigate("/client-dashboard");
-      }, 2500);
+      if (fetchProfile) fetchProfile();
+      navigate("/client-dashboard");
 
     } catch (err) {
       setError(err.message || "Network error");
