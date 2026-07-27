@@ -380,11 +380,11 @@ export default function AdminDashboard() {
     const nextStatus = nextStage === 'Disbursed' ? 'disbursed' : 'in progress';
 
     try {
-      const res = await fetch(`/api/admin/leads/${lead.id}`, {
-        method: "PUT",
+      const res = await fetch("/api/admin/update-application", {
+        method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stage: nextStage, status: nextStatus }),
+        body: JSON.stringify({ id: lead.id, stage: nextStage, status: nextStatus }),
       });
       if (res.ok) {
         setLeads((prev) =>
@@ -393,19 +393,22 @@ export default function AdminDashboard() {
           )
         );
         setCustomAlert({ message: `Stage advanced to ${nextStage}!`, type: "success" });
+      } else {
+        setCustomAlert({ message: "Failed to advance stage", type: "error" });
       }
     } catch (e) {
       console.error(e);
+      setCustomAlert({ message: "Network error. Please try again.", type: "error" });
     }
   }
 
   async function disburseLead(lead) {
     try {
-      const res = await fetch(`/api/admin/leads/${lead.id}`, {
-        method: "PUT",
+      const res = await fetch("/api/admin/update-application", {
+        method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stage: 'Disbursed', status: 'disbursed' }),
+        body: JSON.stringify({ id: lead.id, stage: 'Disbursed', status: 'disbursed' }),
       });
       if (res.ok) {
         setLeads((prev) =>
@@ -414,9 +417,12 @@ export default function AdminDashboard() {
           )
         );
         setCustomAlert({ message: "Application marked as Disbursed!", type: "success" });
+      } else {
+        setCustomAlert({ message: "Failed to disburse application", type: "error" });
       }
     } catch (e) {
       console.error(e);
+      setCustomAlert({ message: "Network error. Please try again.", type: "error" });
     }
   }
 
