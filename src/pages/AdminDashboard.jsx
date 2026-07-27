@@ -1163,23 +1163,22 @@ export default function AdminDashboard() {
                   className="adm-filter-dropdown"
                   value={brokerStatusFilter}
                   onChange={(e) => setBrokerStatusFilter(e.target.value)}
-                  style={{ padding: '9px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', background: '#FFFFFF', fontWeight: 600, fontSize: '0.85rem' }}
+                  style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #CBD5E1', background: '#FFFFFF', fontWeight: 500, fontSize: '0.88rem', color: '#1E293B', cursor: 'pointer', outline: 'none' }}
                 >
                   <option value="all_statuses">All Partners</option>
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
 
-                <div className="adm-inner-search-box" style={{ flex: 1, minWidth: '240px' }}>
-                  <svg width="16" height="16" fill="none" stroke="#94a3b8" strokeWidth="2" viewBox="0 0 24 24" className="search-icon-inside">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
+                <div className="adm-inner-search-box" style={{ flex: 1, minWidth: '240px', background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '8px', display: 'flex', alignItems: 'center', padding: '0 12px' }}>
+                  <span style={{ fontSize: '1rem', color: '#00B4D8', marginRight: '8px' }}>🔍</span>
                   <input
                     type="text"
                     placeholder="Search partner or borrower.."
                     className="adm-inner-search-input"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{ border: 'none', outline: 'none', width: '100%', padding: '10px 0', fontSize: '0.88rem', color: '#1E293B' }}
                   />
                 </div>
 
@@ -1188,16 +1187,16 @@ export default function AdminDashboard() {
                   style={{
                     background: '#0F2942',
                     color: '#FFFFFF',
-                    padding: '9px 18px',
+                    padding: '10px 20px',
                     borderRadius: '8px',
                     border: 'none',
                     fontWeight: 700,
-                    fontSize: '0.85rem',
+                    fontSize: '0.88rem',
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px',
-                    boxShadow: '0 2px 4px rgba(15,41,66,0.15)'
+                    boxShadow: '0 2px 6px rgba(15,41,66,0.15)'
                   }}
                 >
                   <span>↓</span> Export CSV
@@ -1205,9 +1204,9 @@ export default function AdminDashboard() {
               </div>
 
               {/* Partner Cards Container */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {filteredBrokers.length === 0 ? (
-                  <div className="adm-workspace-card" style={{ padding: '40px 20px', textAlign: 'center' }}>
+                  <div className="adm-workspace-card" style={{ padding: '40px 20px', textAlign: 'center', borderRadius: '16px' }}>
                     <p className="no-data-text">No partners match</p>
                   </div>
                 ) : (
@@ -1232,39 +1231,39 @@ export default function AdminDashboard() {
                         key={b.id}
                         style={{
                           background: '#FFFFFF',
-                          borderRadius: '14px',
+                          borderRadius: '16px',
                           border: '1px solid #E2E8F0',
-                          padding: '16px 20px',
+                          padding: '18px 24px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          gap: '16px',
+                          gap: '20px',
                           flexWrap: 'wrap',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
                         }}
                       >
                         {/* Avatar & Partner Details */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: '260px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: '280px' }}>
                           <div
                             style={{
-                              width: '44px',
-                              height: '44px',
+                              width: '48px',
+                              height: '48px',
                               borderRadius: '50%',
-                              background: '#0D9488',
+                              background: '#00A884',
                               color: '#FFFFFF',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               fontWeight: 800,
-                              fontSize: '1.1rem',
+                              fontSize: '1.2rem',
                               flexShrink: 0
                             }}
                           >
                             {initialLetter}
                           </div>
                           <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                              <span style={{ fontWeight: 800, color: '#1E293B', fontSize: '0.98rem' }}>{b.name}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                              <span style={{ fontWeight: 800, color: '#0F2942', fontSize: '1.05rem' }}>{b.name}</span>
                               <span
                                 style={{
                                   width: '8px',
@@ -1275,7 +1274,7 @@ export default function AdminDashboard() {
                                 }}
                               />
                             </div>
-                            <div style={{ fontSize: '0.78rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px' }}>
                               <span>{partnerCode}</span>
                               <span>·</span>
                               <span>📍 {locationStr}</span>
@@ -1286,30 +1285,30 @@ export default function AdminDashboard() {
                         </div>
 
                         {/* Metric Counters Grid */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '28px', flexWrap: 'wrap' }}>
                           <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#1E293B' }}>{clientsCount}</div>
-                            <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>CLIENTS</div>
+                            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#0F2942' }}>{clientsCount}</div>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em' }}>CLIENTS</div>
                           </div>
 
                           <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#166534' }}>{disbursedCount}</div>
-                            <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>DISBURSED</div>
+                            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#10B981' }}>{disbursedCount}</div>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em' }}>DISBURSED</div>
                           </div>
 
                           <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#2563EB' }}>{inProgressCount}</div>
-                            <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>IN PROGRESS</div>
+                            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#3B82F6' }}>{inProgressCount}</div>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em' }}>IN PROGRESS</div>
                           </div>
 
                           <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#D97706' }}>{pendingCount}</div>
-                            <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>PENDING</div>
+                            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#F59E0B' }}>{pendingCount}</div>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em' }}>PENDING</div>
                           </div>
 
                           <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#7C3AED' }}>{volFormatted}</div>
-                            <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>VOLUME</div>
+                            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#8B5CF6' }}>{volFormatted}</div>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em' }}>VOLUME</div>
                           </div>
                         </div>
 
@@ -1318,55 +1317,55 @@ export default function AdminDashboard() {
                           <button
                             onClick={() => openEditBroker(b)}
                             style={{
-                              padding: '6px 14px',
+                              padding: '7px 16px',
                               borderRadius: '8px',
-                              border: '1px solid #CBD5E1',
+                              border: '1px solid #E2E8F0',
                               background: '#FFFFFF',
                               color: '#334155',
-                              fontSize: '0.8rem',
-                              fontWeight: 700,
+                              fontSize: '0.82rem',
+                              fontWeight: 600,
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '4px'
+                              gap: '6px'
                             }}
                           >
-                            <span>✏️</span> Edit
+                            <span style={{ color: '#D97706' }}>✏️</span> Edit
                           </button>
 
                           <button
                             onClick={() => updateBrokerStatus(b.brokerId || b.id, isLive ? 'inactive' : 'active')}
                             style={{
-                              padding: '6px 14px',
+                              padding: '7px 16px',
                               borderRadius: '8px',
-                              border: '1px solid #CBD5E1',
+                              border: '1px solid #E2E8F0',
                               background: '#FFFFFF',
-                              color: isLive ? '#DC2626' : '#166534',
-                              fontSize: '0.8rem',
-                              fontWeight: 700,
+                              color: '#334155',
+                              fontSize: '0.82rem',
+                              fontWeight: 600,
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '4px'
+                              gap: '6px'
                             }}
                           >
-                            <span>{isLive ? '⏸️' : '▶️'}</span> {isLive ? 'Pause' : 'Activate'}
+                            <span>{isLive ? '⏸' : '▶'}</span> {isLive ? 'Pause' : 'Activate'}
                           </button>
 
                           <button
                             onClick={() => setSelectedBroker(b)}
                             style={{
-                              padding: '6px 14px',
+                              padding: '7px 16px',
                               borderRadius: '8px',
-                              border: '1px solid #CBD5E1',
+                              border: '1px solid #E2E8F0',
                               background: '#FFFFFF',
-                              color: '#334155',
-                              fontSize: '0.8rem',
-                              fontWeight: 700,
+                              color: '#64748B',
+                              fontSize: '0.82rem',
+                              fontWeight: 600,
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '4px'
+                              gap: '6px'
                             }}
                           >
                             <span>▼</span> Clients
