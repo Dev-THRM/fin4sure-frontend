@@ -435,11 +435,11 @@ export default function AdminDashboard() {
   async function saveEditLead() {
     if (!editingLead) return;
     try {
-      const res = await fetch(`/api/admin/leads/${editingLead.id}`, {
+      const res = await fetch("/api/admin/update-application", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify({ ...editForm, id: editingLead.id }),
       });
       if (res.ok) {
         const updatedData = await res.json();
