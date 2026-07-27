@@ -442,6 +442,14 @@ export default function AdminDashboard() {
         body: JSON.stringify(editForm),
       });
       if (res.ok) {
+        const updatedData = await res.json();
+        setLeads(prevLeads =>
+          prevLeads.map(item =>
+            item.id === editingLead.id
+              ? { ...item, ...updatedData, lender: updatedData.lender || editForm.lender }
+              : item
+          )
+        );
         setEditingLead(null);
         setEditForm({});
         loadAdminData();
