@@ -1248,34 +1248,39 @@ export default function AdminDashboard() {
           {/* 4. BORROWERS MANAGEMENT VIEW */}
           {activeTab === "borrowers" && (
             <div className="adm-subtab-container animate-fade-up">
-              <div className="adm-controls-row">
-                <select className="adm-filter-dropdown" value={borrowerStatusFilter} onChange={(e) => setBorrowerStatusFilter(e.target.value)}>
-                  <option value="all_statuses">All Statuses</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="rejected">Rejected</option>
-                </select>
-
-                <button className="adm-ctrl-btn btn-csv" onClick={() => exportData("clients")}>
-                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Export CSV
+              <div style={{ marginBottom: '16px' }}>
+                <button
+                  onClick={() => exportData("clients")}
+                  style={{
+                    background: '#0F2942',
+                    color: '#FFFFFF',
+                    padding: '10px 18px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    fontWeight: 700,
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 2px 4px rgba(15,41,66,0.15)'
+                  }}
+                >
+                  <span>↓</span> Export Borrowers CSV
                 </button>
               </div>
 
               <div className="adm-workspace-card">
-                <div className="adm-wcard-body" style={{ padding: 0 }}>
+                <div className="adm-wcard-body" style={{ padding: 0, overflowX: 'auto' }}>
                   <table className="lenders-table">
                     <thead>
                       <tr>
                         <th>BORROWER</th>
                         <th>MOBILE</th>
                         <th>EMAIL</th>
-                        <th>LOCATION</th>
-                        <th>JOINED</th>
                         <th>LOANS</th>
-                        <th>APPLIED TO</th>
+                        <th>APPLIED LENDERS</th>
+                        <th>BEST STAGE</th>
                         <th>STATUS</th>
                         <th>ACTION</th>
                       </tr>
@@ -1283,36 +1288,98 @@ export default function AdminDashboard() {
                     <tbody>
                       {filteredBorrowers.length === 0 ? (
                         <tr>
-                          <td colSpan="9" className="no-data-cell" style={{ padding: '40px 20px' }}>No borrowers found</td>
+                          <td colSpan="8" className="no-data-cell" style={{ padding: '40px 20px' }}>No borrowers found</td>
                         </tr>
                       ) : (
-                        filteredBorrowers.map((b) => (
-                          <tr key={b.id}>
-                            <td style={{ fontWeight: 600, color: '#0d2b6b' }}>{b.name}</td>
-                            <td>{b.number}</td>
-                            <td>{b.email}</td>
-                            <td>{b.address || b.district || b.state || "-"}</td>
-                            <td>{new Date(b.createdAt).toLocaleDateString()}</td>
-                            <td>{b.loanCount || 0}</td>
-                            <td>Direct</td>
-                            <td>
-                              <span style={{ 
-                                textTransform: 'capitalize', 
-                                fontWeight: 600, 
-                                fontSize: '0.75rem',
-                                padding: '4px 8px',
-                                borderRadius: '4px',
-                                background: b.status === 'active' ? '#dcfce7' : b.status === 'inactive' ? '#fef3c7' : '#fee2e2',
-                                color: b.status === 'active' ? '#166534' : b.status === 'inactive' ? '#92400e' : '#991b1b'
-                              }}>
-                                {b.status || 'Active'}
-                              </span>
-                            </td>
-                            <td>
-                              <button onClick={() => setSelectedBorrower(b)} className="settings-action-btn" style={{ padding: '4px 10px', fontSize: '.75rem', marginTop: 0 }}>View</button>
-                            </td>
-                          </tr>
-                        ))
+                        filteredBorrowers.map((b) => {
+                          const appliedDate = b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '15 Jan 2025';
+                          const stage = b.bestStage || b.stage || 'Applied';
+                          const status = (b.status || 'in progress').toLowerCase();
+                          
+                          let stageColor = '#D97706';
+                          if (stage === 'Disbursed') stageColor = '#166534';
+                          else if (['Submitted', 'Credit', 'Sanction'].includes(stage)) stageColor = '#2563EB';
+
+                          return (
+                            <tr key={b.id}>
+                              <td>
+                                <div>
+                                  <div style={{ fontWeight: 800, color: '#1E293B', fontSize: '0.92rem', marginBottom: '2px' }}>{b.name}</div>
+                                  <div style={{ fontSize: '0.78rem', color: '#64748B' }}>{b.number || '9876543210'} ·</div>
+                                  <div style={{ fontSize: '0.78rem', color: '#64748B' }}>Applied {appliedDate}</div>
+                                </div>
+                              </td>
+                              <td>
+                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: '#1E293B', fontSize: '0.86rem' }}>
+                                  <span style={{ fontSize: '0.9rem' }}>📇</span>
+                                  <span>{b.number || '9876543210'}</span>
+                                </div>
+                              </td>
+                              <td style={{ color: '#475569', fontSize: '0.86rem' }}>{b.email}</td>
+                              <td style={{ fontWeight: 800, color: '#0F2942', textAlign: 'center', fontSize: '0.9rem' }}>{b.loanCount || 1}</td>
+                              <td>
+                                <span style={{ background: '#F1F5F9', color: '#334155', padding: '4px 10px', borderRadius: '12px', fontWeight: 600, fontSize: '0.78rem', display: 'inline-block' }}>
+                                  {b.appliedLender || b.lender || 'SBI'}
+                                </span>
+                              </td>
+                              <td style={{ fontWeight: 700, color: stageColor, fontSize: '0.85rem' }}>{stage}</td>
+                              <td>
+                                <span style={{
+                                  padding: '4px 12px',
+                                  borderRadius: '12px',
+                                  fontSize: '0.76rem',
+                                  fontWeight: 700,
+                                  display: 'inline-block',
+                                  textTransform: 'lowercase',
+                                  background: ['disbursed', 'completed', 'active'].includes(status) ? '#DCFCE7' : status === 'rejected' ? '#FEE2E2' : '#DBEAFE',
+                                  color: ['disbursed', 'completed', 'active'].includes(status) ? '#166534' : status === 'rejected' ? '#991B1B' : '#1E40AF'
+                                }}>
+                                  {status}
+                                </span>
+                              </td>
+                              <td>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                  <button
+                                    onClick={() => setSelectedBorrower(b)}
+                                    style={{
+                                      padding: '4px 10px',
+                                      borderRadius: '6px',
+                                      border: '1px solid #CBD5E1',
+                                      background: '#FFFFFF',
+                                      color: '#334155',
+                                      fontSize: '0.76rem',
+                                      fontWeight: 700,
+                                      cursor: 'pointer',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px'
+                                    }}
+                                  >
+                                    <span>✏️</span> Edit
+                                  </button>
+                                  <button
+                                    onClick={() => setSelectedBorrower(b)}
+                                    style={{
+                                      padding: '4px 10px',
+                                      borderRadius: '6px',
+                                      border: '1px solid #CBD5E1',
+                                      background: '#FFFFFF',
+                                      color: '#334155',
+                                      fontSize: '0.76rem',
+                                      fontWeight: 700,
+                                      cursor: 'pointer',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px'
+                                    }}
+                                  >
+                                    <span>📑</span> Loans
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
