@@ -1126,15 +1126,15 @@ export default function AdminDashboard() {
             <div className="adm-subtab-container animate-fade-up">
               <div className="adm-controls-row">
                 <select className="adm-filter-dropdown" value={leadStatusFilter} onChange={(e) => setLeadStatusFilter(e.target.value)}>
-                  <option value="all_statuses">All Statuses</option>
-                  <option value="applied">Applied</option>
-                  <option value="docs">Docs</option>
-                  <option value="credit">Credit</option>
-                  <option value="submitted">Submitted</option>
-                  <option value="sanction">Sanction</option>
-                  <option value="legal">Legal</option>
-                  <option value="disbursed">Disbursed</option>
-                  <option value="rejected">Rejected</option>
+                  <option value="all_statuses">ALL STATUSES</option>
+                  <option value="applied">APPLIED</option>
+                  <option value="docs">DOCS</option>
+                  <option value="credit">CREDIT</option>
+                  <option value="submitted">SUBMITTED</option>
+                  <option value="sanction">SANCTION</option>
+                  <option value="legal">LEGAL</option>
+                  <option value="disbursed">DISBURSED</option>
+                  <option value="rejected">REJECTED</option>
                 </select>
 
                 <select className="adm-filter-dropdown" value={leadTypeFilter} onChange={(e) => setLeadTypeFilter(e.target.value)}>
@@ -1436,17 +1436,21 @@ export default function AdminDashboard() {
                             {initialLetter}
                           </div>
                           <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                               <span style={{ fontWeight: 800, color: '#0F2942', fontSize: '1.05rem' }}>{b.name}</span>
                               <span
                                 style={{
-                                  width: '8px',
-                                  height: '8px',
-                                  borderRadius: '50%',
-                                  background: isLive ? '#22C55E' : '#94A3B8',
-                                  display: 'inline-block'
+                                  padding: '2px 8px',
+                                  borderRadius: '10px',
+                                  fontSize: '0.72rem',
+                                  fontWeight: 700,
+                                  textTransform: 'uppercase',
+                                  background: isLive ? '#DCFCE7' : '#F1F5F9',
+                                  color: isLive ? '#166534' : '#64748B'
                                 }}
-                              />
+                              >
+                                {isLive ? 'ACTIVE' : (b.status || 'INACTIVE').toUpperCase()}
+                              </span>
                             </div>
                             <div style={{ fontSize: '0.8rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px' }}>
                               <span>{partnerCode}</span>
@@ -2179,10 +2183,10 @@ export default function AdminDashboard() {
                       onChange={(e) => setEditForm(f => ({ ...f, status: e.target.value }))}
                       style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', background: '#FFFFFF', cursor: 'pointer', outline: 'none' }}
                     >
-                      <option value="in progress">In Progress</option>
-                      <option value="disbursed">Disbursed</option>
-                      <option value="rejected">Rejected</option>
-                      <option value="pending">Pending</option>
+                      <option value="in progress">IN-PROGRESS</option>
+                      <option value="disbursed">DISBURSED</option>
+                      <option value="rejected">REJECTED</option>
+                      <option value="pending">PENDING</option>
                     </select>
                   </div>
                   <div>
@@ -2192,13 +2196,14 @@ export default function AdminDashboard() {
                       onChange={(e) => setEditForm(f => ({ ...f, stage: e.target.value }))}
                       style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', background: '#FFFFFF', cursor: 'pointer', outline: 'none' }}
                     >
-                      <option value="Applied">Applied</option>
-                      <option value="Docs">Docs</option>
-                      <option value="Credit">Credit</option>
-                      <option value="Submitted">Submitted</option>
-                      <option value="Sanction">Sanction</option>
-                      <option value="Legal">Legal</option>
-                      <option value="Disbursed">Disbursed</option>
+                      <option value="Applied">APPLIED</option>
+                      <option value="Docs">DOCS</option>
+                      <option value="Credit">CREDIT</option>
+                      <option value="Submitted">SUBMITTED</option>
+                      <option value="Sanction">SANCTION</option>
+                      <option value="Legal">LEGAL</option>
+                      <option value="Disbursed">DISBURSED</option>
+                      <option value="Rejected">REJECTED</option>
                     </select>
                   </div>
                 </div>
