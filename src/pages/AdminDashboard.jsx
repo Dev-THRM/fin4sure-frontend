@@ -1138,11 +1138,11 @@ export default function AdminDashboard() {
                 </select>
 
                 <select className="adm-filter-dropdown" value={leadTypeFilter} onChange={(e) => setLeadTypeFilter(e.target.value)}>
-                  <option value="all_loan_types">All Loan Types</option>
-                  <option value="home">Home Loan</option>
-                  <option value="personal">Personal Loan</option>
-                  <option value="business">Business Loan</option>
-                  <option value="vehicle">Vehicle Loan</option>
+                  <option value="all_loan_types">ALL LOAN TYPES</option>
+                  <option value="home">HOME LOAN</option>
+                  <option value="personal">PERSONAL LOAN</option>
+                  <option value="business">BUSINESS LOAN</option>
+                  <option value="vehicle">VEHICLE LOAN</option>
                 </select>
 
                 <button className="adm-ctrl-btn btn-csv" onClick={() => exportData("clients", "csv")}>
@@ -1339,9 +1339,9 @@ export default function AdminDashboard() {
                   onChange={(e) => setBrokerStatusFilter(e.target.value)}
                   style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #CBD5E1', background: '#FFFFFF', fontWeight: 500, fontSize: '0.88rem', color: '#1E293B', cursor: 'pointer', outline: 'none' }}
                 >
-                  <option value="all_statuses">All Partners</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
+                  <option value="all_statuses">ALL PARTNERS</option>
+                  <option value="active">ACTIVE</option>
+                  <option value="inactive">INACTIVE</option>
                 </select>
 
                 <div className="adm-inner-search-box" style={{ flex: 1, minWidth: '240px', background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '8px', display: 'flex', alignItems: 'center', padding: '0 12px' }}>
