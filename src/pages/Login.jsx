@@ -61,6 +61,9 @@ export default function Login() {
       }
 
       const data = await res.json();
+      if (data.accessToken || data.token) {
+        localStorage.setItem("accessToken", data.accessToken || data.token);
+      }
       const userPayload = data.user || data;
       if (cleanEmail.toLowerCase().includes("admin") || userPayload.role === "admin") {
         userPayload.role = "admin";

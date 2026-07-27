@@ -179,11 +179,24 @@ export default function AdminDashboard() {
   const [borrowerLoansModal, setBorrowerLoansModal] = useState(null); // { name, loans }
   const [borrowerLoansLoading, setBorrowerLoansLoading] = useState(false);
 
-  async function openBorrowerLoans(borrower) {
-    setBorrowerLoansModal({ name: borrower.name, loans: [] });
+  function getAuthHeaders(contentTypeJson = false) {
+    const token = localStorage.getItem("accessToken");
+    const headers = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    if (contentTypeJson) {
+      headers["Content-Type"] = "application/json";
+    }
+    return headers;
+  }
+
+  async function openBorrowerLoansModal(borrower) {
+    if (!borrower || !borrower.id) return;
     setBorrowerLoansLoading(true);
+    setBorrowerLoansModal({ name: borrower.name, loans: [] });
     try {
-      const res = await fetch(`/api/admin/client-loans/${borrower.id}`, { credentials: 'include' });
+      const res = await fetch(`/api/admin/client-loans/${borrower.id}`, { credentials: 'include', headers: getAuthHeaders() });
       if (res.ok) {
         const loans = await res.json();
         setBorrowerLoansModal({ name: borrower.name, loans });
@@ -195,7 +208,7 @@ export default function AdminDashboard() {
 
   const loadAdminData = useCallback(async () => {
     try {
-      const bundleRes = await fetch("/api/admin/dashboard-bundle", { credentials: "include" });
+      const bundleRes = await fetch("/api/admin/dashboard-bundle", { credentials: "include", headers: getAuthHeaders() });
       if (bundleRes.status === 401 || bundleRes.status === 403) {
         return navigate("/login");
       }
@@ -215,9 +228,9 @@ export default function AdminDashboard() {
       // Fallback if bundle is empty or unavailable
       fetchLenderRates();
       const [resLeads, resBrokers, resStats] = await Promise.allSettled([
-        fetch("/api/admin/leads", { credentials: "include" }),
-        fetch("/api/admin/brokers", { credentials: "include" }),
-        fetch("/api/admin/stats", { credentials: "include" })
+        fetch("/api/admin/leads", { credentials: "include", headers: getAuthHeaders() }),
+        fetch("/api/admin/brokers", { credentials: "include", headers: getAuthHeaders() }),
+        fetch("/api/admin/stats", { credentials: "include", headers: getAuthHeaders() })
       ]);
 
       if (resLeads.status === "fulfilled" && resLeads.value.ok) {
@@ -259,6 +272,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch("/api/admin/stats", {
         credentials: "include",
+        headers: getAuthHeaders()
       });
       if (res.status === 401 || res.status === 403) {
         return navigate("/login");
@@ -273,6 +287,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch("/api/admin/brokers", {
         credentials: "include",
+        headers: getAuthHeaders()
       });
       if (res.ok) setBrokers(await res.json());
     } catch (e) {
@@ -282,7 +297,7 @@ export default function AdminDashboard() {
 
   async function fetchLeads() {
     try {
-      const res = await fetch("/api/admin/leads", { credentials: "include" });
+      const res = await fetch("/api/admin/leads", { credentials: "include", headers: getAuthHeaders() });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) setLeads(data);
@@ -296,6 +311,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch("/api/admin/clients", {
         credentials: "include",
+        headers: getAuthHeaders()
       });
       if (res.ok) setBorrowers(await res.json());
     } catch (e) {
@@ -307,6 +323,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch("/api/admin/timeline", {
         credentials: "include",
+        headers: getAuthHeaders()
       });
       if (res.ok) setTimeline(await res.json());
     } catch (e) {
@@ -318,6 +335,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`/api/admin/lender-rates?loanTypeShortId=${selectedLoanCategory}`, {
         credentials: "include",
+        headers: getAuthHeaders()
       });
       if (res.ok) {
         const data = await res.json();
@@ -336,7 +354,7 @@ export default function AdminDashboard() {
       const res = await fetch("/api/admin/lender-rates", {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(true),
         body: JSON.stringify({ rates, loanTypeShortId: selectedLoanCategory }),
       });
       if (res.ok) {
