@@ -432,29 +432,29 @@ export default function AdminDashboard() {
     });
   }
 
-  // async function saveEditLead() {
-  //   try {
-  //     const res = await fetch(`/api/admin/leads/${editingLead.id}`, {
-  //       method: "PUT",
-  //       credentials: "include",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify(editForm),
-  //     });
-  //     if (res.ok) {
-  //       setEditingLead(null);
-  //       setEditForm({});
-  //       fetchLeads();
-  //       fetchStats();
-  //       setCustomAlert({ message: "Application updated successfully!", type: "success" });
-  //     } else {
-  //       const err = await res.json();
-  //       setCustomAlert({ message: err.message || "Failed to update application", type: "error" });
-  //     }
-  //   } catch (e) {
-  //     console.error(e);
-  //     setCustomAlert({ message: "Network error. Please try again.", type: "error" });
-  //   }
-  // }
+  async function saveEditLead() {
+    if (!editingLead) return;
+    try {
+      const res = await fetch(`/api/admin/leads/${editingLead.id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editForm),
+      });
+      if (res.ok) {
+        setEditingLead(null);
+        setEditForm({});
+        loadAdminData();
+        setCustomAlert({ message: "Application updated successfully!", type: "success" });
+      } else {
+        const err = await res.json();
+        setCustomAlert({ message: err.message || "Failed to update application", type: "error" });
+      }
+    } catch (e) {
+      console.error(e);
+      setCustomAlert({ message: "Network error. Please try again.", type: "error" });
+    }
+  }
 
   // Export helpers
   function getDateRange() {
