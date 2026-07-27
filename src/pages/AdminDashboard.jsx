@@ -31,7 +31,18 @@ export default function AdminDashboard() {
   const [leads, setLeads] = useState([]);
   const [borrowers, setBorrowers] = useState([]);
   const [timeline, setTimeline] = useState([]);
-  const [rates, setRates] = useState([]);
+  const [rates, setRates] = useState([
+    { lenderId: 1, name: 'SBI', type: 'PSU', flowLow: '7.1', flowHigh: '9.65', fixLow: '8.7', fixHigh: '11.2', offer: 'Zero PF on home', visible: true },
+    { lenderId: 2, name: 'HDFC Bank', type: 'Private', flowLow: '7.2', flowHigh: '9.8', fixLow: '8.8', fixHigh: '11.5', offer: 'Pre-approved off', visible: true },
+    { lenderId: 3, name: 'ICICI Bank', type: 'Private', flowLow: '7.25', flowHigh: '9.9', fixLow: '8.9', fixHigh: '11.6', offer: 'Instant in-princip', visible: true },
+    { lenderId: 4, name: 'Axis Bank', type: 'Private', flowLow: '7.3', flowHigh: '10', fixLow: '9', fixHigh: '11.7', offer: 'Offer text', visible: true },
+    { lenderId: 5, name: 'Kotak Mahindra', type: 'Private', flowLow: '7.4', flowHigh: '9.75', fixLow: '9', fixHigh: '11.5', offer: 'Offer text', visible: true },
+    { lenderId: 6, name: 'Bajaj Finserv', type: 'NBFC/HFC', flowLow: '7.25', flowHigh: '10.5', fixLow: '9', fixHigh: '12', offer: 'Pre-approved pei', visible: true },
+    { lenderId: 7, name: 'PNB Housing', type: 'NBFC/HFC', flowLow: '7.5', flowHigh: '13.45', fixLow: '9', fixHigh: '14', offer: 'Offer text', visible: true },
+    { lenderId: 8, name: 'LIC Housing', type: 'NBFC/HFC', flowLow: '7.5', flowHigh: '10.35', fixLow: '9.5', fixHigh: '12', offer: 'Griha Lakshmi Sp', visible: true },
+    { lenderId: 9, name: 'Tata Capital', type: 'NBFC/HFC', flowLow: '8.5', flowHigh: '11', fixLow: '9.5', fixHigh: '12', offer: 'Digital home loan', visible: true },
+    { lenderId: 10, name: 'Bank of Baroda', type: 'PSU', flowLow: '7.1', flowHigh: '9.6', fixLow: '8.6', fixHigh: '11.1', offer: 'Offer text', visible: true }
+  ]);
   const [selectedLoanCategory, setSelectedLoanCategory] = useState("HL"); // HL, PL, BL, VL
   const [selectedRateType, setSelectedRateType] = useState("all_types");
 
