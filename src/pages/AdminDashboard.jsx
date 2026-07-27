@@ -98,6 +98,7 @@ export default function AdminDashboard() {
             if (Array.isArray(data.brokers) && data.brokers.length > 0) setBrokers(data.brokers);
             if (Array.isArray(data.clients) && data.clients.length > 0) setBorrowers(data.clients);
             if (Array.isArray(data.timeline) && data.timeline.length > 0) setTimeline(data.timeline);
+            if (Array.isArray(data.leads) && data.leads.length > 0) setLeads(data.leads);
           }
         }
 
