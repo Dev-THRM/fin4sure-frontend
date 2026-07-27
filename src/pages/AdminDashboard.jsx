@@ -185,6 +185,9 @@ export default function AdminDashboard() {
   const loadAdminData = useCallback(async () => {
     try {
       const bundleRes = await fetch("/api/admin/dashboard-bundle", { credentials: "include" });
+      if (bundleRes.status === 401 || bundleRes.status === 403) {
+        return navigate("/login");
+      }
       if (bundleRes.ok) {
         const data = await bundleRes.json();
         if (data) {
