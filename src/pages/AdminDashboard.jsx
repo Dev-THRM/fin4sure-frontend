@@ -1154,93 +1154,228 @@ export default function AdminDashboard() {
                                 </button>
                               </div>
                             </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* 3. PARTNERS MANAGEMENT VIEW */}
           {activeTab === "brokers" && (
             <div className="adm-subtab-container animate-fade-up">
-              <div className="adm-controls-row">
-                <select className="adm-filter-dropdown" value={brokerStatusFilter} onChange={(e) => setBrokerStatusFilter(e.target.value)}>
-                  <option value="all_partners">All Partners</option>
-                  <option value="active">active</option>
-                  <option value="inactive">inactive</option>
+              {/* Filter & Controls Row */}
+              <div className="adm-controls-row" style={{ marginBottom: '20px', display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <select
+                  className="adm-filter-dropdown"
+                  value={brokerStatusFilter}
+                  onChange={(e) => setBrokerStatusFilter(e.target.value)}
+                  style={{ padding: '9px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', background: '#FFFFFF', fontWeight: 600, fontSize: '0.85rem' }}
+                >
+                  <option value="all_statuses">All Partners</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
                 </select>
 
-                <div className="adm-search-input-wrapper">
+                <div className="adm-inner-search-box" style={{ flex: 1, minWidth: '240px' }}>
                   <svg width="16" height="16" fill="none" stroke="#94a3b8" strokeWidth="2" viewBox="0 0 24 24" className="search-icon-inside">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  <input type="text" placeholder="Search partner or borrower.." className="adm-inner-search-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                  <input
+                    type="text"
+                    placeholder="Search partner or borrower.."
+                    className="adm-inner-search-input"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
                 </div>
 
-                <button className="adm-ctrl-btn btn-csv" onClick={() => exportData("brokers")}>
-                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Export CSV
+                <button
+                  onClick={() => exportData("brokers")}
+                  style={{
+                    background: '#0F2942',
+                    color: '#FFFFFF',
+                    padding: '9px 18px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    fontWeight: 700,
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 2px 4px rgba(15,41,66,0.15)'
+                  }}
+                >
+                  <span>↓</span> Export CSV
                 </button>
               </div>
 
-              <div className="adm-workspace-card">
-                <div className="adm-wcard-body" style={{ padding: 0 }}>
-                  {filteredBrokers.length === 0 ? (
-                    <div className="empty-placeholder" style={{ minHeight: '240px' }}>
-                      <p className="no-data-text">No partners match</p>
-                    </div>
-                  ) : (
-                    <table className="lenders-table">
-                      <thead>
-                        <tr>
-                          <th>Partner</th>
-                          <th>Partner ID</th>
-                          <th>Clients</th>
-                          <th>Status</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredBrokers.map((b) => (
-                          <tr key={b.id}>
-                            <td style={{ fontWeight: 700 }}>{b.name}</td>
-                            <td>{b.brokerId}</td>
-                            <td>{b.clientCount || 0}</td>
-                            <td>
+              {/* Partner Cards Container */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {filteredBrokers.length === 0 ? (
+                  <div className="adm-workspace-card" style={{ padding: '40px 20px', textAlign: 'center' }}>
+                    <p className="no-data-text">No partners match</p>
+                  </div>
+                ) : (
+                  filteredBrokers.map((b) => {
+                    const status = (b.status || 'inactive').toLowerCase();
+                    const isLive = status === 'active';
+                    const partnerCode = b.brokerId ? (String(b.brokerId).startsWith('P4S') || String(b.brokerId).startsWith('F4S') ? b.brokerId : `F4S-${String(b.brokerId).padStart(5, '0')}`) : `F4S-${String(b.id).padStart(5, '0')}`;
+                    const locationStr = b.city || b.district || b.address || 'Mumbai';
+                    const phoneStr = b.number || b.mob_no || '8123912839';
+                    const initialLetter = (b.name || 'D').charAt(0).toUpperCase();
+
+                    const leadsList = b.leads || [];
+                    const clientsCount = b.clientCount || (b.clients ? b.clients.length : 0);
+                    const disbursedCount = leadsList.filter(l => ['disbursed', 'completed'].includes((l.status || '').toLowerCase())).length;
+                    const inProgressCount = leadsList.filter(l => !['disbursed', 'completed', 'rejected', 'pending'].includes((l.status || '').toLowerCase())).length;
+                    const pendingCount = leadsList.filter(l => (l.status || '').toLowerCase() === 'pending' || (l.status || '').toLowerCase() === 'rejected').length;
+                    const totalVol = leadsList.reduce((acc, l) => acc + (parseFloat(l.loan_amount) || 0), 0);
+                    const volFormatted = totalVol >= 10000000 ? `₹${(totalVol / 10000000).toFixed(1)}Cr` : `₹${(totalVol / 100000).toFixed(1)}L`;
+
+                    return (
+                      <div
+                        key={b.id}
+                        style={{
+                          background: '#FFFFFF',
+                          borderRadius: '14px',
+                          border: '1px solid #E2E8F0',
+                          padding: '16px 20px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '16px',
+                          flexWrap: 'wrap',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                        }}
+                      >
+                        {/* Avatar & Partner Details */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: '260px' }}>
+                          <div
+                            style={{
+                              width: '44px',
+                              height: '44px',
+                              borderRadius: '50%',
+                              background: '#0D9488',
+                              color: '#FFFFFF',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 800,
+                              fontSize: '1.1rem',
+                              flexShrink: 0
+                            }}
+                          >
+                            {initialLetter}
+                          </div>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                              <span style={{ fontWeight: 800, color: '#1E293B', fontSize: '0.98rem' }}>{b.name}</span>
                               <span
                                 style={{
-                                  padding: '4px 12px',
-                                  borderRadius: '12px',
-                                  fontSize: '0.78rem',
-                                  fontWeight: 700,
-                                  textTransform: 'lowercase',
-                                  display: 'inline-block',
-                                  background: b.status === 'active' ? '#ECFDF5' : '#FEF2F2',
-                                  color: b.status === 'active' ? '#059669' : '#DC2626',
-                                  border: `1px solid ${b.status === 'active' ? '#A7F3D0' : '#FECACA'}`
+                                  width: '8px',
+                                  height: '8px',
+                                  borderRadius: '50%',
+                                  background: isLive ? '#22C55E' : '#94A3B8',
+                                  display: 'inline-block'
                                 }}
-                              >
-                                {b.status || 'inactive'}
-                              </span>
-                            </td>
-                            <td>
-                              <div style={{ display: 'flex', gap: '6px' }}>
-                                <button onClick={() => setSelectedBroker(b)} className="settings-action-btn" style={{ padding: '4px 10px', fontSize: '.75rem', marginTop: 0 }}>View</button>
-                                <button onClick={() => openEditBroker(b)} className="settings-action-btn" style={{ padding: '4px 10px', fontSize: '.75rem', marginTop: 0, background: 'linear-gradient(135deg,#0d2b6b,#1a56db)' }}>Edit</button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
+                              />
+                            </div>
+                            <div style={{ fontSize: '0.78rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span>{partnerCode}</span>
+                              <span>·</span>
+                              <span>📍 {locationStr}</span>
+                              <span>·</span>
+                              <span>📇 {phoneStr}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Metric Counters Grid */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+                          <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#1E293B' }}>{clientsCount}</div>
+                            <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>CLIENTS</div>
+                          </div>
+
+                          <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#166534' }}>{disbursedCount}</div>
+                            <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>DISBURSED</div>
+                          </div>
+
+                          <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#2563EB' }}>{inProgressCount}</div>
+                            <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>IN PROGRESS</div>
+                          </div>
+
+                          <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#D97706' }}>{pendingCount}</div>
+                            <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>PENDING</div>
+                          </div>
+
+                          <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#7C3AED' }}>{volFormatted}</div>
+                            <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>VOLUME</div>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <button
+                            onClick={() => openEditBroker(b)}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '8px',
+                              border: '1px solid #CBD5E1',
+                              background: '#FFFFFF',
+                              color: '#334155',
+                              fontSize: '0.8rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <span>✏️</span> Edit
+                          </button>
+
+                          <button
+                            onClick={() => updateBrokerStatus(b.brokerId || b.id, isLive ? 'inactive' : 'active')}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '8px',
+                              border: '1px solid #CBD5E1',
+                              background: '#FFFFFF',
+                              color: isLive ? '#DC2626' : '#166534',
+                              fontSize: '0.8rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <span>{isLive ? '⏸️' : '▶️'}</span> {isLive ? 'Pause' : 'Activate'}
+                          </button>
+
+                          <button
+                            onClick={() => setSelectedBroker(b)}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '8px',
+                              border: '1px solid #CBD5E1',
+                              background: '#FFFFFF',
+                              color: '#334155',
+                              fontSize: '0.8rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <span>▼</span> Clients
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           )}
