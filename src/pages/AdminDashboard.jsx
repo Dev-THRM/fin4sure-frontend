@@ -512,10 +512,11 @@ export default function AdminDashboard() {
         b.email?.toLowerCase().includes(term) ||
         b.brokerId?.toLowerCase().includes(term);
 
+      const stLower = (b.status || 'active').toLowerCase();
       const matchesStatus =
         brokerStatusFilter === "all_partners" ||
-        (brokerStatusFilter === "active" && b.status === "active") ||
-        (brokerStatusFilter === "inactive" && b.status !== "active");
+        (brokerStatusFilter === "active" && (stLower === "active" || stLower === "approved")) ||
+        (brokerStatusFilter === "inactive" && stLower !== "active" && stLower !== "approved");
 
       return matchesSearch && matchesStatus;
     });
