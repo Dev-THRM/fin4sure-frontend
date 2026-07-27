@@ -119,6 +119,69 @@ export default function AdminDashboard() {
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
 
+  // Borrower edit modal state
+  const [editingBorrower, setEditingBorrower] = useState(null);
+  const [editBorrowerForm, setEditBorrowerForm] = useState({ name: '', email: '', mobile: '', status: 'active' });
+
+  function openEditBorrower(borrower) {
+    setEditingBorrower(borrower);
+    setEditBorrowerForm({
+      name: borrower.name || '',
+      email: borrower.email || '',
+      mobile: borrower.number || borrower.mob_no || '',
+      status: borrower.status || 'active'
+    });
+  }
+
+  async function saveEditBorrower() {
+    if (!editingBorrower) return;
+    try {
+      const res = await fetch('/api/admin/update-borrower', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: editingBorrower.id,
+          name: editBorrowerForm.name,
+          email: editBorrowerForm.email,
+          mobile: editBorrowerForm.mobile,
+          status: editBorrowerForm.status
+        })
+      });
+      if (res.ok) {
+        setBorrowers(prev => prev.map(b =>
+          b.id === editingBorrower.id
+            ? { ...b, name: editBorrowerForm.name, email: editBorrowerForm.email, number: editBorrowerForm.mobile, status: editBorrowerForm.status }
+            : b
+        ));
+        setCustomAlert({ type: 'success', message: `Borrower "${editBorrowerForm.name}" updated successfully!` });
+      } else {
+        setCustomAlert({ type: 'error', message: 'Failed to update borrower.' });
+      }
+    } catch (e) {
+      setCustomAlert({ type: 'error', message: 'Network error updating borrower.' });
+    }
+    setEditingBorrower(null);
+  }
+
+  // Borrower loans modal state
+  const [borrowerLoansModal, setBorrowerLoansModal] = useState(null); // { name, loans }
+  const [borrowerLoansLoading, setBorrowerLoansLoading] = useState(false);
+
+  async function openBorrowerLoans(borrower) {
+    setBorrowerLoansModal({ name: borrower.name, loans: [] });
+    setBorrowerLoansLoading(true);
+    try {
+      const res = await fetch(`/api/admin/client-loans/${borrower.id}`, { credentials: 'include' });
+      if (res.ok) {
+        const loans = await res.json();
+        setBorrowerLoansModal({ name: borrower.name, loans });
+      }
+    } catch (_) {}
+    setBorrowerLoansLoading(false);
+  }
+
+
   const loadAdminData = useCallback(async () => {
     try {
       const bundleRes = await fetch("/api/admin/dashboard-bundle", { credentials: "include" });
@@ -1487,21 +1550,21 @@ export default function AdminDashboard() {
                               <td>
                                 <div>
                                   <div style={{ fontWeight: 800, color: '#1E293B', fontSize: '0.92rem', marginBottom: '2px' }}>{b.name}</div>
-                                  <div style={{ fontSize: '0.78rem', color: '#64748B' }}>{b.number || '9876543210'} ·</div>
+                                  <div style={{ fontSize: '0.78rem', color: '#64748B' }}>{b.number && b.number !== '-' ? b.number : '—'} ·</div>
                                   <div style={{ fontSize: '0.78rem', color: '#64748B' }}>Applied {appliedDate}</div>
                                 </div>
                               </td>
                               <td>
                                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: '#1E293B', fontSize: '0.86rem' }}>
                                   <span style={{ fontSize: '0.9rem' }}>📇</span>
-                                  <span>{b.number || '9876543210'}</span>
+                                  <span>{b.number && b.number !== '-' ? b.number : '—'}</span>
                                 </div>
                               </td>
-                              <td style={{ color: '#475569', fontSize: '0.86rem' }}>{b.email}</td>
-                              <td style={{ fontWeight: 800, color: '#0F2942', textAlign: 'center', fontSize: '0.9rem' }}>{b.loanCount || 1}</td>
+                              <td style={{ color: '#475569', fontSize: '0.86rem' }}>{b.email || '—'}</td>
+                              <td style={{ fontWeight: 800, color: '#0F2942', textAlign: 'center', fontSize: '0.9rem' }}>{b.loanCount ?? 0}</td>
                               <td>
                                 <span style={{ background: '#F1F5F9', color: '#334155', padding: '4px 10px', borderRadius: '12px', fontWeight: 600, fontSize: '0.78rem', display: 'inline-block' }}>
-                                  {b.appliedLender || b.lender || 'SBI'}
+                                  {b.appliedLender && b.appliedLender !== '-' ? b.appliedLender : '—'}
                                 </span>
                               </td>
                               <td style={{ fontWeight: 700, color: stageColor, fontSize: '0.85rem' }}>{stage}</td>
@@ -1522,7 +1585,7 @@ export default function AdminDashboard() {
                               <td>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                   <button
-                                    onClick={() => setSelectedBorrower(b)}
+                                    onClick={() => openEditBorrower(b)}
                                     style={{
                                       padding: '4px 10px',
                                       borderRadius: '6px',
@@ -1540,7 +1603,7 @@ export default function AdminDashboard() {
                                     <span>✏️</span> Edit
                                   </button>
                                   <button
-                                    onClick={() => setSelectedBorrower(b)}
+                                    onClick={() => openBorrowerLoans(b)}
                                     style={{
                                       padding: '4px 10px',
                                       borderRadius: '6px',
@@ -2229,22 +2292,204 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ═══ BORROWER MODAL ═══ */}
-      {selectedBorrower && (
-        <div className="cd-modal" onClick={() => setSelectedBorrower(null)}>
-          <div className="cd-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "600px" }}>
-            <div className="cd-modal-head">
-              <span style={{ fontSize: "1.15rem", fontWeight: 700, color: "#0d2b6b", letterSpacing: ".02em" }}>Borrower Details</span>
-              <button onClick={() => setSelectedBorrower(null)}>&times;</button>
+      {/* ═══ EDIT BORROWER MODAL ═══ */}
+      {editingBorrower && (
+        <div
+          onClick={() => setEditingBorrower(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            background: 'rgba(15, 23, 42, 0.55)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%', maxWidth: '420px',
+              borderRadius: '16px', overflow: 'hidden',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+              fontFamily: "'DM Sans', sans-serif"
+            }}
+          >
+            <div style={{
+              background: 'linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%)',
+              padding: '18px 22px',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+            }}>
+              <span style={{ color: '#FFFFFF', fontWeight: 700, fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>✏️</span> Edit Borrower — {editingBorrower.name}
+              </span>
+              <button
+                onClick={() => setEditingBorrower(null)}
+                style={{
+                  width: '30px', height: '30px', borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.2)', border: 'none',
+                  color: '#FFFFFF', fontSize: '1.1rem', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700
+                }}
+              >×</button>
             </div>
-            <div className="cd-modal-body" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", fontSize: ".84rem" }}>
-              <div><strong>Name:</strong> {selectedBorrower.name}</div>
-              <div><strong>Email:</strong> {selectedBorrower.email}</div>
-              <div><strong>Mobile:</strong> {selectedBorrower.number}</div>
-              <div><strong>Location:</strong> {selectedBorrower.address || selectedBorrower.district || selectedBorrower.state || "-"}</div>
-              <div><strong>Joined:</strong> {new Date(selectedBorrower.createdAt).toLocaleDateString()}</div>
-              <div><strong>Loans:</strong> {selectedBorrower.loanCount || 0}</div>
-              <div><strong>Applied To:</strong> Direct</div>
+            <div style={{ background: '#FFFFFF', padding: '24px 22px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Full Name</label>
+                <input
+                  type="text"
+                  value={editBorrowerForm.name}
+                  onChange={(e) => setEditBorrowerForm(f => ({ ...f, name: e.target.value }))}
+                  placeholder="Borrower full name"
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #D1D5DB', fontSize: '0.9rem', outline: 'none', color: '#111827' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Email</label>
+                <input
+                  type="email"
+                  value={editBorrowerForm.email}
+                  onChange={(e) => setEditBorrowerForm(f => ({ ...f, email: e.target.value }))}
+                  placeholder="email@example.com"
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #D1D5DB', fontSize: '0.9rem', outline: 'none', color: '#111827' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Mobile</label>
+                <input
+                  type="tel"
+                  value={editBorrowerForm.mobile}
+                  onChange={(e) => setEditBorrowerForm(f => ({ ...f, mobile: e.target.value }))}
+                  placeholder="10-digit mobile number"
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #D1D5DB', fontSize: '0.9rem', outline: 'none', color: '#111827' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Status</label>
+                <select
+                  value={editBorrowerForm.status}
+                  onChange={(e) => setEditBorrowerForm(f => ({ ...f, status: e.target.value }))}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #D1D5DB', fontSize: '0.9rem', outline: 'none', background: '#FFFFFF', color: '#111827', cursor: 'pointer' }}
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
+                <button
+                  onClick={saveEditBorrower}
+                  style={{
+                    flex: 1, padding: '12px 20px', borderRadius: '10px',
+                    background: 'linear-gradient(135deg, #1D4ED8, #1E40AF)',
+                    color: '#FFFFFF', border: 'none', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+                  }}
+                >
+                  <span>💾</span> Save Changes
+                </button>
+                <button
+                  onClick={() => setEditingBorrower(null)}
+                  style={{
+                    flex: 1, padding: '12px 20px', borderRadius: '10px',
+                    background: '#FFFFFF', color: '#6B7280', border: '1px solid #D1D5DB',
+                    fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer'
+                  }}
+                >Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ BORROWER LOANS MODAL ═══ */}
+      {borrowerLoansModal && (
+        <div
+          onClick={() => setBorrowerLoansModal(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            background: 'rgba(15, 23, 42, 0.55)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '20px'
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%', maxWidth: '720px',
+              borderRadius: '16px', overflow: 'hidden',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+              fontFamily: "'DM Sans', sans-serif",
+              maxHeight: '85vh', display: 'flex', flexDirection: 'column'
+            }}
+          >
+            {/* Header */}
+            <div style={{
+              background: 'linear-gradient(135deg, #0F2942 0%, #1E3A5F 100%)',
+              padding: '18px 22px',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              flexShrink: 0
+            }}>
+              <span style={{ color: '#FFFFFF', fontWeight: 700, fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>📑</span> Loan Applications — {borrowerLoansModal.name}
+              </span>
+              <button
+                onClick={() => setBorrowerLoansModal(null)}
+                style={{
+                  width: '30px', height: '30px', borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.2)', border: 'none',
+                  color: '#FFFFFF', fontSize: '1.1rem', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700
+                }}
+              >×</button>
+            </div>
+
+            {/* Body */}
+            <div style={{ background: '#FFFFFF', overflowY: 'auto', flex: 1 }}>
+              {borrowerLoansLoading ? (
+                <div style={{ padding: '48px', textAlign: 'center', color: '#64748B', fontSize: '0.95rem' }}>
+                  <div style={{ fontSize: '2rem', marginBottom: '12px' }}>⏳</div>
+                  Loading loan applications...
+                </div>
+              ) : borrowerLoansModal.loans.length === 0 ? (
+                <div style={{ padding: '48px', textAlign: 'center', color: '#64748B', fontSize: '0.95rem' }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>📭</div>
+                  No loan applications found for this borrower.
+                </div>
+              ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem' }}>
+                  <thead>
+                    <tr style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0' }}>
+                      {['APP NO', 'LOAN TYPE', 'AMOUNT', 'LENDER', 'STATUS', 'DATE'].map(h => (
+                        <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 700, color: '#64748B', fontSize: '0.75rem', letterSpacing: '0.05em' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {borrowerLoansModal.loans.map((loan, i) => {
+                      const stLower = (loan.status || '').toLowerCase();
+                      const stBg = ['disbursed','completed'].includes(stLower) ? '#DCFCE7' : stLower === 'rejected' ? '#FEE2E2' : '#DBEAFE';
+                      const stColor = ['disbursed','completed'].includes(stLower) ? '#166534' : stLower === 'rejected' ? '#991B1B' : '#1E40AF';
+                      return (
+                        <tr key={loan.id} style={{ borderBottom: '1px solid #F1F5F9', background: i % 2 === 0 ? '#FFFFFF' : '#FAFBFC' }}>
+                          <td style={{ padding: '12px 16px', fontWeight: 700, color: '#0F2942' }}>{loan.application_no}</td>
+                          <td style={{ padding: '12px 16px', color: '#334155' }}>{loan.loanType}</td>
+                          <td style={{ padding: '12px 16px', fontWeight: 700, color: '#1E293B' }}>
+                            {loan.loanAmount ? `₹${Number(loan.loanAmount).toLocaleString('en-IN')}` : '—'}
+                          </td>
+                          <td style={{ padding: '12px 16px', color: '#475569' }}>{loan.lender && loan.lender !== '-' ? loan.lender : '—'}</td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <span style={{ padding: '3px 10px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 700, background: stBg, color: stColor }}>
+                              {loan.status}
+                            </span>
+                          </td>
+                          <td style={{ padding: '12px 16px', color: '#64748B' }}>
+                            {loan.createdAt ? new Date(loan.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         </div>
