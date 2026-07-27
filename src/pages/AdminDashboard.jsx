@@ -424,7 +424,7 @@ export default function AdminDashboard() {
     setEditingLead(lead);
     setEditForm({
       name: lead.name || "",
-      lender: lead.lender || "SBI",
+      lender: lead.lender || lead.client_preference || "SBI",
       loan_amount: lead.loan_amount || "",
       status: lead.status || "in progress",
       stage: lead.stage || "Applied",
@@ -1036,7 +1036,7 @@ export default function AdminDashboard() {
                               {l.loan_amount ? Number(l.loan_amount).toLocaleString('en-IN') : "-"}
                             </td>
                             <td style={{ fontWeight: 600, color: '#0F2942', fontSize: '0.82rem' }}>
-                              {l.lender || 'SBI'}
+                              {l.lender || l.client_preference || 'SBI'}
                             </td>
                             <td>
                               <button
