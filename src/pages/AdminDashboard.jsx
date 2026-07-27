@@ -542,18 +542,28 @@ export default function AdminDashboard() {
   async function saveEditLead() {
     if (!editingLead) return;
     try {
+      const payload = { ...editForm, id: editingLead.id };
+      if (editForm.status === 'rejected') {
+        payload.stage = 'Rejected';
+      } else if (editForm.status === 'disbursed') {
+        payload.stage = 'Disbursed';
+      }
+
       const res = await fetch("/api/admin/update-application", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...editForm, id: editingLead.id }),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         const updatedData = await res.json();
+        const finalStatus = updatedData.status || payload.status;
+        const finalStage = updatedData.stage || payload.stage;
+
         setLeads(prevLeads =>
           prevLeads.map(item =>
             item.id === editingLead.id
-              ? { ...item, ...updatedData, lender: updatedData.lender || editForm.lender }
+              ? { ...item, ...updatedData, status: finalStatus, stage: finalStage, lender: updatedData.lender || editForm.lender }
               : item
           )
         );
