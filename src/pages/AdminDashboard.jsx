@@ -70,10 +70,48 @@ export default function AdminDashboard() {
 
   const [editingBroker, setEditingBroker] = useState(null); // broker being edited
   const [editBrokerStatus, setEditBrokerStatus] = useState("active");
+  const [editBrokerForm, setEditBrokerForm] = useState({ name: '', city: '', mobile: '', status: 'active' });
 
   function openEditBroker(broker) {
     setEditingBroker(broker);
     setEditBrokerStatus(broker.status?.toLowerCase() === "active" ? "active" : "inactive");
+    setEditBrokerForm({
+      name: broker.name || '',
+      city: broker.city || broker.district || broker.address || '',
+      mobile: broker.number || broker.mob_no || '',
+      status: broker.status?.toLowerCase() === 'active' ? 'Active' : 'Inactive'
+    });
+  }
+
+  async function saveEditBroker() {
+    if (!editingBroker) return;
+    try {
+      const res = await fetch('/api/admin/update-broker', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: editingBroker.brokerId || editingBroker.id,
+          name: editBrokerForm.name,
+          city: editBrokerForm.city,
+          mobile: editBrokerForm.mobile,
+          status: editBrokerForm.status.toLowerCase()
+        })
+      });
+      if (res.ok) {
+        setBrokers(prev => prev.map(b =>
+          (b.brokerId || b.id) === (editingBroker.brokerId || editingBroker.id)
+            ? { ...b, name: editBrokerForm.name, city: editBrokerForm.city, number: editBrokerForm.mobile, status: editBrokerForm.status.toLowerCase() }
+            : b
+        ));
+        setCustomAlert({ type: 'success', message: `Partner "${editBrokerForm.name}" updated successfully!` });
+      } else {
+        setCustomAlert({ type: 'error', message: 'Failed to update partner. Please try again.' });
+      }
+    } catch (e) {
+      setCustomAlert({ type: 'error', message: 'Network error updating partner.' });
+    }
+    setEditingBroker(null);
   }
 
   // Export Range states
@@ -2043,46 +2081,145 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ═══ EDIT PARTNER STATUS MODAL ═══ */}
+      {/* ═══ EDIT PARTNER MODAL ═══ */}
       {editingBroker && (
-        <div className="cd-modal" onClick={() => setEditingBroker(null)}>
-          <div className="cd-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px' }}>
-            <div className="cd-modal-head">
-              <span>Edit Partner Status — {editingBroker.name}</span>
-              <button onClick={() => setEditingBroker(null)}>&times;</button>
+        <div
+          onClick={() => setEditingBroker(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            background: 'rgba(15, 23, 42, 0.55)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%', maxWidth: '420px',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+              fontFamily: "'DM Sans', sans-serif"
+            }}
+          >
+            {/* Modal Header */}
+            <div style={{
+              background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+              padding: '18px 22px',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+            }}>
+              <span style={{ color: '#FFFFFF', fontWeight: 700, fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>✏️</span> Edit Partner — {editingBroker.name}
+              </span>
+              <button
+                onClick={() => setEditingBroker(null)}
+                style={{
+                  width: '30px', height: '30px', borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.2)', border: 'none',
+                  color: '#FFFFFF', fontSize: '1.1rem', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontWeight: 700
+                }}
+              >
+                ×
+              </button>
             </div>
-            <div className="cd-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '.85rem' }}>
-              <div style={{ background: '#f8fafc', borderRadius: '8px', padding: '10px 14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '.8rem' }}>
-                <div><strong>Partner ID:</strong> {editingBroker.brokerId}</div>
-                <div><strong>Current Status:</strong> <span style={{ textTransform: 'capitalize', fontWeight: 700, color: editingBroker.status === 'active' ? '#059669' : '#dc2626' }}>{editingBroker.status}</span></div>
+
+            {/* Modal Body */}
+            <div style={{ background: '#FFFFFF', padding: '24px 22px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+
+              {/* Full Name */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Full Name</label>
+                <input
+                  type="text"
+                  value={editBrokerForm.name}
+                  onChange={(e) => setEditBrokerForm(f => ({ ...f, name: e.target.value }))}
+                  placeholder="Partner full name"
+                  style={{
+                    width: '100%', padding: '10px 14px',
+                    borderRadius: '8px', border: '1px solid #D1D5DB',
+                    fontSize: '0.9rem', outline: 'none', color: '#111827'
+                  }}
+                />
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontWeight: 600, color: '#0d2b6b', fontSize: '.82rem', textTransform: 'uppercase', letterSpacing: '.04em' }}>Partner Status</label>
+              {/* City / Area */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>City / Area</label>
+                <input
+                  type="text"
+                  value={editBrokerForm.city}
+                  onChange={(e) => setEditBrokerForm(f => ({ ...f, city: e.target.value }))}
+                  placeholder="e.g. Mumbai"
+                  style={{
+                    width: '100%', padding: '10px 14px',
+                    borderRadius: '8px', border: '1px solid #D1D5DB',
+                    fontSize: '0.9rem', outline: 'none', color: '#111827'
+                  }}
+                />
+              </div>
+
+              {/* Mobile */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Mobile</label>
+                <input
+                  type="tel"
+                  value={editBrokerForm.mobile}
+                  onChange={(e) => setEditBrokerForm(f => ({ ...f, mobile: e.target.value }))}
+                  placeholder="10-digit mobile number"
+                  style={{
+                    width: '100%', padding: '10px 14px',
+                    borderRadius: '8px', border: '1px solid #D1D5DB',
+                    fontSize: '0.9rem', outline: 'none', color: '#111827'
+                  }}
+                />
+              </div>
+
+              {/* Status */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Status</label>
                 <select
-                  value={editBrokerStatus}
-                  onChange={(e) => setEditBrokerStatus(e.target.value)}
-                  style={{ padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #e2e8f0', fontSize: '.9rem', outline: 'none', background: '#fff', cursor: 'pointer', fontWeight: 600 }}
+                  value={editBrokerForm.status}
+                  onChange={(e) => setEditBrokerForm(f => ({ ...f, status: e.target.value }))}
+                  style={{
+                    width: '100%', padding: '10px 14px',
+                    borderRadius: '8px', border: '1px solid #D1D5DB',
+                    fontSize: '0.9rem', outline: 'none', background: '#FFFFFF',
+                    color: '#111827', cursor: 'pointer'
+                  }}
                 >
-                  <option value="active">active</option>
-                  <option value="inactive">inactive</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
                 </select>
               </div>
 
-              <div style={{ display: 'flex', gap: '10px' }}>
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
                 <button
-                  onClick={async () => {
-                    await updateBrokerStatus(editingBroker.brokerId || editingBroker.id, editBrokerStatus);
-                    setEditingBroker(null);
+                  onClick={saveEditBroker}
+                  style={{
+                    flex: 1, padding: '12px 20px',
+                    borderRadius: '10px',
+                    background: 'linear-gradient(135deg, #0D9488, #0F766E)',
+                    color: '#FFFFFF', border: 'none',
+                    fontWeight: 700, fontSize: '0.9rem',
+                    cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
                   }}
-                  className="settings-action-btn"
-                  style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '.85rem' }}
                 >
-                  Save Status
+                  <span>💾</span> Save Changes
                 </button>
                 <button
                   onClick={() => setEditingBroker(null)}
-                  style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '.85rem', background: '#f1f5f9', color: '#475569', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                  style={{
+                    flex: 1, padding: '12px 20px',
+                    borderRadius: '10px',
+                    background: '#FFFFFF', color: '#6B7280',
+                    border: '1px solid #D1D5DB',
+                    fontWeight: 600, fontSize: '0.9rem',
+                    cursor: 'pointer'
+                  }}
                 >
                   Cancel
                 </button>
