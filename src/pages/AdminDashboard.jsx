@@ -207,11 +207,13 @@ export default function AdminDashboard() {
           if (Array.isArray(data.clients) && data.clients.length > 0) setBorrowers(data.clients);
           if (Array.isArray(data.timeline) && data.timeline.length > 0) setTimeline(data.timeline);
           if (Array.isArray(data.leads) && data.leads.length > 0) setLeads(data.leads);
+          if (Array.isArray(data.rates) && data.rates.length > 0) setRates(data.rates);
           return;
         }
       }
 
       // Fallback if bundle is empty or unavailable
+      fetchLenderRates();
       const [resLeads, resBrokers, resStats] = await Promise.allSettled([
         fetch("/api/admin/leads", { credentials: "include" }),
         fetch("/api/admin/brokers", { credentials: "include" }),
