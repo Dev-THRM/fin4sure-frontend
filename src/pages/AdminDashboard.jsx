@@ -985,17 +985,36 @@ export default function AdminDashboard() {
                           </tr>
                         </thead>
                         <tbody>
-                          {leads.slice(0, 5).map((l) => (
-                            <tr key={l.id}>
-                              <td style={{ fontWeight: 600 }}>{l.name}</td>
-                              <td>{l.product}</td>
-                              <td>
-                                <span style={{ textTransform: 'capitalize' }} className={`rate-type-badge ${['completed', 'disbursed', 'approved'].includes(l.status) ? 'private' : l.status === 'rejected' ? 'nbfc-hfc' : 'psu'}`}>
-                                  {l.status || 'Unknown'}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
+                          {leads.slice(0, 5).map((l) => {
+                            const rawSt = (l.status || '').toLowerCase().trim();
+                            const statusDisplay = ['disbursed', 'completed'].includes(rawSt)
+                              ? 'disbursed'
+                              : rawSt === 'rejected'
+                              ? 'rejected'
+                              : 'in-progress';
+                            const stBg = statusDisplay === 'disbursed' ? '#DCFCE7' : statusDisplay === 'rejected' ? '#FEE2E2' : '#DBEAFE';
+                            const stColor = statusDisplay === 'disbursed' ? '#166534' : statusDisplay === 'rejected' ? '#991B1B' : '#1E40AF';
+
+                            return (
+                              <tr key={l.id}>
+                                <td style={{ fontWeight: 600 }}>{l.name}</td>
+                                <td>{l.product}</td>
+                                <td>
+                                  <span style={{
+                                    padding: '3px 10px',
+                                    borderRadius: '10px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    display: 'inline-block',
+                                    background: stBg,
+                                    color: stColor
+                                  }}>
+                                    {statusDisplay}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     )}
@@ -1162,70 +1181,79 @@ export default function AdminDashboard() {
                           <td colSpan="8" className="no-data-cell" style={{ padding: '40px 20px' }}>No applications match</td>
                         </tr>
                       ) : (
-                        filteredLeads.map((l) => (
-                          <tr key={l.id}>
-                            <td style={{ fontWeight: 700, color: '#1E293B', fontSize: '0.82rem', letterSpacing: '0.02em' }}>
-                              {l.application_no ?? (String(l.id).startsWith('F4S') ? l.id : `F4S-${2000 + l.id}`)}
-                            </td>
-                            <td>
-                              <div>
-                                <div style={{ fontWeight: 700, color: '#1E293B', fontSize: '0.85rem' }}>{l.name}</div>
-                                <div style={{ marginTop: '2px', display: 'inline-flex', alignItems: 'center', gap: '3px', background: '#F1F5F9', color: '#475569', padding: '1px 7px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600 }}>
-                                  {l.partner_name || (l.source && l.source !== 'Direct') ? `🤝 ${l.partner_name || l.source}` : '👤 Direct'}
+                        filteredLeads.map((l) => {
+                          const rawSt = (l.status || '').toLowerCase().trim();
+                          const statusDisplay = ['disbursed', 'completed'].includes(rawSt)
+                            ? 'disbursed'
+                            : rawSt === 'rejected'
+                            ? 'rejected'
+                            : 'in-progress';
+                          const stBg = statusDisplay === 'disbursed' ? '#DCFCE7' : statusDisplay === 'rejected' ? '#FEE2E2' : '#DBEAFE';
+                          const stColor = statusDisplay === 'disbursed' ? '#166534' : statusDisplay === 'rejected' ? '#991B1B' : '#1E40AF';
+
+                          return (
+                            <tr key={l.id}>
+                              <td style={{ fontWeight: 700, color: '#1E293B', fontSize: '0.82rem', letterSpacing: '0.02em' }}>
+                                {l.application_no ?? (String(l.id).startsWith('F4S') ? l.id : `F4S-${2000 + l.id}`)}
+                              </td>
+                              <td>
+                                <div>
+                                  <div style={{ fontWeight: 700, color: '#1E293B', fontSize: '0.85rem' }}>{l.name}</div>
+                                  <div style={{ marginTop: '2px', display: 'inline-flex', alignItems: 'center', gap: '3px', background: '#F1F5F9', color: '#475569', padding: '1px 7px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600 }}>
+                                    {l.partner_name || (l.source && l.source !== 'Direct') ? `🤝 ${l.partner_name || l.source}` : '👤 Direct'}
+                                  </div>
                                 </div>
-                              </div>
-                            </td>
-                            <td>
-                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: 600, color: '#334155' }}>
-                                <span>{getLoanIcon(l.product)}</span>
-                                <span>{l.product}</span>
-                              </div>
-                            </td>
-                            <td style={{ fontWeight: 800, color: '#1E293B', fontSize: '0.85rem' }}>
-                              {l.loan_amount ? Number(l.loan_amount).toLocaleString('en-IN') : "-"}
-                            </td>
-                            <td style={{ fontWeight: 600, color: '#0F2942', fontSize: '0.82rem' }}>
-                              {l.lender || l.client_preference || 'SBI'}
-                            </td>
-                            <td>
-                              <button
-                                onClick={() => openEditLead(l)}
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  padding: '4px 10px',
-                                  borderRadius: '14px',
-                                  background: '#EFF6FF',
-                                  color: '#2563EB',
-                                  border: '1px solid #BFDBFE',
-                                  fontSize: '0.78rem',
-                                  fontWeight: 700,
-                                  cursor: 'pointer',
-                                  textTransform: 'capitalize'
-                                }}
-                                title="Click to update application stage"
-                              >
-                                <span>{l.stage || l.status || 'Applied'}</span>
-                                <span style={{ fontSize: '0.7rem' }}>✏️</span>
-                              </button>
-                            </td>
-                            <td>
-                              <span
-                                style={{
-                                  padding: '4px 12px',
-                                  borderRadius: '12px',
-                                  fontSize: '0.76rem',
-                                  fontWeight: 700,
-                                  display: 'inline-block',
-                                  textTransform: 'lowercase',
-                                  background: l.status === 'disbursed' || l.status === 'completed' ? '#DCFCE7' : l.status === 'rejected' ? '#FEE2E2' : '#DBEAFE',
-                                  color: l.status === 'disbursed' || l.status === 'completed' ? '#166534' : l.status === 'rejected' ? '#991B1B' : '#1E40AF'
-                                }}
-                              >
-                                {l.status || 'in progress'}
-                              </span>
-                            </td>
+                              </td>
+                              <td>
+                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: 600, color: '#334155' }}>
+                                  <span>{getLoanIcon(l.product)}</span>
+                                  <span>{l.product}</span>
+                                </div>
+                              </td>
+                              <td style={{ fontWeight: 800, color: '#1E293B', fontSize: '0.85rem' }}>
+                                {l.loan_amount ? Number(l.loan_amount).toLocaleString('en-IN') : "-"}
+                              </td>
+                              <td style={{ fontWeight: 600, color: '#0F2942', fontSize: '0.82rem' }}>
+                                {l.lender || l.client_preference || 'SBI'}
+                              </td>
+                              <td>
+                                <button
+                                  onClick={() => openEditLead(l)}
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    padding: '4px 10px',
+                                    borderRadius: '14px',
+                                    background: '#EFF6FF',
+                                    color: '#2563EB',
+                                    border: '1px solid #BFDBFE',
+                                    fontSize: '0.78rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    textTransform: 'capitalize'
+                                  }}
+                                  title="Click to update application stage"
+                                >
+                                  <span>{l.stage || l.status || 'Applied'}</span>
+                                  <span style={{ fontSize: '0.7rem' }}>✏️</span>
+                                </button>
+                              </td>
+                              <td>
+                                <span
+                                  style={{
+                                    padding: '4px 12px',
+                                    borderRadius: '12px',
+                                    fontSize: '0.76rem',
+                                    fontWeight: 700,
+                                    display: 'inline-block',
+                                    background: stBg,
+                                    color: stColor
+                                  }}
+                                >
+                                  {statusDisplay}
+                                </span>
+                              </td>
                             <td>
                               <div style={{ display: 'flex', gap: '6px' }}>
                                 <button
