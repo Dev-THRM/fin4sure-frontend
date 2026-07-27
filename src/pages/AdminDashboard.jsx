@@ -84,23 +84,25 @@ export default function AdminDashboard() {
   useEffect(() => {
     const loadAdminData = async () => {
       try {
-        const [resBundle, resLeads, resBrokers, resStats] = await Promise.allSettled([
-          fetch("/api/admin/dashboard-bundle", { credentials: "include" }),
-          fetch("/api/admin/leads", { credentials: "include" }),
-          fetch("/api/admin/brokers", { credentials: "include" }),
-          fetch("/api/admin/stats", { credentials: "include" })
-        ]);
-
-        if (resBundle.status === "fulfilled" && resBundle.value.ok) {
-          const data = await resBundle.value.json();
+        const bundleRes = await fetch("/api/admin/dashboard-bundle", { credentials: "include" });
+        if (bundleRes.ok) {
+          const data = await bundleRes.json();
           if (data) {
             if (data.stats && Object.keys(data.stats).length > 0) setStats(data.stats);
             if (Array.isArray(data.brokers) && data.brokers.length > 0) setBrokers(data.brokers);
             if (Array.isArray(data.clients) && data.clients.length > 0) setBorrowers(data.clients);
             if (Array.isArray(data.timeline) && data.timeline.length > 0) setTimeline(data.timeline);
             if (Array.isArray(data.leads) && data.leads.length > 0) setLeads(data.leads);
+            return;
           }
         }
+
+        // Fallback if bundle is empty or unavailable
+        const [resLeads, resBrokers, resStats] = await Promise.allSettled([
+          fetch("/api/admin/leads", { credentials: "include" }),
+          fetch("/api/admin/brokers", { credentials: "include" }),
+          fetch("/api/admin/stats", { credentials: "include" })
+        ]);
 
         if (resLeads.status === "fulfilled" && resLeads.value.ok) {
           const leadsData = await resLeads.value.json();
@@ -109,16 +111,12 @@ export default function AdminDashboard() {
 
         if (resBrokers.status === "fulfilled" && resBrokers.value.ok) {
           const brokersData = await resBrokers.value.json();
-          if (Array.isArray(brokersData) && brokersData.length > 0) {
-            setBrokers(brokersData);
-          }
+          if (Array.isArray(brokersData) && brokersData.length > 0) setBrokers(brokersData);
         }
 
         if (resStats.status === "fulfilled" && resStats.value.ok) {
           const statsData = await resStats.value.json();
-          if (statsData && Object.keys(statsData).length > 0) {
-            setStats(statsData);
-          }
+          if (statsData && Object.keys(statsData).length > 0) setStats(statsData);
         }
       } catch (e) {
         console.error("loadAdminData error:", e);
