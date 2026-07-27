@@ -1154,6 +1154,16 @@ export default function AdminDashboard() {
                                 </button>
                               </div>
                             </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 3. PARTNERS MANAGEMENT VIEW */}
           {activeTab === "brokers" && (
             <div className="adm-subtab-container animate-fade-up">
