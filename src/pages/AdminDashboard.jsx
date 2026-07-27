@@ -227,6 +227,18 @@ export default function AdminDashboard() {
     loadAdminData();
   }, [loadAdminData]);
 
+  useEffect(() => {
+    if (activeTab === "rates") {
+      fetchLenderRates();
+    }
+  }, [activeTab, selectedLoanCategory]);
+
+  const handleRateChange = (lenderId, field, val) => {
+    setRates(prevRates =>
+      prevRates.map(r => (r.lenderId === lenderId || r.id === lenderId) ? { ...r, [field]: val } : r)
+    );
+  };
+
   async function fetchStats() {
     try {
       const res = await fetch("/api/admin/stats", {
@@ -1775,31 +1787,78 @@ export default function AdminDashboard() {
           {/* 6. LENDER RATES VIEW */}
           {activeTab === "rates" && (
             <div className="adm-subtab-container animate-fade-up">
-              <div className="adm-controls-row">
-                <select className="adm-filter-dropdown" value={selectedRateType} onChange={(e) => setSelectedRateType(e.target.value)}>
-                  <option value="all_types">All Types</option>
-                  <option value="psu">PSU</option>
-                  <option value="private">Private</option>
-                  <option value="nbfc_hfc">NBFC/HFC</option>
-                </select>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F2942', margin: 0, fontFamily: "'DM Sans', sans-serif" }}>
+                    Lender Rate Management
+                  </h2>
+                  <span style={{
+                    background: '#DCFCE7',
+                    color: '#166534',
+                    padding: '4px 12px',
+                    borderRadius: '14px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22C55E', display: 'inline-block' }} />
+                    Live Data
+                  </span>
+                </div>
 
-                <select className="adm-filter-dropdown" value={selectedLoanCategory} onChange={(e) => setSelectedLoanCategory(e.target.value)}>
-                  <option value="HL">Home Loan</option>
-                  <option value="PL">Personal Loan</option>
-                  <option value="BL">Business Loan</option>
-                  <option value="VL">Vehicle Loan</option>
-                </select>
+                <div className="adm-controls-row" style={{ margin: 0, gap: '10px' }}>
+                  <select
+                    className="adm-filter-dropdown"
+                    value={selectedRateType}
+                    onChange={(e) => setSelectedRateType(e.target.value)}
+                    style={{ padding: '9px 14px', borderRadius: '10px', border: '1px solid #CBD5E1', background: '#FFFFFF', fontWeight: 600, fontSize: '0.85rem', color: '#1E293B', cursor: 'pointer', outline: 'none' }}
+                  >
+                    <option value="all_types">All Types</option>
+                    <option value="psu">PSU</option>
+                    <option value="private">Private</option>
+                    <option value="nbfc_hfc">NBFC/HFC</option>
+                  </select>
 
-                <button className="adm-ctrl-btn btn-csv" onClick={saveLenderRates}>
-                  <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
-                    <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z" />
-                  </svg>
-                  Save Rate Changes
-                </button>
+                  <select
+                    className="adm-filter-dropdown"
+                    value={selectedLoanCategory}
+                    onChange={(e) => setSelectedLoanCategory(e.target.value)}
+                    style={{ padding: '9px 14px', borderRadius: '10px', border: '1px solid #CBD5E1', background: '#FFFFFF', fontWeight: 600, fontSize: '0.85rem', color: '#1E293B', cursor: 'pointer', outline: 'none' }}
+                  >
+                    <option value="HL">Home Loan</option>
+                    <option value="PL">Personal Loan</option>
+                    <option value="BL">Business Loan</option>
+                    <option value="VL">Vehicle Loan</option>
+                    <option value="LAP">Loan Against Property</option>
+                  </select>
+
+                  <button
+                    className="adm-ctrl-btn btn-csv"
+                    onClick={saveLenderRates}
+                    style={{
+                      background: '#0F2942',
+                      color: '#FFFFFF',
+                      padding: '9px 18px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      fontWeight: 700,
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: '0 2px 4px rgba(15,41,66,0.15)'
+                    }}
+                  >
+                    <span>💾</span> Save Rate Changes
+                  </button>
+                </div>
               </div>
 
-              <div className="timeline-subtitle-legend" style={{ margin: '16px 0' }}>
-                📝 Edit rates directly in the table. Click "Save Rate Changes" to apply. Changes update the EMI calculator and lender comparison in real time.
+              <div className="timeline-subtitle-legend" style={{ margin: '0 0 16px 0', background: '#F8FAFC', padding: '10px 16px', borderRadius: '10px', border: '1px solid #E2E8F0', color: '#475569', fontSize: '0.84rem' }}>
+                <span>📝 Edit rates directly in the table. Click "Save Rate Changes" to apply. Changes update the EMI calculator and lender comparison in real time.</span>
               </div>
 
               <div className="adm-workspace-card">
@@ -1809,10 +1868,10 @@ export default function AdminDashboard() {
                       <tr>
                         <th>LENDER</th>
                         <th>TYPE</th>
-                        <th>FLOATING - LOW</th>
-                        <th>FLOATING - HIGH</th>
-                        <th>FIXED - LOW</th>
-                        <th>FIXED - HIGH</th>
+                        <th>FLOATING – LOW</th>
+                        <th>FLOATING – HIGH</th>
+                        <th>FIXED – LOW</th>
+                        <th>FIXED – HIGH</th>
                         <th>OFFER</th>
                         <th>VISIBLE</th>
                       </tr>
@@ -1820,95 +1879,92 @@ export default function AdminDashboard() {
                     <tbody>
                       {rates.length === 0 ? (
                         <tr>
-                          <td colSpan="8" className="no-data-cell" style={{ padding: '40px 20px' }}>Loading lender rates..</td>
+                          <td colSpan="8" className="no-data-cell" style={{ padding: '40px 20px', textAlign: 'center', color: '#64748B' }}>Loading lender rates...</td>
                         </tr>
                       ) : (
                         rates
-                          .filter(r => selectedRateType === "all_types" || r.type.toLowerCase().replace('/', '_') === selectedRateType)
-                          .map((rate, index) => (
-                            <tr key={index}>
-                              <td style={{ fontWeight: 600, color: '#0d2b6b' }}>{rate.name}</td>
-                              <td>
-                                <span className={`rate-type-badge ${rate.type.toLowerCase().replace('/', '-')}`}>
-                                  {rate.type}
-                                </span>
-                              </td>
-                              <td>
-                                <input
-                                  type="text"
-                                  className="table-edit-input"
-                                  value={rate.flowLow}
-                                  onChange={(e) => {
-                                    const updated = [...rates];
-                                    updated[index].flowLow = e.target.value;
-                                    setRates(updated);
-                                  }}
-                                />
-                              </td>
-                              <td>
-                                <input
-                                  type="text"
-                                  className="table-edit-input"
-                                  value={rate.flowHigh}
-                                  onChange={(e) => {
-                                    const updated = [...rates];
-                                    updated[index].flowHigh = e.target.value;
-                                    setRates(updated);
-                                  }}
-                                />
-                              </td>
-                              <td>
-                                <input
-                                  type="text"
-                                  className="table-edit-input"
-                                  value={rate.fixLow}
-                                  onChange={(e) => {
-                                    const updated = [...rates];
-                                    updated[index].fixLow = e.target.value;
-                                    setRates(updated);
-                                  }}
-                                />
-                              </td>
-                              <td>
-                                <input
-                                  type="text"
-                                  className="table-edit-input"
-                                  value={rate.fixHigh}
-                                  onChange={(e) => {
-                                    const updated = [...rates];
-                                    updated[index].fixHigh = e.target.value;
-                                    setRates(updated);
-                                  }}
-                                />
-                              </td>
-                              <td>
-                                <input
-                                  type="text"
-                                  className="table-edit-input offer-input"
-                                  value={rate.offer}
-                                  onChange={(e) => {
-                                    const updated = [...rates];
-                                    updated[index].offer = e.target.value;
-                                    setRates(updated);
-                                  }}
-                                />
-                              </td>
-                              <td>
-                                <label className="switch-toggle-container">
+                          .filter(r => {
+                            const matchType = selectedRateType === "all_types" || r.type.toLowerCase().replace('/', '_').replace('-', '_') === selectedRateType.replace('-', '_');
+                            const term = (searchTerm || '').toLowerCase().trim();
+                            const matchSearch = !term || r.name.toLowerCase().includes(term);
+                            return matchType && matchSearch;
+                          })
+                          .map((rate) => {
+                            const lKey = rate.lenderId || rate.id;
+                            const typeLower = (rate.type || 'Private').toLowerCase();
+                            const badgeClass = typeLower.includes('psu') ? 'psu' : typeLower.includes('nbfc') || typeLower.includes('hfc') ? 'nbfc-hfc' : 'private';
+
+                            return (
+                              <tr key={lKey}>
+                                <td>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, color: '#0F2942', fontSize: '0.88rem' }}>
+                                    <span>🏦</span>
+                                    <span>{rate.name}</span>
+                                  </div>
+                                </td>
+                                <td>
+                                  <span className={`rate-type-badge ${badgeClass}`}>
+                                    {rate.type}
+                                  </span>
+                                </td>
+                                <td>
                                   <input
-                                    type="checkbox"
-                                    checked={rate.visible}
-                                    onChange={(e) => {
-                                      const updated = [...rates];
-                                      updated[index].visible = e.target.checked;
-                                      setRates(updated);
-                                    }}
+                                    type="text"
+                                    className="table-edit-input"
+                                    value={rate.flowLow}
+                                    onChange={(e) => handleRateChange(lKey, 'flowLow', e.target.value)}
                                   />
-                                  <span className="switch-slider"></span>
-                                </label>
-                              </td>
-                            </tr>
-                          ))
+                                </td>
+                                <td>
+                                  <input
+                                    type="text"
+                                    className="table-edit-input"
+                                    value={rate.flowHigh}
+                                    onChange={(e) => handleRateChange(lKey, 'flowHigh', e.target.value)}
+                                  />
+                                </td>
+                                <td>
+                                  <input
+                                    type="text"
+                                    className="table-edit-input"
+                                    value={rate.fixLow}
+                                    onChange={(e) => handleRateChange(lKey, 'fixLow', e.target.value)}
+                                  />
+                                </td>
+                                <td>
+                                  <input
+                                    type="text"
+                                    className="table-edit-input"
+                                    value={rate.fixHigh}
+                                    onChange={(e) => handleRateChange(lKey, 'fixHigh', e.target.value)}
+                                  />
+                                </td>
+                                <td>
+                                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                    <span style={{ position: 'absolute', left: '10px', fontSize: '0.85rem', pointerEvents: 'none' }}>🎁</span>
+                                    <input
+                                      type="text"
+                                      className="table-edit-input offer-input"
+                                      style={{ paddingLeft: '30px' }}
+                                      value={rate.offer || ''}
+                                      placeholder="Offer text"
+                                      onChange={(e) => handleRateChange(lKey, 'offer', e.target.value)}
+                                    />
+                                  </div>
+                                </td>
+                                <td>
+                                  <label className="switch-toggle-container">
+                                    <input
+                                      type="checkbox"
+                                      checked={rate.visible !== false}
+                                      onChange={(e) => handleRateChange(lKey, 'visible', e.target.checked)}
+                                    />
+                                    <span className="switch-slider"></span>
+                                  </label>
+                                </td>
+                              </tr>
+                            );
+                          })
                       )}
                     </tbody>
                   </table>
