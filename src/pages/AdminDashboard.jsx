@@ -436,7 +436,7 @@ export default function AdminDashboard() {
     if (!editingLead) return;
     try {
       const res = await fetch(`/api/admin/leads/${editingLead.id}`, {
-        method: "PUT",
+        method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editForm),
@@ -447,8 +447,13 @@ export default function AdminDashboard() {
         loadAdminData();
         setCustomAlert({ message: "Application updated successfully!", type: "success" });
       } else {
-        const err = await res.json();
-        setCustomAlert({ message: err.message || "Failed to update application", type: "error" });
+        const text = await res.text();
+        let errMsg = "Failed to update application";
+        try {
+          const err = JSON.parse(text);
+          errMsg = err.message || errMsg;
+        } catch (_) {}
+        setCustomAlert({ message: errMsg, type: "error" });
       }
     } catch (e) {
       console.error(e);
