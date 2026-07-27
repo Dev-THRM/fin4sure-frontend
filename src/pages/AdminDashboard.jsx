@@ -689,17 +689,19 @@ export default function AdminDashboard() {
     });
   }, [borrowers, searchTerm, borrowerStatusFilter]);
 
-  // Status buckets (derived from leads array)
-  const AFTER_DOCS_STATUSES = ['credit', 'submitted', 'sanction', 'legal'];
-  const BEFORE_DOCS_STATUSES = ['applied', 'docs', 'in progress', 'pending'];
-  const disbursedCount = leads.filter(l => (l.status || '').toLowerCase() === 'disbursed').length;
-  const inProgressCount = leads.filter(l => AFTER_DOCS_STATUSES.includes((l.status || '').toLowerCase()) || AFTER_DOCS_STATUSES.includes((l.stage || '').toLowerCase())).length;
-  const pendingCount = leads.filter(l => BEFORE_DOCS_STATUSES.includes((l.status || '').toLowerCase()) || (!l.status && !l.stage)).length;
+  // Status buckets (derived from real DB / leads array)
+  const IN_PROGRESS_STATUSES = ['docs', 'credit', 'submitted', 'sanction', 'legal', 'in progress'];
+  const PENDING_STATUSES = ['applied', 'pending'];
+  const disbursedCount = stats.completedCount ?? leads.filter(l => ['disbursed', 'completed'].includes((l.stage || l.status || '').toLowerCase())).length;
+  const rejectedCount = stats.rejectedCount ?? leads.filter(l => (l.stage || l.status || '').toLowerCase() === 'rejected').length;
+  const pendingCount = stats.pendingCount ?? leads.filter(l => PENDING_STATUSES.includes((l.stage || l.status || '').toLowerCase()) || (!l.status && !l.stage)).length;
+  const inProgressCount = stats.inProgressCount ?? leads.filter(l => IN_PROGRESS_STATUSES.includes((l.stage || l.status || '').toLowerCase())).length;
   const activeLendersCount = stats.activeLenders ?? new Set(leads.map(l => l.lender).filter(Boolean)).size;
   const totalLeadsCount = leads.length || 1;
   const disbursedPct = Math.round((disbursedCount / totalLeadsCount) * 100);
-  const pendingPct = Math.round((pendingCount / totalLeadsCount) * 100);
   const inProgressPct = Math.round((inProgressCount / totalLeadsCount) * 100);
+  const pendingPct = Math.round((pendingCount / totalLeadsCount) * 100);
+  const rejectedPct = Math.round((rejectedCount / totalLeadsCount) * 100);
 
   return (
     <div className="adm-wrap animate-fade-up">
@@ -869,7 +871,7 @@ export default function AdminDashboard() {
                   <div className="adm-kpi-card-subtext">Completed &amp; paid out</div>
                 </div>
 
-                {/* 3. In Progress (after docs) */}
+                {/* 3. In Progress */}
                 <div className="adm-kpi-card-new c-orange">
                   <div className="adm-kpi-card-top">
                     <div className="adm-kpi-icon-box">
@@ -881,11 +883,11 @@ export default function AdminDashboard() {
                   <div className="adm-kpi-card-subtext">Active processing</div>
                 </div>
 
-                {/* 4. Pending (before docs) */}
-                <div className="adm-kpi-card-new c-red">
+                {/* 4. Pending */}
+                <div className="adm-kpi-card-new c-brown">
                   <div className="adm-kpi-card-top">
-                    <div className="adm-kpi-icon-box">
-                      <svg width="20" height="20" fill="none" stroke="#dc2626" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    <div className="adm-kpi-icon-box" style={{ background: '#fef3c7' }}>
+                      <svg width="20" height="20" fill="none" stroke="#d97706" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                     </div>
                   </div>
                   <div className="adm-kpi-card-value">{stats.pendingCount ?? pendingCount}</div>
@@ -893,7 +895,19 @@ export default function AdminDashboard() {
                   <div className="adm-kpi-card-subtext">Awaiting docs / action</div>
                 </div>
 
-                {/* 5. Loan Volume */}
+                {/* 5. Rejected */}
+                <div className="adm-kpi-card-new c-red">
+                  <div className="adm-kpi-card-top">
+                    <div className="adm-kpi-icon-box" style={{ background: '#fef2f2' }}>
+                      <svg width="20" height="20" fill="none" stroke="#dc2626" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                  </div>
+                  <div className="adm-kpi-card-value">{stats.rejectedCount ?? rejectedCount}</div>
+                  <div className="adm-kpi-card-label">REJECTED</div>
+                  <div className="adm-kpi-card-subtext">Applications rejected</div>
+                </div>
+
+                {/* 6. Loan Volume */}
                 <div className="adm-kpi-card-new c-purple">
                   <div className="adm-kpi-card-top">
                     <div className="adm-kpi-icon-box">
@@ -913,7 +927,7 @@ export default function AdminDashboard() {
                   <div className="adm-kpi-card-subtext">Total active pipeline</div>
                 </div>
 
-                {/* 6. Active Partners */}
+                {/* 7. Active Partners */}
                 <div className="adm-kpi-card-new c-teal">
                   <div className="adm-kpi-card-top">
                     <div className="adm-kpi-icon-box">
@@ -925,7 +939,7 @@ export default function AdminDashboard() {
                   <div className="adm-kpi-card-subtext">of {stats.totalBrokers ?? brokers.length} total partners</div>
                 </div>
 
-                {/* 7. Lenders Active */}
+                {/* 8. Lenders Active */}
                 <div className="adm-kpi-card-new c-brown">
                   <div className="adm-kpi-card-top">
                     <div className="adm-kpi-icon-box">
@@ -988,7 +1002,7 @@ export default function AdminDashboard() {
 
                     <div className="breakdown-item">
                       <div className="breakdown-info">
-                        <span>Completed</span>
+                        <span>Completed / Disbursed</span>
                         <span>{disbursedCount}</span>
                       </div>
                       <div className="breakdown-progress-bar">
@@ -1008,11 +1022,21 @@ export default function AdminDashboard() {
 
                     <div className="breakdown-item">
                       <div className="breakdown-info">
-                        <span>Rejected</span>
+                        <span>Pending</span>
                         <span>{pendingCount}</span>
                       </div>
                       <div className="breakdown-progress-bar">
-                        <div className="breakdown-progress bg-red" style={{ width: `${pendingPct}%` }}></div>
+                        <div className="breakdown-progress bg-amber" style={{ width: `${pendingPct}%`, background: '#d97706' }}></div>
+                      </div>
+                    </div>
+
+                    <div className="breakdown-item">
+                      <div className="breakdown-info">
+                        <span>Rejected</span>
+                        <span>{rejectedCount}</span>
+                      </div>
+                      <div className="breakdown-progress-bar">
+                        <div className="breakdown-progress bg-red" style={{ width: `${rejectedPct}%` }}></div>
                       </div>
                     </div>
                   </div>
