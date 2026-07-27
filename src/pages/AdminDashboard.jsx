@@ -1546,9 +1546,20 @@ export default function AdminDashboard() {
                           const rawPhone = b.number || b.mob_no || b.phone || (matchedLead ? (matchedLead.number || matchedLead.mob_no) : null);
                           const phoneDisplay = (rawPhone && rawPhone !== '-' && rawPhone !== 'null') ? rawPhone : '—';
 
-                          // Smart resolution for Applied Lender
-                          const rawLender = b.appliedLender || b.lender || (matchedLead ? matchedLead.lender : null);
-                          const lenderDisplay = (rawLender && rawLender !== '-' && rawLender !== 'null') ? rawLender : '—';
+                          // Smart resolution for Applied Lender (comma-separated unique list)
+                          const matchedLeads = leads.filter(l => (b.email && l.email && l.email.toLowerCase() === b.email.toLowerCase()) || (b.id && l.userId === b.id));
+                          const lenderSet = new Set();
+                          if (b.appliedLender && b.appliedLender !== '-' && b.appliedLender !== 'null') {
+                            b.appliedLender.split(',').forEach(s => { const t = s.trim(); if (t && t !== '-') lenderSet.add(t); });
+                          }
+                          if (b.lender && b.lender !== '-' && b.lender !== 'null') {
+                            b.lender.split(',').forEach(s => { const t = s.trim(); if (t && t !== '-') lenderSet.add(t); });
+                          }
+                          matchedLeads.forEach(l => {
+                            if (l.lender && l.lender !== '-' && l.lender !== 'null') lenderSet.add(l.lender.trim());
+                          });
+                          const lenderArray = Array.from(lenderSet);
+                          const lenderDisplay = lenderArray.length > 0 ? lenderArray.join(', ') : '—';
                           
                           let stageColor = '#D97706';
                           if (stage === 'Disbursed') stageColor = '#166534';
@@ -1572,9 +1583,17 @@ export default function AdminDashboard() {
                               <td style={{ color: '#475569', fontSize: '0.86rem' }}>{b.email || '—'}</td>
                               <td style={{ fontWeight: 800, color: '#0F2942', textAlign: 'center', fontSize: '0.9rem' }}>{b.loanCount ?? 0}</td>
                               <td>
-                                <span style={{ background: '#F1F5F9', color: '#334155', padding: '4px 10px', borderRadius: '12px', fontWeight: 600, fontSize: '0.78rem', display: 'inline-block' }}>
-                                  {lenderDisplay}
-                                </span>
+                                {lenderArray.length > 0 ? (
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                    {lenderArray.map((l, idx) => (
+                                      <span key={idx} style={{ background: '#F1F5F9', color: '#334155', padding: '3px 8px', borderRadius: '10px', fontWeight: 600, fontSize: '0.76rem', display: 'inline-block' }}>
+                                        {l}{idx < lenderArray.length - 1 ? ',' : ''}
+                                      </span>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <span style={{ color: '#94A3B8' }}>—</span>
+                                )}
                               </td>
                               <td style={{ fontWeight: 700, color: stageColor, fontSize: '0.85rem' }}>{stage}</td>
                               <td>
