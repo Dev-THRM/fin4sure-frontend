@@ -988,12 +988,12 @@ export default function AdminDashboard() {
                           {leads.slice(0, 5).map((l) => {
                             const rawSt = (l.status || '').toLowerCase().trim();
                             const statusDisplay = ['disbursed', 'completed'].includes(rawSt)
-                              ? 'disbursed'
+                              ? 'DISBURSED'
                               : rawSt === 'rejected'
-                              ? 'rejected'
-                              : 'in-progress';
-                            const stBg = statusDisplay === 'disbursed' ? '#DCFCE7' : statusDisplay === 'rejected' ? '#FEE2E2' : '#DBEAFE';
-                            const stColor = statusDisplay === 'disbursed' ? '#166534' : statusDisplay === 'rejected' ? '#991B1B' : '#1E40AF';
+                              ? 'REJECTED'
+                              : 'IN-PROGRESS';
+                            const stBg = statusDisplay === 'DISBURSED' ? '#DCFCE7' : statusDisplay === 'REJECTED' ? '#FEE2E2' : '#DBEAFE';
+                            const stColor = statusDisplay === 'DISBURSED' ? '#166534' : statusDisplay === 'REJECTED' ? '#991B1B' : '#1E40AF';
 
                             return (
                               <tr key={l.id}>
@@ -1184,12 +1184,12 @@ export default function AdminDashboard() {
                         filteredLeads.map((l) => {
                           const rawSt = (l.status || '').toLowerCase().trim();
                           const statusDisplay = ['disbursed', 'completed'].includes(rawSt)
-                            ? 'disbursed'
+                            ? 'DISBURSED'
                             : rawSt === 'rejected'
-                            ? 'rejected'
-                            : 'in-progress';
-                          const stBg = statusDisplay === 'disbursed' ? '#DCFCE7' : statusDisplay === 'rejected' ? '#FEE2E2' : '#DBEAFE';
-                          const stColor = statusDisplay === 'disbursed' ? '#166534' : statusDisplay === 'rejected' ? '#991B1B' : '#1E40AF';
+                            ? 'REJECTED'
+                            : 'IN-PROGRESS';
+                          const stBg = statusDisplay === 'DISBURSED' ? '#DCFCE7' : statusDisplay === 'REJECTED' ? '#FEE2E2' : '#DBEAFE';
+                          const stColor = statusDisplay === 'DISBURSED' ? '#166534' : statusDisplay === 'REJECTED' ? '#991B1B' : '#1E40AF';
 
                           return (
                             <tr key={l.id}>
@@ -1231,11 +1231,11 @@ export default function AdminDashboard() {
                                     fontSize: '0.78rem',
                                     fontWeight: 700,
                                     cursor: 'pointer',
-                                    textTransform: 'capitalize'
+                                    textTransform: 'uppercase'
                                   }}
                                   title="Click to update application stage"
                                 >
-                                  <span>{l.stage || l.status || 'Applied'}</span>
+                                  <span>{(l.stage || l.status || 'APPLIED').toUpperCase()}</span>
                                   <span style={{ fontSize: '0.7rem' }}>✏️</span>
                                 </button>
                               </td>
@@ -1247,6 +1247,7 @@ export default function AdminDashboard() {
                                     fontSize: '0.76rem',
                                     fontWeight: 700,
                                     display: 'inline-block',
+                                    textTransform: 'uppercase',
                                     background: stBg,
                                     color: stColor
                                   }}
@@ -1657,7 +1658,7 @@ export default function AdminDashboard() {
                                   <span style={{ color: '#94A3B8' }}>—</span>
                                 )}
                               </td>
-                              <td style={{ fontWeight: 700, color: stageColor, fontSize: '0.85rem' }}>{stage}</td>
+                              <td style={{ fontWeight: 700, color: stageColor, fontSize: '0.85rem' }}>{(stage || 'APPLIED').toUpperCase()}</td>
                               <td>
                                 <span style={{
                                   padding: '4px 12px',
@@ -1665,11 +1666,11 @@ export default function AdminDashboard() {
                                   fontSize: '0.76rem',
                                   fontWeight: 700,
                                   display: 'inline-block',
-                                  textTransform: 'lowercase',
+                                  textTransform: 'uppercase',
                                   background: ['disbursed', 'completed', 'active'].includes(status) ? '#DCFCE7' : status === 'rejected' ? '#FEE2E2' : '#DBEAFE',
                                   color: ['disbursed', 'completed', 'active'].includes(status) ? '#166534' : status === 'rejected' ? '#991B1B' : '#1E40AF'
                                 }}>
-                                  {status}
+                                  {(status || 'ACTIVE').toUpperCase()}
                                 </span>
                               </td>
                               <td>
@@ -1753,8 +1754,8 @@ export default function AdminDashboard() {
                             <td style={{ fontWeight: 600 }}>Application submitted by {t.borrower}</td>
                             <td>{t.product}</td>
                             <td>
-                              <span style={{ textTransform: 'capitalize' }} className={`rate-type-badge ${t.status === 'approved' ? 'private' : t.status === 'rejected' ? 'nbfc-hfc' : 'psu'}`}>
-                                {t.status || 'Unknown'}
+                              <span style={{ textTransform: 'uppercase' }} className={`rate-type-badge ${t.status === 'approved' ? 'private' : t.status === 'rejected' ? 'nbfc-hfc' : 'psu'}`}>
+                                {(t.status || 'UNKNOWN').toUpperCase()}
                               </span>
                             </td>
                           </tr>
@@ -2567,8 +2568,8 @@ export default function AdminDashboard() {
                           </td>
                           <td style={{ padding: '12px 16px', color: '#475569' }}>{loan.lender && loan.lender !== '-' ? loan.lender : '—'}</td>
                           <td style={{ padding: '12px 16px' }}>
-                            <span style={{ padding: '3px 10px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 700, background: stBg, color: stColor }}>
-                              {loan.status}
+                            <span style={{ padding: '3px 10px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', background: stBg, color: stColor }}>
+                              {(loan.status || 'APPLIED').toUpperCase()}
                             </span>
                           </td>
                           <td style={{ padding: '12px 16px', color: '#64748B' }}>
