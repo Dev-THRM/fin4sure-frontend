@@ -469,6 +469,104 @@ export default function Calculator() {
         )}
         {stepperStep === 1 ? (
           <>
+            {/* ═══ TOP SECTION: SCHEDULE SUMMARY | AMORTIZATION SCHEDULE ═══ */}
+            <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '18px 24px', marginBottom: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+              <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
+                <button
+                  type="button"
+                  onClick={() => setSubTab('summary')}
+                  style={{
+                    padding: '6px 18px',
+                    borderRadius: '16px',
+                    border: subTab === 'summary' ? '1px solid #0284C7' : '1px solid #E2E8F0',
+                    background: subTab === 'summary' ? '#E0F2FE' : '#F8FAFC',
+                    color: subTab === 'summary' ? '#0369A1' : '#64748B',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  📊 Schedule Summary
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSubTab('amortization')}
+                  style={{
+                    padding: '6px 18px',
+                    borderRadius: '16px',
+                    border: subTab === 'amortization' ? '1px solid #0284C7' : '1px solid #E2E8F0',
+                    background: subTab === 'amortization' ? '#E0F2FE' : '#F8FAFC',
+                    color: subTab === 'amortization' ? '#0369A1' : '#64748B',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  📅 Amortization Schedule
+                </button>
+              </div>
+
+              {subTab === 'summary' ? (
+                <div>
+                  {/* 4 Stat Cards */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '14px' }}>
+                    <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F2942' }}>{fmtINRFull(emi)}</div>
+                      <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>MONTHLY EMI</div>
+                    </div>
+
+                    <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F2942' }}>{fmtLakhCr(amount)}</div>
+                      <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>PRINCIPAL</div>
+                    </div>
+
+                    <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#D97706' }}>{fmtLakhCr(totalInterest)}</div>
+                      <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>TOTAL INTEREST</div>
+                    </div>
+
+                    <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0284C7' }}>{fmtLakhCr(totalPayable)}</div>
+                      <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>TOTAL PAYABLE</div>
+                    </div>
+                  </div>
+
+                  {/* Summary Explanatory Banner */}
+                  <div style={{ background: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '10px', padding: '10px 16px', color: '#0369A1', fontSize: '0.82rem', lineHeight: '1.4', fontWeight: 500 }}>
+                    Over <strong>{Math.round(tenure / 12)} yrs</strong>, you'll pay <strong>{fmtLakhCr(totalInterest)}</strong> in interest — about <strong>{100 - (totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50)}%</strong> of your total outlay. Choosing lower expected ROI or shorter tenure reduces this. Final ROI will be confirmed post credit assessment of the case.
+                  </div>
+                </div>
+              ) : (
+                /* Amortization Table */
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                    <thead>
+                      <tr style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0', textAlign: 'left', color: '#475569' }}>
+                        <th style={{ padding: '10px 14px', fontWeight: 800 }}>YEAR</th>
+                        <th style={{ padding: '10px 14px', fontWeight: 800 }}>PRINCIPAL PAID</th>
+                        <th style={{ padding: '10px 14px', fontWeight: 800 }}>INTEREST PAID</th>
+                        <th style={{ padding: '10px 14px', fontWeight: 800 }}>TOTAL PAYMENT</th>
+                        <th style={{ padding: '10px 14px', fontWeight: 800 }}>REMAINING BALANCE</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {amortizationSchedule.map((row) => (
+                        <tr key={row.year} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '10px 14px', fontWeight: 700, color: '#0F2942' }}>Year {row.year}</td>
+                          <td style={{ padding: '10px 14px', fontWeight: 600, color: '#0369A1' }}>₹{row.principalPaid.toLocaleString('en-IN')}</td>
+                          <td style={{ padding: '10px 14px', fontWeight: 600, color: '#D97706' }}>₹{row.interestPaid.toLocaleString('en-IN')}</td>
+                          <td style={{ padding: '10px 14px', fontWeight: 700, color: '#0F2942' }}>₹{row.totalPayment.toLocaleString('en-IN')}</td>
+                          <td style={{ padding: '10px 14px', fontWeight: 600, color: '#64748B' }}>₹{row.balance.toLocaleString('en-IN')}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
             {/* ═══ UNIFIED SIDE-BY-SIDE GRID (LEFT: CALCULATOR | RIGHT: COMPARE LENDERS TABLE) ═══ */}
             <div className="calc-main-side-grid" style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: '20px', alignItems: 'start', marginBottom: '24px' }}>
               
@@ -515,17 +613,6 @@ export default function Calculator() {
                       >
                         — Fixed
                       </button>
-                    </div>
-                  </div>
-
-                  {/* Monthly EMI Dark Highlight Card */}
-                  <div style={{ background: 'linear-gradient(145deg, #0B192C 0%, #1E293B 100%)', borderRadius: '14px', padding: '14px 18px', color: '#FFFFFF', textAlign: 'center', marginBottom: '16px' }}>
-                    <div style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.08em', color: '#94A3B8', marginBottom: '2px' }}>ESTIMATED MONTHLY EMI</div>
-                    <div style={{ fontSize: '1.65rem', fontWeight: 900, color: '#FFFFFF' }}>
-                      {fmtINRFull(emi)}<span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#38BDF8' }}>/mo</span>
-                    </div>
-                    <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginTop: '2px' }}>
-                      Principal: {fmtLakhCr(amount)} · Interest: {fmtLakhCr(totalInterest)}
                     </div>
                   </div>
 
@@ -679,7 +766,7 @@ export default function Calculator() {
                   </div>
                 </div>
 
-                {/* ═══ YOUR MONTHLY EMI CARD (PLACED DIRECTLY BELOW LOAN CALCULATOR) ═══ */}
+                {/* ═══ YOUR MONTHLY EMI CARD ═══ */}
                 <div style={{
                   background: 'linear-gradient(145deg, #0B192C 0%, #1E293B 100%)',
                   borderRadius: '20px',
@@ -764,7 +851,7 @@ export default function Calculator() {
                 </div>
               </div>
 
-              {/* ═══ RIGHT PANEL: COMPARE LENDERS TABLE (IMMEDIATELY VISIBLE AT Y = 60px) ═══ */}
+              {/* ═══ RIGHT PANEL: COMPARE LENDERS TABLE ═══ */}
               <div id="compare-lenders-section" style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '18px 20px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
                   <div>
@@ -964,104 +1051,6 @@ export default function Calculator() {
                   </table>
                 </div>
               </div>
-            </div>
-
-            {/* ═══ SUB-TABS: SCHEDULE SUMMARY | AMORTIZATION SCHEDULE ═══ */}
-            <div style={{ background: '#FFFFFF', borderRadius: '20px', border: '1px solid #E2E8F0', padding: '24px 32px', marginBottom: '32px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.03)' }}>
-              <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', borderBottom: '1px solid #F1F5F9', paddingBottom: '16px' }}>
-                <button
-                  type="button"
-                  onClick={() => setSubTab('summary')}
-                  style={{
-                    padding: '8px 20px',
-                    borderRadius: '20px',
-                    border: subTab === 'summary' ? '1px solid #0284C7' : '1px solid #E2E8F0',
-                    background: subTab === 'summary' ? '#E0F2FE' : '#F8FAFC',
-                    color: subTab === 'summary' ? '#0369A1' : '#64748B',
-                    fontWeight: 700,
-                    fontSize: '0.88rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  📊 Schedule Summary
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSubTab('amortization')}
-                  style={{
-                    padding: '8px 20px',
-                    borderRadius: '20px',
-                    border: subTab === 'amortization' ? '1px solid #0284C7' : '1px solid #E2E8F0',
-                    background: subTab === 'amortization' ? '#E0F2FE' : '#F8FAFC',
-                    color: subTab === 'amortization' ? '#0369A1' : '#64748B',
-                    fontWeight: 700,
-                    fontSize: '0.88rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  📅 Amortization Schedule
-                </button>
-              </div>
-
-              {subTab === 'summary' ? (
-                <div>
-                  {/* 4 Stat Cards */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '20px' }}>
-                    <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', padding: '18px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F2942' }}>{fmtINRFull(emi)}</div>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', marginTop: '4px' }}>MONTHLY EMI</div>
-                    </div>
-
-                    <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', padding: '18px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F2942' }}>{fmtLakhCr(amount)}</div>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', marginTop: '4px' }}>PRINCIPAL</div>
-                    </div>
-
-                    <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', padding: '18px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#D97706' }}>{fmtLakhCr(totalInterest)}</div>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', marginTop: '4px' }}>TOTAL INTEREST</div>
-                    </div>
-
-                    <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', padding: '18px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0284C7' }}>{fmtLakhCr(totalPayable)}</div>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', marginTop: '4px' }}>TOTAL PAYABLE</div>
-                    </div>
-                  </div>
-
-                  {/* Summary Explanatory Banner */}
-                  <div style={{ background: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '12px', padding: '14px 20px', color: '#0369A1', fontSize: '0.86rem', lineHeight: '1.5', fontWeight: 500 }}>
-                    Over <strong>{Math.round(tenure / 12)} yrs</strong>, you'll pay <strong>{fmtLakhCr(totalInterest)}</strong> in interest — about <strong>{100 - (totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50)}%</strong> of your total outlay. Choosing lower expected ROI or shorter tenure reduces this. Final ROI will be confirmed post credit assessment of the case.
-                  </div>
-                </div>
-              ) : (
-                /* Amortization Table */
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                    <thead>
-                      <tr style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0', textAlign: 'left', color: '#475569' }}>
-                        <th style={{ padding: '12px 16px', fontWeight: 800 }}>YEAR</th>
-                        <th style={{ padding: '12px 16px', fontWeight: 800 }}>PRINCIPAL PAID</th>
-                        <th style={{ padding: '12px 16px', fontWeight: 800 }}>INTEREST PAID</th>
-                        <th style={{ padding: '12px 16px', fontWeight: 800 }}>TOTAL PAYMENT</th>
-                        <th style={{ padding: '12px 16px', fontWeight: 800 }}>REMAINING BALANCE</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {amortizationSchedule.map((row) => (
-                        <tr key={row.year} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                          <td style={{ padding: '12px 16px', fontWeight: 700, color: '#0F2942' }}>Year {row.year}</td>
-                          <td style={{ padding: '12px 16px', fontWeight: 600, color: '#0369A1' }}>₹{row.principalPaid.toLocaleString('en-IN')}</td>
-                          <td style={{ padding: '12px 16px', fontWeight: 600, color: '#D97706' }}>₹{row.interestPaid.toLocaleString('en-IN')}</td>
-                          <td style={{ padding: '12px 16px', fontWeight: 700, color: '#0F2942' }}>₹{row.totalPayment.toLocaleString('en-IN')}</td>
-                          <td style={{ padding: '12px 16px', fontWeight: 600, color: '#64748B' }}>₹{row.balance.toLocaleString('en-IN')}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
             </div>
           </>
         ) : stepperStep === 2 ? (
