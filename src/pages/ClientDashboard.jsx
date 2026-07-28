@@ -58,23 +58,31 @@ export default function ClientDashboard() {
       if (res.ok) {
         const data = await res.json();
         setUser(data);
-        setName(data.name || "");
+        setName(data.name || "Sahil");
         setEmail(data.email || "");
         setNumber(data.number || "");
-        setAddress(data.address || "");
-        setPincode(data.pincode || "");
-        setState(data.state || "");
-        setDistrict(data.district || "");
+        setAddress(data.address || "123 Green Avenue, Central Delhi");
+        setPincode(data.pincode || "110001");
+        setState(data.state || "Delhi");
+        setDistrict(data.district || "Central");
       } else if (authUser) {
         setUser(authUser);
         setName(authUser.name || "Sahil");
         setEmail(authUser.email || "");
+        setNumber(authUser.number || "8123123712");
+        setAddress(authUser.address || "123 Green Avenue, Central Delhi");
+        setPincode(authUser.pincode || "110001");
       } else if (res.status === 401) {
         navigate("/login");
       }
     } catch (e) {
       if (authUser) {
         setUser(authUser);
+        setName(authUser.name || "Sahil");
+        setEmail(authUser.email || "");
+        setNumber(authUser.number || "8123123712");
+        setAddress(authUser.address || "123 Green Avenue, Central Delhi");
+        setPincode(authUser.pincode || "110001");
       }
     }
   };
