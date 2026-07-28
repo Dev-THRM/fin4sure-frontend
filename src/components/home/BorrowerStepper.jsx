@@ -133,49 +133,11 @@ export default function BorrowerStepper({ onBack }) {
     }
   };
 
-  const handlePincodeChange = async (e) => {
+  const handlePincodeChange = (e) => {
     const val = e.target.value.replace(/\D/g, "");
     setFormData(prev => ({ ...prev, pincode: val }));
-    
-    if (val.length === 6) {
-      try {
-        const res = await axios.get(`/api/location/pincode/${val}`);
-        if (res.data.success) {
-          setPincodeNotFound(false);
-          const { city, district, state } = res.data.data;
-          
-          // Fetch districts for the state and cities for the district to populate dropdowns
-          const [districtsRes, citiesRes] = await Promise.all([
-            axios.get(`/api/location/districts/${state.id}`),
-            axios.get(`/api/location/cities/${district.id}`)
-          ]);
-
-          if (districtsRes.data.success) setDistrictsList(districtsRes.data.data);
-          if (citiesRes.data.success) setCitiesList(citiesRes.data.data);
-
-          setFormData(prev => ({
-            ...prev,
-            state: state.name,
-            district: district.name,
-            city: city.name
-          }));
-        }
-      } catch (err) {
-        console.error("Error fetching pincode details from DB:", err);
-        if (err.response && err.response.status === 404) {
-          setPincodeNotFound(true);
-          setFormData(prev => ({ ...prev, state: '', district: '', city: '' }));
-          setDistrictsList([]);
-          setCitiesList([]);
-        }
-      }
-    } else {
-      setPincodeNotFound(false);
-      setFormData(prev => ({ ...prev, state: '', district: '', city: '' }));
-      setDistrictsList([]);
-      setCitiesList([]);
-    }
   };
+
 
   const handleStateChange = async (e) => {
     const stateId = e.target.value;
@@ -621,44 +583,46 @@ export default function BorrowerStepper({ onBack }) {
 
                 <div className="two-cols" style={{ display: 'flex', gap: '12px' }}>
                   <div className="field" style={{ flex: 1 }}>
-                    <label>City <span style={{color: 'red'}}>*</span></label>
-                    <div className="input-wrap">
-                      {pincodeNotFound ? (
-                        <input type="text" placeholder="Enter City" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} />
-                      ) : (
-                        <select style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', outline: 'none' }} value={citiesList.find(c => c.name === formData.city)?.id || ''} onChange={handleCityChange} disabled={!formData.district}>
-                          <option value="">Select City</option>
-                          {citiesList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                        </select>
-                      )}
+                    <label>State <span style={{color: 'red'}}>*</span></label>
+                    <div className="input-wrap" style={{ padding: 0 }}>
+                      <select
+                        style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', color: formData.state ? '#0f172a' : '#94a3b8', outline: 'none', cursor: 'pointer' }}
+                        value={statesList.find(s => s.name === formData.state)?.id || ''}
+                        onChange={handleStateChange}
+                      >
+                        <option value="">Select State</option>
+                        {statesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      </select>
                     </div>
                   </div>
                   <div className="field" style={{ flex: 1 }}>
                     <label>District <span style={{color: 'red'}}>*</span></label>
-                    <div className="input-wrap">
-                      {pincodeNotFound ? (
-                        <input type="text" placeholder="Enter District" value={formData.district} onChange={e => setFormData({...formData, district: e.target.value})} />
-                      ) : (
-                        <select style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', outline: 'none' }} value={districtsList.find(d => d.name === formData.district)?.id || ''} onChange={handleDistrictChange} disabled={!formData.state}>
-                          <option value="">Select District</option>
-                          {districtsList.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                        </select>
-                      )}
+                    <div className="input-wrap" style={{ padding: 0 }}>
+                      <select
+                        style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', color: formData.district ? '#0f172a' : '#94a3b8', outline: 'none', cursor: formData.state ? 'pointer' : 'not-allowed', opacity: formData.state ? 1 : 0.6 }}
+                        value={districtsList.find(d => d.name === formData.district)?.id || ''}
+                        onChange={handleDistrictChange}
+                        disabled={!formData.state}
+                      >
+                        <option value="">Select District</option>
+                        {districtsList.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                      </select>
                     </div>
                   </div>
                 </div>
 
                 <div className="field">
-                  <label>State <span style={{color: 'red'}}>*</span></label>
-                  <div className="input-wrap">
-                    {pincodeNotFound ? (
-                      <input type="text" placeholder="Enter State" value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} />
-                    ) : (
-                      <select style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', outline: 'none' }} value={statesList.find(s => s.name === formData.state)?.id || ''} onChange={handleStateChange}>
-                        <option value="">Select State</option>
-                        {statesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                      </select>
-                    )}
+                  <label>City <span style={{color: 'red'}}>*</span></label>
+                  <div className="input-wrap" style={{ padding: 0 }}>
+                    <select
+                      style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', color: formData.city ? '#0f172a' : '#94a3b8', outline: 'none', cursor: formData.district ? 'pointer' : 'not-allowed', opacity: formData.district ? 1 : 0.6 }}
+                      value={citiesList.find(c => c.name === formData.city)?.id || ''}
+                      onChange={handleCityChange}
+                      disabled={!formData.district}
+                    >
+                      <option value="">Select City</option>
+                      {citiesList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
                   </div>
                 </div>
 
