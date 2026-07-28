@@ -12,19 +12,24 @@
 /* Top Gradient Header Area */
 .calc-header-gradient {
   background: linear-gradient(135deg, #1C2B54 0%, #253974 50%, #3B4B96 100%);
-  padding: 10px 20px;
+  padding: 32px 48px 40px;
   color: #FFFFFF;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  text-align: center;
   gap: 16px;
-  flex-wrap: wrap;
+  box-shadow: inset 0 -10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .calc-nav-top {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 1100px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 .calc-pill-btn {
@@ -32,9 +37,9 @@
   color: #FFFFFF;
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 20px;
-  padding: 4px 12px;
-  font-size: 0.74rem;
-  font-weight: 600;
+  padding: 6px 16px;
+  font-size: 0.82rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -50,28 +55,37 @@
 
 .calc-hero-title {
   font-family: 'Playfair Display', Georgia, serif;
-  font-size: 1.15rem;
-  font-weight: 700;
+  font-size: 2.2rem;
+  font-weight: 800;
   margin: 0;
-  display: inline-block;
+  color: #FFFFFF;
+  letter-spacing: -0.01em;
 }
 
 .calc-hero-sub {
-  display: none;
+  display: block;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 16px 0;
+  max-width: 620px;
+  line-height: 1.5;
 }
 
 /* 3-Step Progress Indicator */
 .calc-stepper-bar {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
+  justify-content: center;
+  width: 100%;
+  max-width: 750px;
+  margin: 12px auto 0 auto;
 }
 
 .cs-step {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   opacity: 0.65;
   transition: opacity 0.2s ease;
 }
@@ -81,36 +95,47 @@
 }
 
 .cs-circle {
-  width: 22px;
-  height: 22px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: 1.15rem;
+  font-weight: 800;
   color: #FFFFFF;
+  transition: all 0.3s ease;
 }
 
 .cs-step.active .cs-circle {
   background: #38BDF8;
   border-color: #38BDF8;
   color: #0F172A;
+  font-weight: 900;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);
 }
 
 .cs-label {
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 700;
   white-space: nowrap;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.cs-step.active .cs-label {
+  color: #FFFFFF;
+  font-weight: 800;
 }
 
 .cs-line {
   flex-grow: 1;
   height: 2px;
-  background: rgba(255, 255, 255, 0.2);
-  width: 30px;
+  background: rgba(255, 255, 255, 0.25);
+  margin: 0 16px;
+  transform: translateY(-14px);
+  transition: background 0.3s ease;
 }
 
 .cs-line.active {
