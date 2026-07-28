@@ -711,9 +711,10 @@ export default function AdminDashboard() {
         b.email?.toLowerCase().includes(term) ||
         b.brokerId?.toLowerCase().includes(term);
 
-      const stLower = (b.status || 'active').toLowerCase();
+      const stLower = (b.status || 'active').toLowerCase().trim();
       const matchesStatus =
         brokerStatusFilter === "all_partners" ||
+        brokerStatusFilter === "all_statuses" ||
         (brokerStatusFilter === "active" && (stLower === "active" || stLower === "approved")) ||
         (brokerStatusFilter === "inactive" && stLower !== "active" && stLower !== "approved");
 
@@ -1724,7 +1725,7 @@ export default function AdminDashboard() {
                   onChange={(e) => setBrokerStatusFilter(e.target.value)}
                   style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #CBD5E1', background: '#FFFFFF', fontWeight: 500, fontSize: '0.88rem', color: '#1E293B', cursor: 'pointer', outline: 'none' }}
                 >
-                  <option value="all_statuses">ALL PARTNERS</option>
+                  <option value="all_partners">ALL PARTNERS</option>
                   <option value="active">ACTIVE</option>
                   <option value="inactive">INACTIVE</option>
                 </select>
