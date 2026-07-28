@@ -426,7 +426,7 @@ export default function Apply() {
             {/* Loan Type Category Selector */}
             <div className="calc-category-section">
               <h2 className="calc-section-title">Choose your loan type</h2>
-              <div className="calc-cards-row">
+              <div className="calc-type-grid">
                 {loanTypeCards.map((card) => {
                   const isSel = loanType === card.id;
                   return (
@@ -435,10 +435,10 @@ export default function Apply() {
                       className={`calc-type-card ${isSel ? "selected" : ""}`}
                       onClick={() => handleSelectLoanType(card.id)}
                     >
-                      {isSel && <div className="ctc-check-badge">✓</div>}
-                      <div className="ctc-icon">{card.icon}</div>
-                      <div className="ctc-name">{card.name}</div>
-                      <div className="ctc-desc">{card.desc}</div>
+                      {isSel && <div className="calc-type-badge">✓</div>}
+                      <div className="calc-type-icon">{card.icon}</div>
+                      <div className="calc-type-name">{card.name}</div>
+                      <div className="calc-type-desc">{card.desc}</div>
                     </div>
                   );
                 })}
