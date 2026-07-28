@@ -31,8 +31,27 @@ export default function Apply() {
 
   const isAdmin = user?.role === "admin" || user?.role === "partner" || user?.role === "broker";
 
-  // Derive initial loan type from location.state
-  const initialLoanType = location.state?.loanType || "home";
+  // Determine initial loan type from location.state or URL query params
+  const resolveLoanType = (input) => {
+    if (!input) return "home";
+    const map = {
+      home: "home",
+      "Home Loan": "home",
+      lap: "lap",
+      "Loan Against Property": "lap",
+      personal: "personal",
+      "Personal Loan": "personal",
+      business: "business",
+      "Business Loan": "business",
+      vehicle: "vehicle",
+      "Vehicle Loan": "vehicle",
+      education: "education",
+      "Education Loan": "education"
+    };
+    return map[input] || "home";
+  };
+
+  const initialType = resolveLoanType(location.state?.loanType || location.state?.selectedProduct);
 
   const {
     loanType,
@@ -54,11 +73,41 @@ export default function Apply() {
     clampTenure,
     snapAmount
   } = useEmiCalculator(
-    initialLoanType,
+    initialType,
     location.state?.amount,
     location.state?.rate,
     location.state?.tenure
   );
+
+  // Default values dictionary per loan type
+  const loanDefaultsMap = {
+    home: { amount: 5000000, rate: 7.10, tenure: 240 },
+    lap: { amount: 5000000, rate: 9.00, tenure: 180 },
+    personal: { amount: 500000, rate: 10.50, tenure: 60 },
+    business: { amount: 1000000, rate: 11.00, tenure: 60 },
+    vehicle: { amount: 1000000, rate: 8.75, tenure: 84 },
+    education: { amount: 1000000, rate: 9.00, tenure: 84 }
+  };
+
+  // Helper to select loan type & set pre-filled default values
+  const handleSelectLoanType = (typeKey) => {
+    setLoanType(typeKey);
+    const defaults = loanDefaultsMap[typeKey] || loanDefaultsMap.home;
+    if (!location.state?.amount) setAmount(defaults.amount);
+    if (!location.state?.rate) setRate(defaults.rate);
+    if (!location.state?.tenure) setTenure(defaults.tenure);
+  };
+
+  // Synchronize on route changes
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const paramProduct = searchParams.get("product") || searchParams.get("type");
+    const rawPassed = location.state?.loanType || location.state?.selectedProduct || paramProduct;
+    if (rawPassed) {
+      const resolved = resolveLoanType(rawPassed);
+      handleSelectLoanType(resolved);
+    }
+  }, [location.search, location.state]);
 
   // Applicant details state for Step 3
   const [applicantData, setApplicantData] = useState({
@@ -72,7 +121,7 @@ export default function Apply() {
     state: "Delhi",
     district: "Central",
     city: "New Delhi",
-    loanPurpose: "Home Purchase / Refinance",
+    loanPurpose: "Loan Application",
     password: "Pass@1234"
   });
 
@@ -154,7 +203,7 @@ export default function Apply() {
     setAmount(parsed * newUnit);
   };
 
-  // Loan type cards for row
+  // Loan type cards for category row
   const loanTypeCards = [
     {
       id: "home",
@@ -384,7 +433,7 @@ export default function Apply() {
                     <div
                       key={card.id}
                       className={`calc-type-card ${isSel ? "selected" : ""}`}
-                      onClick={() => setLoanType(card.id)}
+                      onClick={() => handleSelectLoanType(card.id)}
                     >
                       {isSel && <div className="ctc-check-badge">✓</div>}
                       <div className="ctc-icon">{card.icon}</div>
