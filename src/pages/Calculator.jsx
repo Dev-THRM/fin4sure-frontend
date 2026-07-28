@@ -238,82 +238,73 @@ export default function Calculator() {
 
   return (
     <div className="calc-full-page animate-fade-up">
-      {/* ═══ STANDALONE EMI CALCULATOR HERO BANNER (NO STEPPER) ═══ */}
+      {/* ═══ STANDALONE EMI CALCULATOR HERO BANNER (COMPACT) ═══ */}
       <div style={{
         maxWidth: '1280px',
-        margin: '24px auto 16px',
+        margin: '12px auto 8px',
         padding: '0 16px',
         boxSizing: 'border-box'
       }}>
         <div style={{
           background: 'linear-gradient(135deg, #0F2942 0%, #1E3A8A 50%, #0369A1 100%)',
-          borderRadius: '24px',
-          padding: '32px 36px',
+          borderRadius: '16px',
+          padding: '12px 24px',
           color: '#FFFFFF',
           display: 'flex',
           justify: 'space-between',
           alignItems: 'center',
           flexWrap: 'wrap',
-          gap: '24px',
-          boxShadow: '0 10px 30px rgba(15, 41, 66, 0.18)'
+          gap: '12px',
+          boxShadow: '0 4px 16px rgba(15, 41, 66, 0.12)'
         }}>
           {/* Left Text */}
-          <div style={{ maxWidth: '640px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
             <div style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '6px',
+              gap: '4px',
               background: 'rgba(255, 255, 255, 0.15)',
               border: '1px solid rgba(255, 255, 255, 0.25)',
               color: '#38BDF8',
-              padding: '4px 12px',
-              borderRadius: '20px',
-              fontSize: '0.72rem',
+              padding: '2px 8px',
+              borderRadius: '12px',
+              fontSize: '0.65rem',
               fontWeight: 800,
-              letterSpacing: '0.06em',
-              marginBottom: '12px'
+              letterSpacing: '0.06em'
             }}>
               ✦ EMI CALCULATOR
             </div>
             <h1 style={{
               fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: '2rem',
+              fontSize: '1.2rem',
               fontWeight: 800,
-              margin: '0 0 8px 0',
-              letterSpacing: '-0.01em',
+              margin: 0,
               color: '#FFFFFF'
             }}>
               Plan your loan with confidence
             </h1>
-            <p style={{
-              fontSize: '0.92rem',
-              color: 'rgba(255, 255, 255, 0.85)',
-              margin: 0,
-              lineHeight: '1.5'
-            }}>
-              Adjust the amount, rate and tenure to see your monthly EMI instantly — then compare live rates from 35+ lenders.
-            </p>
+            <span style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.8)' }}>
+              Adjust amount, rate &amp; tenure to see your monthly EMI instantly — then compare 35+ lenders.
+            </span>
           </div>
 
           {/* Right Floating / Fixed Rate Toggle Card */}
           <div style={{
             background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '20px',
-            padding: '6px',
+            borderRadius: '16px',
+            padding: '3px',
             display: 'inline-flex',
             alignItems: 'center',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-            border: '1px solid rgba(255, 255, 255, 0.6)'
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
           }}>
             <button
               type="button"
               onClick={() => handleRateTypeChange('floating')}
               style={{
-                padding: '10px 20px',
-                borderRadius: '16px',
+                padding: '6px 14px',
+                borderRadius: '12px',
                 border: 'none',
-                fontSize: '0.85rem',
+                fontSize: '0.78rem',
                 fontWeight: 800,
                 cursor: 'pointer',
                 background: rateType === 'floating' ? '#0F2942' : 'transparent',
@@ -321,7 +312,7 @@ export default function Calculator() {
                 transition: 'all 0.2s ease',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px'
+                gap: '4px'
               }}
             >
               ⚡ Floating
@@ -330,10 +321,10 @@ export default function Calculator() {
               type="button"
               onClick={() => handleRateTypeChange('fixed')}
               style={{
-                padding: '10px 20px',
-                borderRadius: '16px',
+                padding: '6px 14px',
+                borderRadius: '12px',
                 border: 'none',
-                fontSize: '0.85rem',
+                fontSize: '0.78rem',
                 fontWeight: 800,
                 cursor: 'pointer',
                 background: rateType === 'fixed' ? '#0F2942' : 'transparent',
@@ -341,7 +332,7 @@ export default function Calculator() {
                 transition: 'all 0.2s ease',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px'
+                gap: '4px'
               }}
             >
               — Fixed
@@ -353,15 +344,15 @@ export default function Calculator() {
         <div style={{
           background: '#FEF9C3',
           border: '1px solid #FDE047',
-          borderRadius: '16px',
-          padding: '12px 20px',
-          margin: '16px 0 0 0',
+          borderRadius: '12px',
+          padding: '6px 14px',
+          margin: '8px 0 0 0',
           color: '#854D0E',
-          fontSize: '0.85rem',
+          fontSize: '0.78rem',
           fontWeight: 600,
           display: 'flex',
           alignItems: 'center',
-          gap: '8px'
+          gap: '6px'
         }}>
           <span>ℹ️</span>
           <span>
