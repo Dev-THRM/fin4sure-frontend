@@ -378,7 +378,9 @@ export default function BorrowerStepper({ onBack }) {
                 <div className="form-subtitle">Showing best Home Loan rates. Select as many lenders as you like — we’ll apply to all at once.</div>
                 
                 <div className="bl-lender-list">
-                  {lendersData.map(lender => {
+                  {lendersData
+                    .filter(lender => getRateForLoanType(lender, loanType) !== 'N/A')
+                    .map(lender => {
                     const isSel = selectedLenders.includes(lender.id);
                     const rate = getRateForLoanType(lender, loanType);
                     
@@ -397,8 +399,8 @@ export default function BorrowerStepper({ onBack }) {
                           <div className="bl-l-sub">{lender.type === 'psu' ? 'PSU' : 'Private'} Bank</div>
                         </div>
                         <div className="bl-l-rate">
-                          <div className="bl-l-rate-v">{rate !== 'N/A' ? `${rate}%` : 'N/A'}</div>
-                          {rate !== 'N/A' && <div className="bl-l-rate-l">p.a. onwards</div>}
+                          <div className="bl-l-rate-v">{rate}%</div>
+                          <div className="bl-l-rate-l">p.a. onwards</div>
                         </div>
                       </div>
                     );
