@@ -18,7 +18,7 @@ export default function Calculator() {
   // Sub-tabs & Lender filter/sort states for EMI Calculator Dashboard
   const [subTab, setSubTab] = useState("summary"); // "summary" | "amortization"
   const [lenderFilter, setLenderFilter] = useState("All");
-  const [lenderSort, setLenderSort] = useState("rate_asc");
+  const [lenderSort, setLenderSort] = useState("type_order");
 
   // Derive initial loan type from location.state
   const initialLoanType = location.state?.loanType || "home";
@@ -213,12 +213,36 @@ export default function Calculator() {
       list = list.filter(l => (l.type || '').toLowerCase().includes(fl));
     }
 
+    // Type priority order: Private → NBFC/HFC → SFB → PSU
+    const typeOrder = { 'private': 0, 'nbfc/hfc': 1, 'nbfc': 1, 'hfc': 1, 'sfb': 2, 'psu': 3 };
+    const getTypeOrder = (type) => {
+      const t = (type || '').toLowerCase();
+      for (const key of Object.keys(typeOrder)) {
+        if (t.includes(key)) return typeOrder[key];
+      }
+      return 99;
+    };
+
     if (lenderSort === "rate_asc") {
-      list.sort((a, b) => a.rate - b.rate);
+      // Sort by rate first, then by type order for ties
+      list.sort((a, b) => {
+        if (a.rate !== b.rate) return a.rate - b.rate;
+        return getTypeOrder(a.type) - getTypeOrder(b.type);
+      });
     } else if (lenderSort === "rate_desc") {
-      list.sort((a, b) => b.rate - a.rate);
+      list.sort((a, b) => {
+        if (b.rate !== a.rate) return b.rate - a.rate;
+        return getTypeOrder(a.type) - getTypeOrder(b.type);
+      });
     } else if (lenderSort === "emi_asc") {
-      list.sort((a, b) => calcEMI(amount, a.rate, tenure) - calcEMI(amount, b.rate, tenure));
+      list.sort((a, b) => {
+        const diff = calcEMI(amount, a.rate, tenure) - calcEMI(amount, b.rate, tenure);
+        if (diff !== 0) return diff;
+        return getTypeOrder(a.type) - getTypeOrder(b.type);
+      });
+    } else {
+      // Default: sort purely by type order
+      list.sort((a, b) => getTypeOrder(a.type) - getTypeOrder(b.type));
     }
 
     return list;
@@ -798,6 +822,7 @@ export default function Calculator() {
                     cursor: 'pointer'
                   }}
                 >
+                  <option value="type_order">Type Order ▾</option>
                   <option value="rate_asc">Lowest Rate ▾</option>
                   <option value="rate_desc">Highest Rate ▾</option>
                   <option value="emi_asc">Lowest EMI ▾</option>
