@@ -200,25 +200,44 @@ export default function Calculator() {
     return 10.40;
   };
 
-  // Combine DB lenders or default fallback list
+  // Combine DB lenders or default fallback list with exact Floating vs Fixed rates
   const mergedLendersList = useMemo(() => {
     if (dbLenders.length > 0) {
-      return dbLenders.map((l) => ({
-        id: l.id,
-        name: l.name,
-        type: l.type || "Private",
-        logo: l.logo,
-        rate: getLenderRate(l)
-      })).sort((a, b) => a.rate - b.rate);
+      return dbLenders.map((l) => {
+        let minR = rateType === 'floating' ? (l.flowLow || l.min_rate || 7.20) : (l.fixLow || l.min_rate || 8.80);
+        let maxR = rateType === 'floating' ? (l.flowHigh || l.max_rate || 9.80) : (l.fixHigh || l.max_rate || 11.50);
+        return {
+          id: l.id,
+          name: l.name,
+          type: l.type || "Private",
+          logo: l.logo || null,
+          rate: parseFloat(minR),
+          maxRate: parseFloat(maxR),
+          offer: l.offer || "Pre-approved offers available."
+        };
+      }).sort((a, b) => a.rate - b.rate);
     }
-    return LENDERS.map((l, idx) => ({
-      id: idx + 1,
-      name: l.name,
-      type: l.type || "Private",
-      logo: null,
-      rate: getLenderRate(l)
-    })).sort((a, b) => a.rate - b.rate);
-  }, [dbLenders, loanType, rateType]);
+
+    const defaultLenders = rateType === "floating" ? [
+      { id: 1, name: "HDFC Bank", type: "Private", offer: "Pre-approved offers for existing HDFC customers.", rate: 7.20, maxRate: 9.80 },
+      { id: 2, name: "Bajaj Finserv", type: "NBFC/HFC", offer: "Pre-approved personal loans up to ₹40L for eligible customers.", rate: 7.25, maxRate: 10.50 },
+      { id: 3, name: "Axis Bank", type: "Private", offer: "Special concession on processing fee.", rate: 7.30, maxRate: 10.00 },
+      { id: 4, name: "Kotak Mahindra", type: "Private", offer: "Instant digital in-principle sanction.", rate: 7.40, maxRate: 9.75 },
+      { id: 5, name: "Yes Bank", type: "Private", offer: "Pre-approved digital offer.", rate: 7.45, maxRate: 10.10 },
+      { id: 6, name: "PNB Housing", type: "NBFC/HFC", offer: "Custom tenure & low EMI options.", rate: 7.50, maxRate: 13.45 },
+      { id: 7, name: "LIC Housing", type: "NBFC/HFC", offer: "Griha Lakshmi: Special rate concession for women borrowers.", rate: 7.50, maxRate: 10.35 }
+    ] : [
+      { id: 1, name: "HDFC Bank", type: "Private", offer: "Pre-approved offers for existing HDFC customers.", rate: 8.80, maxRate: 11.50 },
+      { id: 3, name: "Axis Bank", type: "Private", offer: "Special concession on processing fee.", rate: 9.00, maxRate: 11.70 },
+      { id: 4, name: "Kotak Mahindra", type: "Private", offer: "Instant digital in-principle sanction.", rate: 9.00, maxRate: 11.50 },
+      { id: 2, name: "Bajaj Finserv", type: "NBFC/HFC", offer: "Pre-approved personal loans up to ₹40L for eligible customers.", rate: 9.00, maxRate: 12.00 },
+      { id: 6, name: "PNB Housing", type: "NBFC/HFC", offer: "Custom tenure & low EMI options.", rate: 9.00, maxRate: 14.00 },
+      { id: 5, name: "Yes Bank", type: "Private", offer: "Pre-approved digital offer.", rate: 9.10, maxRate: 11.80 },
+      { id: 8, name: "IndusInd Bank", type: "Private", offer: "Special rates for premium banking customers.", rate: 9.15, maxRate: 11.90 }
+    ];
+
+    return defaultLenders;
+  }, [dbLenders, rateType]);
 
   // Format Lakhs/Crores for summary cards
   const fmtLakhCr = (val) => {
@@ -502,22 +521,41 @@ export default function Calculator() {
               </div>
 
               {/* Disclaimer Alert Box */}
-              <div style={{
-                background: '#FFFBEB',
-                border: '1px solid #FDE68A',
-                borderRadius: '12px',
-                padding: '12px 18px',
-                marginTop: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                color: '#B45309',
-                fontSize: '0.84rem',
-                fontWeight: 600
-              }}>
-                <span>💡</span>
-                <span>Fixed rate fees may remain constant throughout tenure. Fixed rate range is set on a fixed rate basis by lenders.</span>
-              </div>
+              {rateType === 'floating' ? (
+                <div style={{
+                  background: '#E0F2FE',
+                  border: '1px solid #BAE6FD',
+                  borderRadius: '12px',
+                  padding: '12px 18px',
+                  marginTop: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  color: '#0369A1',
+                  fontSize: '0.84rem',
+                  fontWeight: 600
+                }}>
+                  <span>💬</span>
+                  <span>Floating rate: Linked to RBI repo rate (6.25%). Currently favourable ROI rates are at multi-year lows.</span>
+                </div>
+              ) : (
+                <div style={{
+                  background: '#FFFBEB',
+                  border: '1px solid #FDE68A',
+                  borderRadius: '12px',
+                  padding: '12px 18px',
+                  marginTop: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  color: '#B45309',
+                  fontSize: '0.84rem',
+                  fontWeight: 600
+                }}>
+                  <span>💬</span>
+                  <span>Fixed rate: Rate stays constant throughout tenure. This loan type is offered on a fixed-rate basis by lenders.</span>
+                </div>
+              )}
             </div>
 
             {/* ═══ 2-COLUMN CALCULATOR CONTAINER ═══ */}
@@ -936,8 +974,6 @@ export default function Calculator() {
                   </select>
                 </div>
               </div>
-
-              {/* Highlight Card for Top Lender */}
               {filteredAndSortedLenders.length > 0 && (
                 <div style={{
                   background: 'linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%)',
@@ -963,7 +999,7 @@ export default function Calculator() {
                         </span>
                       </div>
                       <div style={{ fontSize: '0.78rem', color: '#D97706', fontWeight: 700, marginTop: '2px' }}>
-                        🏷️ Pre-approved offer for existing bank customers
+                        🏷️ {filteredAndSortedLenders[0].offer || "Pre-approved offers available."}
                       </div>
                     </div>
                   </div>
@@ -971,7 +1007,7 @@ export default function Calculator() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0F2942' }}>{filteredAndSortedLenders[0].rate.toFixed(2)}%</div>
-                      <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>Expected ROI</div>
+                      <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>{filteredAndSortedLenders[0].rate.toFixed(2)}–{filteredAndSortedLenders[0].maxRate.toFixed(2)}</div>
                     </div>
 
                     <div style={{ textAlign: 'right' }}>
@@ -1032,9 +1068,11 @@ export default function Calculator() {
                                   <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748B', background: '#F1F5F9', padding: '1px 6px', borderRadius: '6px' }}>
                                     {lender.type || 'PRIVATE'}
                                   </span>
-                                  <span style={{ fontSize: '0.72rem', color: '#D97706', fontWeight: 600 }}>
-                                    🎁 Special rate offer available
-                                  </span>
+                                  {lender.offer && (
+                                    <span style={{ fontSize: '0.72rem', color: '#D97706', fontWeight: 600 }}>
+                                      🏷️ {lender.offer}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -1042,7 +1080,7 @@ export default function Calculator() {
 
                           <td style={{ padding: '14px 20px' }}>
                             <div style={{ fontWeight: 800, color: '#0F2942', fontSize: '0.95rem' }}>{lender.rate.toFixed(2)}%</div>
-                            <div style={{ fontSize: '0.72rem', color: '#64748B' }}>{lender.rate.toFixed(2)} - {(lender.rate + 3.0).toFixed(2)}</div>
+                            <div style={{ fontSize: '0.72rem', color: '#64748B' }}>{lender.rate.toFixed(2)}–{lender.maxRate.toFixed(2)}</div>
                           </td>
 
                           <td style={{ padding: '14px 20px' }}>
