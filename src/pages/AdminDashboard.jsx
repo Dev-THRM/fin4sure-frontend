@@ -1919,18 +1919,70 @@ export default function AdminDashboard() {
                     </thead>
                     <tbody>
                       {(() => {
-                        const defaultLenderList = [
-                          { lenderId: 1, name: 'SBI', type: 'PSU', flowLow: '7.1', flowHigh: '9.65', fixLow: '8.7', fixHigh: '11.2', offer: 'Zero PF on home', visible: true },
-                          { lenderId: 2, name: 'HDFC Bank', type: 'Private', flowLow: '7.2', flowHigh: '9.8', fixLow: '8.8', fixHigh: '11.5', offer: 'Pre-approved off', visible: true },
-                          { lenderId: 3, name: 'ICICI Bank', type: 'Private', flowLow: '7.25', flowHigh: '9.9', fixLow: '8.9', fixHigh: '11.6', offer: 'Instant in-princip', visible: true },
-                          { lenderId: 4, name: 'Axis Bank', type: 'Private', flowLow: '7.3', flowHigh: '10', fixLow: '9', fixHigh: '11.7', offer: 'Offer text', visible: true },
-                          { lenderId: 5, name: 'Kotak Mahindra', type: 'Private', flowLow: '7.4', flowHigh: '9.75', fixLow: '9', fixHigh: '11.5', offer: 'Offer text', visible: true },
-                          { lenderId: 6, name: 'Bajaj Finserv', type: 'NBFC/HFC', flowLow: '7.25', flowHigh: '10.5', fixLow: '9', fixHigh: '12', offer: 'Pre-approved pei', visible: true },
-                          { lenderId: 7, name: 'PNB Housing', type: 'NBFC/HFC', flowLow: '7.5', flowHigh: '13.45', fixLow: '9', fixHigh: '14', offer: 'Offer text', visible: true },
-                          { lenderId: 8, name: 'LIC Housing', type: 'NBFC/HFC', flowLow: '7.5', flowHigh: '10.35', fixLow: '9.5', fixHigh: '12', offer: 'Griha Lakshmi Sp', visible: true },
-                          { lenderId: 9, name: 'Tata Capital', type: 'NBFC/HFC', flowLow: '8.5', flowHigh: '11', fixLow: '9.5', fixHigh: '12', offer: 'Digital home loan', visible: true },
-                          { lenderId: 10, name: 'Bank of Baroda', type: 'PSU', flowLow: '7.1', flowHigh: '9.6', fixLow: '8.6', fixHigh: '11.1', offer: 'Offer text', visible: true }
-                        ];
+                        const categoryPresets = {
+                          HL: [
+                            { lenderId: 1, name: 'SBI', type: 'PSU', flowLow: '7.10', flowHigh: '9.65', fixLow: '8.70', fixHigh: '11.20', offer: 'Zero PF on home', visible: true },
+                            { lenderId: 2, name: 'HDFC Bank', type: 'Private', flowLow: '7.20', flowHigh: '9.80', fixLow: '8.80', fixHigh: '11.50', offer: 'Pre-approved off', visible: true },
+                            { lenderId: 3, name: 'ICICI Bank', type: 'Private', flowLow: '7.25', flowHigh: '9.90', fixLow: '8.90', fixHigh: '11.60', offer: 'Instant in-princip', visible: true },
+                            { lenderId: 4, name: 'Axis Bank', type: 'Private', flowLow: '7.30', flowHigh: '10.00', fixLow: '9.00', fixHigh: '11.70', offer: 'Special concession', visible: true },
+                            { lenderId: 5, name: 'Kotak Mahindra', type: 'Private', flowLow: '7.40', flowHigh: '9.75', fixLow: '9.00', fixHigh: '11.50', offer: 'Reduced processing fee', visible: true },
+                            { lenderId: 6, name: 'Bajaj Finserv', type: 'NBFC/HFC', flowLow: '7.25', flowHigh: '10.50', fixLow: '9.00', fixHigh: '12.00', offer: 'Pre-approved pei', visible: true },
+                            { lenderId: 7, name: 'PNB Housing', type: 'NBFC/HFC', flowLow: '7.50', flowHigh: '13.45', fixLow: '9.00', fixHigh: '14.00', offer: 'Custom tenure plans', visible: true },
+                            { lenderId: 8, name: 'LIC Housing', type: 'NBFC/HFC', flowLow: '7.50', flowHigh: '10.35', fixLow: '9.50', fixHigh: '12.00', offer: 'Griha Lakshmi Sp', visible: true },
+                            { lenderId: 9, name: 'Tata Capital', type: 'NBFC/HFC', flowLow: '8.50', flowHigh: '11.00', fixLow: '9.50', fixHigh: '12.00', offer: 'Digital home loan', visible: true },
+                            { lenderId: 10, name: 'Bank of Baroda', type: 'PSU', flowLow: '7.10', flowHigh: '9.60', fixLow: '8.60', fixHigh: '11.10', offer: 'Zero processing fee', visible: true }
+                          ],
+                          PL: [
+                            { lenderId: 1, name: 'SBI', type: 'PSU', flowLow: '10.50', flowHigh: '14.50', fixLow: '11.50', fixHigh: '15.50', offer: 'Quick 10-min approval', visible: true },
+                            { lenderId: 2, name: 'HDFC Bank', type: 'Private', flowLow: '10.75', flowHigh: '15.00', fixLow: '11.75', fixHigh: '16.00', offer: 'Pre-approved salary offer', visible: true },
+                            { lenderId: 3, name: 'ICICI Bank', type: 'Private', flowLow: '10.65', flowHigh: '14.75', fixLow: '11.65', fixHigh: '15.75', offer: 'Instant disbursement', visible: true },
+                            { lenderId: 4, name: 'Axis Bank', type: 'Private', flowLow: '10.99', flowHigh: '15.50', fixLow: '12.00', fixHigh: '16.50', offer: 'Zero documentation charge', visible: true },
+                            { lenderId: 5, name: 'Kotak Mahindra', type: 'Private', flowLow: '10.90', flowHigh: '15.25', fixLow: '11.90', fixHigh: '16.25', offer: 'Flexible repayment tenure', visible: true },
+                            { lenderId: 6, name: 'Bajaj Finserv', type: 'NBFC/HFC', flowLow: '11.50', flowHigh: '16.50', fixLow: '12.50', fixHigh: '18.00', offer: 'No collateral required', visible: true },
+                            { lenderId: 7, name: 'PNB Housing', type: 'NBFC/HFC', flowLow: '11.75', flowHigh: '16.00', fixLow: '12.75', fixHigh: '17.50', offer: 'Low EMI options', visible: true },
+                            { lenderId: 8, name: 'LIC Housing', type: 'NBFC/HFC', flowLow: '11.25', flowHigh: '15.50', fixLow: '12.25', fixHigh: '16.75', offer: 'Special staff ROI', visible: true },
+                            { lenderId: 9, name: 'Tata Capital', type: 'NBFC/HFC', flowLow: '11.99', flowHigh: '17.00', fixLow: '13.00', fixHigh: '18.50', offer: '100% digital process', visible: true },
+                            { lenderId: 10, name: 'Bank of Baroda', type: 'PSU', flowLow: '10.40', flowHigh: '14.25', fixLow: '11.40', fixHigh: '15.25', offer: 'Minimal documentation', visible: true }
+                          ],
+                          BL: [
+                            { lenderId: 1, name: 'SBI', type: 'PSU', flowLow: '11.25', flowHigh: '16.00', fixLow: '12.50', fixHigh: '17.25', offer: 'Working capital special', visible: true },
+                            { lenderId: 2, name: 'HDFC Bank', type: 'Private', flowLow: '11.50', flowHigh: '16.50', fixLow: '12.75', fixHigh: '17.75', offer: 'Collateral free up to 50L', visible: true },
+                            { lenderId: 3, name: 'ICICI Bank', type: 'Private', flowLow: '11.40', flowHigh: '16.25', fixLow: '12.60', fixHigh: '17.50', offer: 'MSME growth loan', visible: true },
+                            { lenderId: 4, name: 'Axis Bank', type: 'Private', flowLow: '11.75', flowHigh: '17.00', fixLow: '13.00', fixHigh: '18.25', offer: 'Overdraft facility', visible: true },
+                            { lenderId: 5, name: 'Kotak Mahindra', type: 'Private', flowLow: '11.90', flowHigh: '17.25', fixLow: '13.15', fixHigh: '18.50', offer: 'Custom EMI schedule', visible: true },
+                            { lenderId: 6, name: 'Bajaj Finserv', type: 'NBFC/HFC', flowLow: '12.50', flowHigh: '18.50', fixLow: '13.75', fixHigh: '19.75', offer: 'Fast track 48hr disbursal', visible: true },
+                            { lenderId: 7, name: 'PNB Housing', type: 'NBFC/HFC', flowLow: '12.75', flowHigh: '18.00', fixLow: '14.00', fixHigh: '19.50', offer: 'Machinery finance discount', visible: true },
+                            { lenderId: 8, name: 'LIC Housing', type: 'NBFC/HFC', flowLow: '12.00', flowHigh: '17.50', fixLow: '13.25', fixHigh: '18.75', offer: 'Low processing fee', visible: true },
+                            { lenderId: 9, name: 'Tata Capital', type: 'NBFC/HFC', flowLow: '13.00', flowHigh: '19.50', fixLow: '14.50', fixHigh: '21.00', offer: 'Unsecured business loan', visible: true },
+                            { lenderId: 10, name: 'Bank of Baroda', type: 'PSU', flowLow: '11.10', flowHigh: '15.75', fixLow: '12.10', fixHigh: '16.75', offer: 'Mudra & MSME scheme', visible: true }
+                          ],
+                          VL: [
+                            { lenderId: 1, name: 'SBI', type: 'PSU', flowLow: '8.75', flowHigh: '11.00', fixLow: '9.50', fixHigh: '12.00', offer: '100% on-road funding', visible: true },
+                            { lenderId: 2, name: 'HDFC Bank', type: 'Private', flowLow: '8.85', flowHigh: '11.25', fixLow: '9.65', fixHigh: '12.25', offer: 'Zero foreclosure charges', visible: true },
+                            { lenderId: 3, name: 'ICICI Bank', type: 'Private', flowLow: '8.80', flowHigh: '11.15', fixLow: '9.60', fixHigh: '12.15', offer: 'Pre-approved car loan', visible: true },
+                            { lenderId: 4, name: 'Axis Bank', type: 'Private', flowLow: '8.99', flowHigh: '11.50', fixLow: '9.85', fixHigh: '12.50', offer: 'Instant approval on app', visible: true },
+                            { lenderId: 5, name: 'Kotak Mahindra', type: 'Private', flowLow: '9.10', flowHigh: '11.75', fixLow: '9.95', fixHigh: '12.75', offer: 'EV vehicle discount', visible: true },
+                            { lenderId: 6, name: 'Bajaj Finserv', type: 'NBFC/HFC', flowLow: '9.25', flowHigh: '12.50', fixLow: '10.25', fixHigh: '13.50', offer: 'Used car finance offer', visible: true },
+                            { lenderId: 7, name: 'PNB Housing', type: 'NBFC/HFC', flowLow: '9.50', flowHigh: '12.75', fixLow: '10.50', fixHigh: '13.75', offer: 'Commercial vehicle special', visible: true },
+                            { lenderId: 8, name: 'LIC Housing', type: 'NBFC/HFC', flowLow: '9.00', flowHigh: '11.80', fixLow: '9.90', fixHigh: '12.80', offer: 'Low EMI tenure', visible: true },
+                            { lenderId: 9, name: 'Tata Capital', type: 'NBFC/HFC', flowLow: '9.75', flowHigh: '13.00', fixLow: '10.75', fixHigh: '14.00', offer: 'Two-wheeler instant loan', visible: true },
+                            { lenderId: 10, name: 'Bank of Baroda', type: 'PSU', flowLow: '8.70', flowHigh: '10.90', fixLow: '9.40', fixHigh: '11.90', offer: 'Baroda auto loan scheme', visible: true }
+                          ],
+                          LAP: [
+                            { lenderId: 1, name: 'SBI', type: 'PSU', flowLow: '9.25', flowHigh: '12.00', fixLow: '10.25', fixHigh: '13.00', offer: 'High LTV ratio funding', visible: true },
+                            { lenderId: 2, name: 'HDFC Bank', type: 'Private', flowLow: '9.50', flowHigh: '12.25', fixLow: '10.50', fixHigh: '13.25', offer: 'Commercial property LAP', visible: true },
+                            { lenderId: 3, name: 'ICICI Bank', type: 'Private', flowLow: '9.40', flowHigh: '12.15', fixLow: '10.40', fixHigh: '13.15', offer: 'Residential LAP discount', visible: true },
+                            { lenderId: 4, name: 'Axis Bank', type: 'Private', flowLow: '9.65', flowHigh: '12.50', fixLow: '10.65', fixHigh: '13.50', offer: 'Balance transfer + Topup', visible: true },
+                            { lenderId: 5, name: 'Kotak Mahindra', type: 'Private', flowLow: '9.75', flowHigh: '12.75', fixLow: '10.75', fixHigh: '13.75', offer: 'Flexible repayment plan', visible: true },
+                            { lenderId: 6, name: 'Bajaj Finserv', type: 'NBFC/HFC', flowLow: '10.25', flowHigh: '13.50', fixLow: '11.25', fixHigh: '14.50', offer: 'High value LAP disbursal', visible: true },
+                            { lenderId: 7, name: 'PNB Housing', type: 'NBFC/HFC', flowLow: '10.50', flowHigh: '13.75', fixLow: '11.50', fixHigh: '14.75', offer: 'Industrial property LAP', visible: true },
+                            { lenderId: 8, name: 'LIC Housing', type: 'NBFC/HFC', flowLow: '9.60', flowHigh: '12.30', fixLow: '10.60', fixHigh: '13.30', offer: 'Low documentation fee', visible: true },
+                            { lenderId: 9, name: 'Tata Capital', type: 'NBFC/HFC', flowLow: '10.75', flowHigh: '14.00', fixLow: '11.75', fixHigh: '15.00', offer: 'Fast legal valuation', visible: true },
+                            { lenderId: 10, name: 'Bank of Baroda', type: 'PSU', flowLow: '9.15', flowHigh: '11.85', fixLow: '10.15', fixHigh: '12.85', offer: 'Special PSU LAP rates', visible: true }
+                          ]
+                        };
+
+                        const defaultLenderList = categoryPresets[selectedLoanCategory] || categoryPresets.HL;
 
                         const activeList = (Array.isArray(rates) && rates.length > 0) ? rates : defaultLenderList;
                         
