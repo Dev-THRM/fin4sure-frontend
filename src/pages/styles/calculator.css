@@ -12,17 +12,19 @@
 /* Top Gradient Header Area */
 .calc-header-gradient {
   background: linear-gradient(135deg, #1C2B54 0%, #253974 50%, #3B4B96 100%);
-  padding: 16px 20px 20px;
+  padding: 10px 20px;
   color: #FFFFFF;
-  text-align: center;
-  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .calc-nav-top {
   display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 10px;
+  align-items: center;
+  gap: 8px;
 }
 
 .calc-pill-btn {
@@ -30,8 +32,8 @@
   color: #FFFFFF;
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 20px;
-  padding: 4px 14px;
-  font-size: 0.76rem;
+  padding: 4px 12px;
+  font-size: 0.74rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -48,33 +50,28 @@
 
 .calc-hero-title {
   font-family: 'Playfair Display', Georgia, serif;
-  font-size: 1.45rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  margin: 0 0 4px 0;
+  margin: 0;
+  display: inline-block;
 }
 
 .calc-hero-sub {
-  font-size: 0.85rem;
-  color: #CBD5E1;
-  max-width: 620px;
-  margin: 0 auto 14px auto;
-  line-height: 1.4;
+  display: none;
 }
 
 /* 3-Step Progress Indicator */
 .calc-stepper-bar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  max-width: 700px;
-  margin: 0 auto;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .cs-step {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   opacity: 0.65;
   transition: opacity 0.2s ease;
 }
@@ -84,15 +81,15 @@
 }
 
 .cs-circle {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: #FFFFFF;
 }
@@ -104,7 +101,7 @@
 }
 
 .cs-label {
-  font-size: 0.84rem;
+  font-size: 0.78rem;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -113,7 +110,7 @@
   flex-grow: 1;
   height: 2px;
   background: rgba(255, 255, 255, 0.2);
-  max-width: 80px;
+  width: 30px;
 }
 
 .cs-line.active {
@@ -122,9 +119,9 @@
 
 /* Main Body Wrapper */
 .calc-body-wrap {
-  max-width: 1080px;
-  margin: 16px auto 30px;
-  padding: 0 20px;
+  max-width: 1280px;
+  margin: 12px auto 24px;
+  padding: 0 16px;
   box-sizing: border-box;
 }
 
