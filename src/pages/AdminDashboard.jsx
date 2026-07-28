@@ -273,11 +273,15 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     loadAdminData();
+    fetchSettings();
   }, [loadAdminData]);
 
   useEffect(() => {
     if (activeTab === "rates") {
       fetchLenderRates();
+    }
+    if (activeTab === "exports") {
+      fetchSettings();
     }
   }, [activeTab, selectedLoanCategory]);
 
@@ -389,6 +393,7 @@ export default function AdminDashboard() {
     try {
       const resRM = await fetch("/api/admin/relationship-manager", {
         credentials: "include",
+        headers: getAuthHeaders()
       });
       if (resRM.ok) {
         const data = await resRM.json();
@@ -401,6 +406,7 @@ export default function AdminDashboard() {
 
       const resAdmin = await fetch("/api/admin/admin-access-details", {
         credentials: "include",
+        headers: getAuthHeaders()
       });
       if (resAdmin.ok) {
         const data = await resAdmin.json();
@@ -411,6 +417,7 @@ export default function AdminDashboard() {
 
       const resPlat = await fetch("/api/admin/platform-settings", {
         credentials: "include",
+        headers: getAuthHeaders()
       });
       if (resPlat.ok) {
         const data = await resPlat.json();
@@ -422,7 +429,7 @@ export default function AdminDashboard() {
         setRatingStat(data.rating_stat || "");
       }
     } catch (e) {
-      console.error(e);
+      console.error("fetchSettings error:", e);
     }
   }
 
@@ -431,7 +438,7 @@ export default function AdminDashboard() {
       const res = await fetch("/api/admin/relationship-manager", {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(true),
         body: JSON.stringify({
           name: rmName,
           role: rmRole,
@@ -442,9 +449,13 @@ export default function AdminDashboard() {
       });
       if (res.ok) {
         setCustomAlert({ message: "Relationship Manager details saved successfully!", type: "success" });
+        fetchSettings();
+      } else {
+        setCustomAlert({ message: "Failed to save Relationship Manager details.", type: "error" });
       }
     } catch (e) {
-      console.error(e);
+      console.error("handleSaveRM error:", e);
+      setCustomAlert({ message: "Network error saving Relationship Manager details.", type: "error" });
     }
   }
 
@@ -453,7 +464,7 @@ export default function AdminDashboard() {
       const res = await fetch("/api/admin/platform-settings", {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(true),
         body: JSON.stringify({
           roi_disclaimer: roiDisclaimer,
           announcement_banner: announcementBanner
@@ -461,9 +472,13 @@ export default function AdminDashboard() {
       });
       if (res.ok) {
         setCustomAlert({ message: "ROI Disclaimer and Ticker Banner text saved successfully!", type: "success" });
+        fetchSettings();
+      } else {
+        setCustomAlert({ message: "Failed to save content settings.", type: "error" });
       }
     } catch (e) {
-      console.error(e);
+      console.error("handleSaveContent error:", e);
+      setCustomAlert({ message: "Network error saving content settings.", type: "error" });
     }
   }
 
@@ -472,7 +487,7 @@ export default function AdminDashboard() {
       const res = await fetch("/api/admin/platform-settings", {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(true),
         body: JSON.stringify({
           disbursed_stat: disbursedStat,
           borrowers_stat: borrowersStat,
@@ -482,9 +497,13 @@ export default function AdminDashboard() {
       });
       if (res.ok) {
         setCustomAlert({ message: "Platform Statistics saved and applied successfully!", type: "success" });
+        fetchSettings();
+      } else {
+        setCustomAlert({ message: "Failed to save Platform Statistics.", type: "error" });
       }
     } catch (e) {
-      console.error(e);
+      console.error("handleApplyStats error:", e);
+      setCustomAlert({ message: "Network error saving Platform Statistics.", type: "error" });
     }
   }
 
