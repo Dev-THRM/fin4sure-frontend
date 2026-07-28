@@ -770,13 +770,22 @@ export default function AdminDashboard() {
     });
   }, [borrowers, searchTerm, borrowerStatusFilter]);
 
-  // Status buckets (derived from real DB / leads array)
-  const IN_PROGRESS_STATUSES = ['docs', 'credit', 'submitted', 'sanction', 'legal', 'in progress'];
-  const PENDING_STATUSES = ['applied', 'pending'];
-  const disbursedCount = stats.completedCount ?? leads.filter(l => ['disbursed', 'completed'].includes((l.stage || l.status || '').toLowerCase())).length;
-  const rejectedCount = stats.rejectedCount ?? leads.filter(l => (l.stage || l.status || '').toLowerCase() === 'rejected').length;
-  const pendingCount = stats.pendingCount ?? leads.filter(l => PENDING_STATUSES.includes((l.stage || l.status || '').toLowerCase()) || (!l.status && !l.stage)).length;
-  const inProgressCount = stats.inProgressCount ?? leads.filter(l => IN_PROGRESS_STATUSES.includes((l.stage || l.status || '').toLowerCase())).length;
+  // Status buckets (derived directly from real leads status)
+  const disbursedCount = leads.length > 0
+    ? leads.filter(l => (l.status || '').toLowerCase().trim() === 'disbursed').length
+    : (stats.disbursedCount ?? stats.completedCount ?? 0);
+
+  const inProgressCount = leads.length > 0
+    ? leads.filter(l => (l.status || '').toLowerCase().trim() === 'in-progress').length
+    : (stats.inProgressCount ?? 0);
+
+  const pendingCount = leads.length > 0
+    ? leads.filter(l => (l.status || '').toLowerCase().trim() === 'pending').length
+    : (stats.pendingCount ?? 0);
+
+  const rejectedCount = leads.length > 0
+    ? leads.filter(l => (l.status || '').toLowerCase().trim() === 'rejected').length
+    : (stats.rejectedCount ?? 0);
   const activeLendersCount = stats.activeLenders ?? new Set(leads.map(l => l.lender).filter(Boolean)).size;
   const totalLeadsCount = leads.length || 1;
   const disbursedPct = Math.round((disbursedCount / totalLeadsCount) * 100);
