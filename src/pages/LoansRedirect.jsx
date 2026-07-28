@@ -15,7 +15,7 @@ export default function LoansRedirect() {
       "Education Loan": "education"
     };
     const loanTypeId = typeMap[productName] || "home";
-    navigate("/EMI-calculator", { 
+    navigate("/apply", { 
       state: { 
         loanType: loanTypeId, 
         selectedProduct: productName 
