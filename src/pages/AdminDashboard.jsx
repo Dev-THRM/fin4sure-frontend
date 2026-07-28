@@ -150,8 +150,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch('/api/admin/update-borrower', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(true),
         body: JSON.stringify({
           id: editingBorrower.id,
           name: editBorrowerForm.name,
@@ -161,12 +160,31 @@ export default function AdminDashboard() {
         })
       });
       if (res.ok) {
+        const newSt = editBorrowerForm.status;
+        const isRej = ['rejected', 'inactive'].includes(String(newSt).toLowerCase().trim());
+
         setBorrowers(prev => prev.map(b =>
           b.id === editingBorrower.id
             ? { ...b, name: editBorrowerForm.name, email: editBorrowerForm.email, number: editBorrowerForm.mobile, status: editBorrowerForm.status }
             : b
         ));
-        setCustomAlert({ type: 'success', message: `Borrower "${editBorrowerForm.name}" updated successfully!` });
+
+        if (isRej) {
+          setLeads(prev => prev.map(l => {
+            const isMatch = l.borrower_id === editingBorrower.id || l.borrower_id === editingBorrower.borrowerId || String(l.name).toLowerCase() === String(editingBorrower.name).toLowerCase();
+            if (isMatch) {
+              return { ...l, status: 'rejected', stage: 'REJECTED' };
+            }
+            return l;
+          }));
+        }
+
+        setCustomAlert({
+          type: 'success',
+          message: isRej
+            ? `Borrower "${editBorrowerForm.name}" & associated loan applications marked REJECTED!`
+            : `Borrower "${editBorrowerForm.name}" updated successfully!`
+        });
       } else {
         setCustomAlert({ type: 'error', message: 'Failed to update borrower.' });
       }
@@ -1123,13 +1141,13 @@ export default function AdminDashboard() {
 
                       let filtered = sourceList;
                       if (activeKpiFilter === 'disbursed') {
-                        filtered = sourceList.filter(l => ['disbursed', 'completed'].includes((l.status || l.stage || '').toLowerCase()));
+                        filtered = sourceList.filter(l => ['disbursed', 'completed'].includes((l.status || l.stage || '').toLowerCase().trim()));
                       } else if (activeKpiFilter === 'in_progress') {
-                        filtered = sourceList.filter(l => !['disbursed', 'completed', 'rejected', 'pending'].includes((l.status || l.stage || '').toLowerCase()));
+                        filtered = sourceList.filter(l => ['in-progress', 'in progress', 'submitted', 'docs', 'documents', 'credit', 'legal', 'sanction', 'processing'].includes((l.status || l.stage || '').toLowerCase().trim()));
                       } else if (activeKpiFilter === 'pending') {
-                        filtered = sourceList.filter(l => ['pending', 'applied'].includes((l.status || l.stage || '').toLowerCase()));
+                        filtered = sourceList.filter(l => ['pending', 'applied'].includes((l.status || l.stage || '').toLowerCase().trim()) && (l.status || l.stage || '').toLowerCase().trim() !== 'rejected');
                       } else if (activeKpiFilter === 'rejected') {
-                        filtered = sourceList.filter(l => (l.status || l.stage || '').toLowerCase() === 'rejected');
+                        filtered = sourceList.filter(l => (l.status || l.stage || '').toLowerCase().trim() === 'rejected');
                       } else if (activeKpiFilter === 'loan_volume') {
                         filtered = [...sourceList].sort((a, b) => (parseFloat(b.loan_amount) || 0) - (parseFloat(a.loan_amount) || 0));
                       }
