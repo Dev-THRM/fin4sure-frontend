@@ -64,7 +64,7 @@ export default function HomeEmiWidget() {
 
   const handleRedirect = () => {
     navigate("/EMI-calculator", {
-      state: { loanType, amount, rate, tenure }
+      state: { loanType, amount, rate, tenure, emi }
     });
   };
 
@@ -225,11 +225,7 @@ export default function HomeEmiWidget() {
           </div>
         </div>
 
-        {/* Live EMI Preview inside the widget */}
-        <div className="home-emi-preview">
-          <div className="preview-label">Estimated Monthly EMI</div>
-          <div className="preview-val">{fmtINRFull(emi)}</div>
-        </div>
+
 
         {/* Redirect Tab to Full Calculator */}
         <div className="emi-redirect-tab" onClick={handleRedirect}>
