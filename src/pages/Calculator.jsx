@@ -200,6 +200,16 @@ export default function Calculator() {
     return 10.40;
   };
 
+  // Handle rate type toggle with auto-updated expected ROI rate
+  const handleRateTypeChange = (type) => {
+    setRateType(type);
+    if (type === 'floating') {
+      setRate(7.20);
+    } else {
+      setRate(8.80);
+    }
+  };
+
   // Combine DB lenders or default fallback list with exact Floating vs Fixed rates
   const mergedLendersList = useMemo(() => {
     if (dbLenders.length > 0) {
@@ -485,7 +495,7 @@ export default function Calculator() {
                 <div style={{ display: 'inline-flex', background: '#F1F5F9', padding: '4px', borderRadius: '24px', border: '1px solid #CBD5E1' }}>
                   <button
                     type="button"
-                    onClick={() => setRateType('floating')}
+                    onClick={() => handleRateTypeChange('floating')}
                     style={{
                       padding: '6px 20px',
                       borderRadius: '20px',
@@ -498,11 +508,11 @@ export default function Calculator() {
                       transition: 'all 0.2s ease'
                     }}
                   >
-                    ~ Floating
+                    ⚡ Floating
                   </button>
                   <button
                     type="button"
-                    onClick={() => setRateType('fixed')}
+                    onClick={() => handleRateTypeChange('fixed')}
                     style={{
                       padding: '6px 20px',
                       borderRadius: '20px',
@@ -556,6 +566,23 @@ export default function Calculator() {
                   <span>Fixed rate: Rate stays constant throughout tenure. This loan type is offered on a fixed-rate basis by lenders.</span>
                 </div>
               )}
+
+              {/* Live Rate Snapshot Chips Bar */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '16px', flexWrap: 'wrap', background: '#F8FAFC', padding: '12px 16px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0F2942' }}>
+                  ⚡ Live {rateType === 'floating' ? 'Floating' : 'Fixed'} Rates Snapshot:
+                </span>
+                {filteredAndSortedLenders.slice(0, 4).map(l => (
+                  <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#FFFFFF', padding: '4px 10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.78rem', fontWeight: 700 }}>
+                    <span style={{ color: '#0F2942' }}>{l.name}:</span>
+                    <span style={{ color: '#0284C7', fontWeight: 900 }}>{l.rate.toFixed(2)}%</span>
+                    <span style={{ color: '#64748B', fontSize: '0.7rem' }}>({fmtINRFull(calcEMI(amount, l.rate, tenure))}/mo)</span>
+                  </div>
+                ))}
+                <a href="#compare-lenders-section" style={{ marginLeft: 'auto', fontSize: '0.78rem', fontWeight: 800, color: '#0284C7', textDecoration: 'none' }}>
+                  View Full Table ↓
+                </a>
+              </div>
             </div>
 
             {/* ═══ 2-COLUMN CALCULATOR CONTAINER ═══ */}
@@ -818,6 +845,208 @@ export default function Calculator() {
                 </div>
               </div>
             </div>
+            <div id="compare-lenders-section" style={{ background: '#FFFFFF', borderRadius: '20px', border: '1px solid #E2E8F0', padding: '32px', marginBottom: '32px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.03)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
+                <div>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#E0F2FE', color: '#0369A1', padding: '2px 8px', borderRadius: '10px', fontSize: '0.72rem', fontWeight: 800, marginBottom: '6px' }}>
+                    ⚡ LIVE {rateType === 'floating' ? 'FLOATING' : 'FIXED'} RATES
+                  </div>
+                  <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.5rem', fontWeight: 800, color: '#0F2942', margin: '0 0 4px 0' }}>
+                    Compare Lenders ({rateType === 'floating' ? 'Floating' : 'Fixed'} Rates)
+                  </h2>
+                  <p style={{ fontSize: '0.88rem', color: '#64748B', margin: 0 }}>
+                    Live rates from 10+ lenders curated for your profile
+                  </p>
+                </div>
+
+                {/* Filter Pills & Sort Dropdown */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: '6px', background: '#F8FAFC', padding: '4px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                    {["All", "PSU", "Private", "NBFC/HFC", "SFB"].map((fl) => (
+                      <button
+                        key={fl}
+                        type="button"
+                        onClick={() => setLenderFilter(fl)}
+                        style={{
+                          padding: '4px 12px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          background: lenderFilter === fl ? '#0F2942' : 'transparent',
+                          color: lenderFilter === fl ? '#FFFFFF' : '#64748B',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        {fl}
+                      </button>
+                    ))}
+                  </div>
+
+                  <select
+                    value={lenderSort}
+                    onChange={(e) => setLenderSort(e.target.value)}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '10px',
+                      border: '1px solid #CBD5E1',
+                      background: '#FFFFFF',
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      color: '#0F2942',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value="rate_asc">Lowest Rate ▾</option>
+                    <option value="rate_desc">Highest Rate ▾</option>
+                    <option value="emi_asc">Lowest EMI ▾</option>
+                  </select>
+                </div>
+              </div>
+
+              {filteredAndSortedLenders.length > 0 && (
+                <div style={{
+                  background: 'linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%)',
+                  border: '1.5px solid #BFDBFE',
+                  borderRadius: '16px',
+                  padding: '20px 24px',
+                  marginBottom: '24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '20px',
+                  flexWrap: 'wrap'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>
+                      🏛️
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontWeight: 800, fontSize: '1rem', color: '#0F2942' }}>{filteredAndSortedLenders[0].name}</span>
+                        <span style={{ padding: '2px 8px', borderRadius: '10px', background: '#DBEAFE', color: '#1E40AF', fontSize: '0.7rem', fontWeight: 700 }}>
+                          {filteredAndSortedLenders[0].type || 'PRIVATE'}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: '#D97706', fontWeight: 700, marginTop: '2px' }}>
+                        🏷️ {filteredAndSortedLenders[0].offer || "Pre-approved offers available."}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0F2942' }}>{filteredAndSortedLenders[0].rate.toFixed(2)}%</div>
+                      <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>{filteredAndSortedLenders[0].rate.toFixed(2)}–{filteredAndSortedLenders[0].maxRate.toFixed(2)}</div>
+                    </div>
+
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0284C7' }}>
+                        {fmtINRFull(calcEMI(amount, filteredAndSortedLenders[0].rate, tenure))}<span style={{ fontSize: '0.75rem', fontWeight: 600 }}>/mo</span>
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>Est. EMI</div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedLenders([filteredAndSortedLenders[0].id]);
+                        setStepperStep(2);
+                      }}
+                      style={{
+                        padding: '10px 22px',
+                        borderRadius: '10px',
+                        background: '#0F2942',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        fontWeight: 800,
+                        fontSize: '0.88rem',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(15,41,66,0.2)'
+                      }}
+                    >
+                      Apply →
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Lenders Table */}
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+                  <thead>
+                    <tr style={{ background: '#0F2942', color: '#FFFFFF', textAlign: 'left' }}>
+                      <th style={{ padding: '14px 20px', borderRadius: '10px 0 0 0', fontWeight: 800, fontSize: '0.78rem', letterSpacing: '0.05em' }}>LENDER</th>
+                      <th style={{ padding: '14px 20px', fontWeight: 800, fontSize: '0.78rem', letterSpacing: '0.05em' }}>EXPECTED ROI ({rateType === 'floating' ? 'FLOATING' : 'FIXED'})</th>
+                      <th style={{ padding: '14px 20px', fontWeight: 800, fontSize: '0.78rem', letterSpacing: '0.05em' }}>EST. EMI</th>
+                      <th style={{ padding: '14px 20px', borderRadius: '0 10px 0 0', textAlign: 'right', fontWeight: 800, fontSize: '0.78rem', letterSpacing: '0.05em' }}>ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredAndSortedLenders.map((lender) => {
+                      const lEmi = calcEMI(amount, lender.rate, tenure);
+                      return (
+                        <tr key={lender.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '14px 20px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>
+                                🏛️
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 800, color: '#0F2942' }}>{lender.name}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                                  <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748B', background: '#F1F5F9', padding: '1px 6px', borderRadius: '6px' }}>
+                                    {lender.type || 'PRIVATE'}
+                                  </span>
+                                  {lender.offer && (
+                                    <span style={{ fontSize: '0.72rem', color: '#D97706', fontWeight: 600 }}>
+                                      🏷️ {lender.offer}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td style={{ padding: '14px 20px' }}>
+                            <div style={{ fontWeight: 800, color: '#0F2942', fontSize: '0.95rem' }}>{lender.rate.toFixed(2)}%</div>
+                            <div style={{ fontSize: '0.72rem', color: '#64748B' }}>{lender.rate.toFixed(2)}–{lender.maxRate.toFixed(2)}</div>
+                          </td>
+
+                          <td style={{ padding: '14px 20px' }}>
+                            <div style={{ fontWeight: 800, color: '#0284C7', fontSize: '0.95rem' }}>{fmtINRFull(lEmi)}<span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748B' }}>/mo</span></div>
+                          </td>
+
+                          <td style={{ padding: '14px 20px', textAlign: 'right' }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedLenders([lender.id]);
+                                setStepperStep(2);
+                              }}
+                              style={{
+                                padding: '8px 18px',
+                                borderRadius: '8px',
+                                background: '#0F2942',
+                                color: '#FFFFFF',
+                                border: 'none',
+                                fontWeight: 800,
+                                fontSize: '0.82rem',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                              }}
+                            >
+                              Apply →
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
             {/* ═══ SUB-TABS: SCHEDULE SUMMARY | AMORTIZATION SCHEDULE ═══ */}
             <div style={{ background: '#FFFFFF', borderRadius: '20px', border: '1px solid #E2E8F0', padding: '24px 32px', marginBottom: '32px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.03)' }}>
@@ -915,206 +1144,6 @@ export default function Calculator() {
                   </table>
                 </div>
               )}
-            </div>
-
-            {/* ═══ BOTTOM SECTION: COMPARE LENDERS ═══ */}
-            <div style={{ background: '#FFFFFF', borderRadius: '20px', border: '1px solid #E2E8F0', padding: '32px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.03)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
-                <div>
-                  <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.5rem', fontWeight: 800, color: '#0F2942', margin: '0 0 4px 0' }}>
-                    Compare Lenders
-                  </h2>
-                  <p style={{ fontSize: '0.88rem', color: '#64748B', margin: 0 }}>
-                    Live rates from 10+ lenders curated for your profile
-                  </p>
-                </div>
-
-                {/* Filter Pills & Sort Dropdown */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', gap: '6px', background: '#F8FAFC', padding: '4px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-                    {["All", "PSU", "Private", "NBFC/HFC", "SFB"].map((fl) => (
-                      <button
-                        key={fl}
-                        type="button"
-                        onClick={() => setLenderFilter(fl)}
-                        style={{
-                          padding: '4px 12px',
-                          borderRadius: '8px',
-                          border: 'none',
-                          fontSize: '0.78rem',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          background: lenderFilter === fl ? '#0F2942' : 'transparent',
-                          color: lenderFilter === fl ? '#FFFFFF' : '#64748B',
-                          transition: 'all 0.2s ease'
-                        }}
-                      >
-                        {fl}
-                      </button>
-                    ))}
-                  </div>
-
-                  <select
-                    value={lenderSort}
-                    onChange={(e) => setLenderSort(e.target.value)}
-                    style={{
-                      padding: '6px 14px',
-                      borderRadius: '10px',
-                      border: '1px solid #CBD5E1',
-                      background: '#FFFFFF',
-                      fontSize: '0.82rem',
-                      fontWeight: 700,
-                      color: '#0F2942',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <option value="rate_asc">Lowest Rate ▾</option>
-                    <option value="rate_desc">Highest Rate ▾</option>
-                    <option value="emi_asc">Lowest EMI ▾</option>
-                  </select>
-                </div>
-              </div>
-              {filteredAndSortedLenders.length > 0 && (
-                <div style={{
-                  background: 'linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%)',
-                  border: '1.5px solid #BFDBFE',
-                  borderRadius: '16px',
-                  padding: '20px 24px',
-                  marginBottom: '24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '20px',
-                  flexWrap: 'wrap'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>
-                      🏛️
-                    </div>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontWeight: 800, fontSize: '1rem', color: '#0F2942' }}>{filteredAndSortedLenders[0].name}</span>
-                        <span style={{ padding: '2px 8px', borderRadius: '10px', background: '#DBEAFE', color: '#1E40AF', fontSize: '0.7rem', fontWeight: 700 }}>
-                          {filteredAndSortedLenders[0].type || 'PRIVATE'}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '0.78rem', color: '#D97706', fontWeight: 700, marginTop: '2px' }}>
-                        🏷️ {filteredAndSortedLenders[0].offer || "Pre-approved offers available."}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0F2942' }}>{filteredAndSortedLenders[0].rate.toFixed(2)}%</div>
-                      <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>{filteredAndSortedLenders[0].rate.toFixed(2)}–{filteredAndSortedLenders[0].maxRate.toFixed(2)}</div>
-                    </div>
-
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0284C7' }}>
-                        {fmtINRFull(calcEMI(amount, filteredAndSortedLenders[0].rate, tenure))}<span style={{ fontSize: '0.75rem', fontWeight: 600 }}>/mo</span>
-                      </div>
-                      <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>Est. EMI</div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedLenders([filteredAndSortedLenders[0].id]);
-                        setStepperStep(2);
-                      }}
-                      style={{
-                        padding: '10px 22px',
-                        borderRadius: '10px',
-                        background: '#0F2942',
-                        color: '#FFFFFF',
-                        border: 'none',
-                        fontWeight: 800,
-                        fontSize: '0.88rem',
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 12px rgba(15,41,66,0.2)'
-                      }}
-                    >
-                      Apply →
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Lenders Table */}
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
-                  <thead>
-                    <tr style={{ background: '#0F2942', color: '#FFFFFF', textAlign: 'left' }}>
-                      <th style={{ padding: '14px 20px', borderRadius: '10px 0 0 0', fontWeight: 800, fontSize: '0.78rem', letterSpacing: '0.05em' }}>LENDER</th>
-                      <th style={{ padding: '14px 20px', fontWeight: 800, fontSize: '0.78rem', letterSpacing: '0.05em' }}>EXPECTED ROI</th>
-                      <th style={{ padding: '14px 20px', fontWeight: 800, fontSize: '0.78rem', letterSpacing: '0.05em' }}>EST. EMI</th>
-                      <th style={{ padding: '14px 20px', borderRadius: '0 10px 0 0', textAlign: 'right', fontWeight: 800, fontSize: '0.78rem', letterSpacing: '0.05em' }}>ACTION</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredAndSortedLenders.map((lender) => {
-                      const lEmi = calcEMI(amount, lender.rate, tenure);
-                      return (
-                        <tr key={lender.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                          <td style={{ padding: '14px 20px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                              <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>
-                                🏛️
-                              </div>
-                              <div>
-                                <div style={{ fontWeight: 800, color: '#0F2942' }}>{lender.name}</div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-                                  <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748B', background: '#F1F5F9', padding: '1px 6px', borderRadius: '6px' }}>
-                                    {lender.type || 'PRIVATE'}
-                                  </span>
-                                  {lender.offer && (
-                                    <span style={{ fontSize: '0.72rem', color: '#D97706', fontWeight: 600 }}>
-                                      🏷️ {lender.offer}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-
-                          <td style={{ padding: '14px 20px' }}>
-                            <div style={{ fontWeight: 800, color: '#0F2942', fontSize: '0.95rem' }}>{lender.rate.toFixed(2)}%</div>
-                            <div style={{ fontSize: '0.72rem', color: '#64748B' }}>{lender.rate.toFixed(2)}–{lender.maxRate.toFixed(2)}</div>
-                          </td>
-
-                          <td style={{ padding: '14px 20px' }}>
-                            <div style={{ fontWeight: 800, color: '#0284C7', fontSize: '0.95rem' }}>{fmtINRFull(lEmi)}<span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748B' }}>/mo</span></div>
-                          </td>
-
-                          <td style={{ padding: '14px 20px', textAlign: 'right' }}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedLenders([lender.id]);
-                                setStepperStep(2);
-                              }}
-                              style={{
-                                padding: '8px 18px',
-                                borderRadius: '8px',
-                                background: '#0F2942',
-                                color: '#FFFFFF',
-                                border: 'none',
-                                fontWeight: 800,
-                                fontSize: '0.82rem',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease'
-                              }}
-                            >
-                              Apply →
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
             </div>
           </>
         ) : stepperStep === 2 ? (
