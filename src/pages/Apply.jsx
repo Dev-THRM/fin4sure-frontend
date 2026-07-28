@@ -24,6 +24,8 @@ export default function Apply() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showLoginRequiredModal, setShowLoginRequiredModal] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
 
   // Fetch actual loan types from DB
   useEffect(() => {
@@ -74,14 +76,13 @@ export default function Apply() {
     if (loading) return;
 
     if (!user || !user.email) {
-      alert("Please log in or register a borrower account to complete your loan application.");
-      navigate("/login", { state: { redirectTarget: "/apply" } });
+      setShowLoginRequiredModal(true);
       return;
     }
 
     if (isAdmin) {
       setError("Admin & Partner accounts cannot submit loan applications. Only borrower accounts can apply.");
-      alert("⚠️ Admin & Partner accounts cannot submit loan applications. Only borrower accounts can apply.");
+      setShowAdminModal(true);
       return;
     }
 
@@ -342,6 +343,122 @@ export default function Apply() {
           </div>
         )}
       </div>
+
+      {/* ═══ CUSTOM LOGIN REQUIRED MODAL POPUP ═══ */}
+      {showLoginRequiredModal && (
+        <div className="custom-modal-backdrop" onClick={() => setShowLoginRequiredModal(false)}>
+          <div className="custom-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px', padding: '32px', textAlign: 'center' }}>
+            <div className="cmc-icon-badge" style={{ background: '#EFF6FF', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', margin: '0 auto 16px auto', color: '#2563EB' }}>
+              🔒
+            </div>
+            <h3 className="cmc-title" style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0F2942', marginBottom: '10px' }}>
+              Borrower Account Required
+            </h3>
+            <p className="cmc-message" style={{ color: '#64748B', fontSize: '0.92rem', lineHeight: '1.5', marginBottom: '24px' }}>
+              Please log in or register a borrower account to complete your loan application and track progress on your dashboard.
+            </p>
+
+            <div className="cmc-actions" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button
+                className="cmc-btn-primary"
+                style={{
+                  width: '100%',
+                  padding: '12px 20px',
+                  borderRadius: '10px',
+                  background: '#0284C7',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(2,132,199,0.25)'
+                }}
+                onClick={() => {
+                  setShowLoginRequiredModal(false);
+                  navigate("/login", { state: { redirectTarget: "/apply" } });
+                }}
+              >
+                Log In / Register Borrower Account →
+              </button>
+              <button
+                className="cmc-btn-secondary"
+                style={{
+                  width: '100%',
+                  padding: '10px 20px',
+                  borderRadius: '10px',
+                  background: '#F1F5F9',
+                  color: '#475569',
+                  border: 'none',
+                  fontWeight: 700,
+                  fontSize: '0.88rem',
+                  cursor: 'pointer'
+                }}
+                onClick={() => setShowLoginRequiredModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ CUSTOM ADMIN MODAL POPUP ═══ */}
+      {showAdminModal && (
+        <div className="custom-modal-backdrop" onClick={() => setShowAdminModal(false)}>
+          <div className="custom-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px', padding: '32px', textAlign: 'center' }}>
+            <div className="cmc-icon-badge" style={{ background: '#FEF2F2', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', margin: '0 auto 16px auto', color: '#DC2626' }}>
+              ⚠️
+            </div>
+            <h3 className="cmc-title" style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0F2942', marginBottom: '10px' }}>
+              Borrower Account Required
+            </h3>
+            <p className="cmc-message" style={{ color: '#64748B', fontSize: '0.92rem', lineHeight: '1.5', marginBottom: '24px' }}>
+              Admin and Partner accounts cannot submit loan applications. Only borrower accounts can apply.
+            </p>
+
+            <div className="cmc-actions" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button
+                className="cmc-btn-primary"
+                style={{
+                  width: '100%',
+                  padding: '12px 20px',
+                  borderRadius: '10px',
+                  background: '#0284C7',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(2,132,199,0.25)'
+                }}
+                onClick={() => {
+                  setShowAdminModal(false);
+                  navigate("/login");
+                }}
+              >
+                Sign In as Borrower →
+              </button>
+              <button
+                className="cmc-btn-secondary"
+                style={{
+                  width: '100%',
+                  padding: '10px 20px',
+                  borderRadius: '10px',
+                  background: '#F1F5F9',
+                  color: '#475569',
+                  border: 'none',
+                  fontWeight: 700,
+                  fontSize: '0.88rem',
+                  cursor: 'pointer'
+                }}
+                onClick={() => setShowAdminModal(false)}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

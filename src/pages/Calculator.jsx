@@ -226,6 +226,7 @@ export default function Calculator() {
   const [modalMessage, setModalMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [submittedAppId, setSubmittedAppId] = useState("");
+  const [showLoginRequiredModal, setShowLoginRequiredModal] = useState(false);
 
   const isAdmin = user?.role === "admin" || user?.role === "partner" || user?.role === "broker";
 
@@ -274,13 +275,13 @@ export default function Calculator() {
         selectedLenders,
         applicantData
       }));
-      alert("Please log in or register a borrower account to complete your loan application.");
-      navigate("/login", { state: { redirectTarget: "/apply" } });
+      setShowLoginRequiredModal(true);
       return;
     }
 
     if (isAdmin) {
-      setSubmitError("Admin & Partner accounts cannot submit loan applications. Only borrower accounts can apply.");
+      setModalMessage("Admin and Partner accounts cannot submit loan applications. Only borrower accounts can apply.");
+      setShowAdminModal(true);
       return;
     }
 
@@ -846,6 +847,64 @@ export default function Calculator() {
                 }}
               >
                 Go to Borrower Dashboard →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ CUSTOM LOGIN REQUIRED MODAL POPUP ═══ */}
+      {showLoginRequiredModal && (
+        <div className="custom-modal-backdrop" onClick={() => setShowLoginRequiredModal(false)}>
+          <div className="custom-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px', padding: '32px', textAlign: 'center' }}>
+            <div className="cmc-icon-badge" style={{ background: '#EFF6FF', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', margin: '0 auto 16px auto', color: '#2563EB' }}>
+              🔒
+            </div>
+            <h3 className="cmc-title" style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0F2942', marginBottom: '10px' }}>
+              Borrower Account Required
+            </h3>
+            <p className="cmc-message" style={{ color: '#64748B', fontSize: '0.92rem', lineHeight: '1.5', marginBottom: '24px' }}>
+              Please log in or register a borrower account to complete your loan application and track progress on your dashboard.
+            </p>
+
+            <div className="cmc-actions" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button
+                className="cmc-btn-primary"
+                style={{
+                  width: '100%',
+                  padding: '12px 20px',
+                  borderRadius: '10px',
+                  background: '#0284C7',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(2,132,199,0.25)'
+                }}
+                onClick={() => {
+                  setShowLoginRequiredModal(false);
+                  navigate("/login", { state: { redirectTarget: "/apply" } });
+                }}
+              >
+                Log In / Register Borrower Account →
+              </button>
+              <button
+                className="cmc-btn-secondary"
+                style={{
+                  width: '100%',
+                  padding: '10px 20px',
+                  borderRadius: '10px',
+                  background: '#F1F5F9',
+                  color: '#475569',
+                  border: 'none',
+                  fontWeight: 700,
+                  fontSize: '0.88rem',
+                  cursor: 'pointer'
+                }}
+                onClick={() => setShowLoginRequiredModal(false)}
+              >
+                Cancel
               </button>
             </div>
           </div>
