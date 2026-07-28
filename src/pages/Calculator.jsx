@@ -472,36 +472,33 @@ export default function Calculator() {
             {/* ═══ TOP HERO SECTION & RATE TYPE TOGGLE ═══ */}
             <div className="calc-hero-card" style={{
               background: '#FFFFFF',
-              borderRadius: '20px',
+              borderRadius: '16px',
               border: '1px solid #E2E8F0',
-              padding: '28px 32px',
-              marginBottom: '24px',
-              boxShadow: '0 10px 25px -5px rgba(0,0,0,0.03)'
+              padding: '14px 20px',
+              marginBottom: '12px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#0F2942', color: '#FFFFFF', padding: '3px 10px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.05em', marginBottom: '10px' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#0F2942', color: '#FFFFFF', padding: '2px 8px', borderRadius: '10px', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.05em', marginBottom: '4px' }}>
                     ✦ EMI CALCULATOR
                   </div>
-                  <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.75rem', fontWeight: 800, color: '#0F2942', margin: '0 0 6px 0' }}>
+                  <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.25rem', fontWeight: 800, color: '#0F2942', margin: 0 }}>
                     Plan your loan with confidence
                   </h2>
-                  <p style={{ fontSize: '0.92rem', color: '#64748B', margin: 0, maxWidth: '640px' }}>
-                    Adjust the amount, rate and tenure to see your monthly EMI instantly — then compare live rates from 10+ lenders.
-                  </p>
                 </div>
 
                 {/* Floating | Fixed Toggle */}
-                <div style={{ display: 'inline-flex', background: '#F1F5F9', padding: '4px', borderRadius: '24px', border: '1px solid #CBD5E1' }}>
+                <div style={{ display: 'inline-flex', background: '#F1F5F9', padding: '3px', borderRadius: '20px', border: '1px solid #CBD5E1' }}>
                   <button
                     type="button"
                     onClick={() => handleRateTypeChange('floating')}
                     style={{
-                      padding: '6px 20px',
-                      borderRadius: '20px',
+                      padding: '5px 16px',
+                      borderRadius: '16px',
                       border: 'none',
-                      fontSize: '0.85rem',
-                      fontWeight: 700,
+                      fontSize: '0.8rem',
+                      fontWeight: 800,
                       cursor: 'pointer',
                       background: rateType === 'floating' ? '#0F2942' : 'transparent',
                       color: rateType === 'floating' ? '#FFFFFF' : '#64748B',
@@ -514,11 +511,11 @@ export default function Calculator() {
                     type="button"
                     onClick={() => handleRateTypeChange('fixed')}
                     style={{
-                      padding: '6px 20px',
-                      borderRadius: '20px',
+                      padding: '5px 16px',
+                      borderRadius: '16px',
                       border: 'none',
-                      fontSize: '0.85rem',
-                      fontWeight: 700,
+                      fontSize: '0.8rem',
+                      fontWeight: 800,
                       cursor: 'pointer',
                       background: rateType === 'fixed' ? '#0F2942' : 'transparent',
                       color: rateType === 'fixed' ? '#FFFFFF' : '#64748B',
@@ -535,14 +532,14 @@ export default function Calculator() {
                 <div style={{
                   background: '#E0F2FE',
                   border: '1px solid #BAE6FD',
-                  borderRadius: '12px',
-                  padding: '12px 18px',
-                  marginTop: '20px',
+                  borderRadius: '10px',
+                  padding: '8px 14px',
+                  marginTop: '10px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '10px',
+                  gap: '8px',
                   color: '#0369A1',
-                  fontSize: '0.84rem',
+                  fontSize: '0.8rem',
                   fontWeight: 600
                 }}>
                   <span>💬</span>
@@ -552,14 +549,14 @@ export default function Calculator() {
                 <div style={{
                   background: '#FFFBEB',
                   border: '1px solid #FDE68A',
-                  borderRadius: '12px',
-                  padding: '12px 18px',
-                  marginTop: '20px',
+                  borderRadius: '10px',
+                  padding: '8px 14px',
+                  marginTop: '10px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '10px',
+                  gap: '8px',
                   color: '#B45309',
-                  fontSize: '0.84rem',
+                  fontSize: '0.8rem',
                   fontWeight: 600
                 }}>
                   <span>💬</span>
@@ -568,37 +565,36 @@ export default function Calculator() {
               )}
 
               {/* Live Rate Snapshot Chips Bar */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '16px', flexWrap: 'wrap', background: '#F8FAFC', padding: '12px 16px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0F2942' }}>
-                  ⚡ Live {rateType === 'floating' ? 'Floating' : 'Fixed'} Rates Snapshot:
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', flexWrap: 'wrap', background: '#F8FAFC', padding: '6px 12px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#0F2942' }}>
+                  ⚡ Live {rateType === 'floating' ? 'Floating' : 'Fixed'} Rates:
                 </span>
                 {filteredAndSortedLenders.slice(0, 4).map(l => (
-                  <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#FFFFFF', padding: '4px 10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.78rem', fontWeight: 700 }}>
+                  <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#FFFFFF', padding: '3px 8px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '0.74rem', fontWeight: 700 }}>
                     <span style={{ color: '#0F2942' }}>{l.name}:</span>
                     <span style={{ color: '#0284C7', fontWeight: 900 }}>{l.rate.toFixed(2)}%</span>
-                    <span style={{ color: '#64748B', fontSize: '0.7rem' }}>({fmtINRFull(calcEMI(amount, l.rate, tenure))}/mo)</span>
                   </div>
                 ))}
-                <a href="#compare-lenders-section" style={{ marginLeft: 'auto', fontSize: '0.78rem', fontWeight: 800, color: '#0284C7', textDecoration: 'none' }}>
-                  View Full Table ↓
+                <a href="#compare-lenders-section" style={{ marginLeft: 'auto', fontSize: '0.74rem', fontWeight: 800, color: '#0284C7', textDecoration: 'none' }}>
+                  Compare All Lenders Below ↓
                 </a>
               </div>
             </div>
 
             {/* ═══ 2-COLUMN CALCULATOR CONTAINER ═══ */}
-            <div className="calc-grid-container" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px', marginBottom: '24px' }}>
+            <div className="calc-grid-container" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px', marginBottom: '16px' }}>
               {/* Left Column: LOAN DETAILS */}
-              <div className="calc-left-panel" style={{ background: '#FFFFFF', borderRadius: '20px', border: '1px solid #E2E8F0', padding: '28px 32px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.03)' }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.08em', color: '#64748B', marginBottom: '20px' }}>
+              <div className="calc-left-panel" style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '18px 22px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                <div style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.08em', color: '#64748B', marginBottom: '14px' }}>
                   LOAN DETAILS
                 </div>
 
                 {/* 1. Loan Amount */}
-                <div className="range-field" style={{ marginBottom: '24px' }}>
-                  <div className="rf-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <label style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0F2942' }}>Loan Amount</label>
-                    <div className="rf-input-wrap" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '4px 10px' }}>
-                      <span className="rf-prefix" style={{ fontWeight: 700, color: '#0F2942' }}>₹</span>
+                <div className="range-field" style={{ marginBottom: '14px' }}>
+                  <div className="rf-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0F2942' }}>Loan Amount</label>
+                    <div className="rf-input-wrap" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '2px 8px' }}>
+                      <span className="rf-prefix" style={{ fontWeight: 700, color: '#0F2942', fontSize: '0.85rem' }}>₹</span>
                       <input
                         type="number"
                         className="rf-input"
@@ -606,13 +602,13 @@ export default function Calculator() {
                         onChange={handleAmtInputChange}
                         onBlur={clampAmount}
                         step="0.01"
-                        style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.95rem', color: '#0F2942', width: '80px', textAlign: 'right' }}
+                        style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.88rem', color: '#0F2942', width: '70px', textAlign: 'right' }}
                       />
                       <select
                         className="rf-unit"
                         value={amtUnit}
                         onChange={handleUnitChange}
-                        style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 700, fontSize: '0.85rem', color: '#475569', cursor: 'pointer' }}
+                        style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 700, fontSize: '0.8rem', color: '#475569', cursor: 'pointer' }}
                       >
                         <option value={100000}>Lakh ▾</option>
                         <option value={10000000}>Crore ▾</option>
@@ -621,7 +617,7 @@ export default function Calculator() {
                   </div>
 
                   {/* Preset Amount Buttons */}
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
                     {[1000000, 2500000, 5000000, 10000000, 25000000].map((presetAmt) => {
                       const isSel = amount === presetAmt;
                       const label = presetAmt >= 10000000 ? `₹${(presetAmt / 10000000).toFixed(2)} Cr` : `₹${(presetAmt / 100000).toFixed(2)} L`;
@@ -631,12 +627,12 @@ export default function Calculator() {
                           type="button"
                           onClick={() => setAmount(presetAmt)}
                           style={{
-                            padding: '4px 12px',
-                            borderRadius: '16px',
+                            padding: '3px 10px',
+                            borderRadius: '14px',
                             border: isSel ? '1px solid #0284C7' : '1px solid #E2E8F0',
                             background: isSel ? '#E0F2FE' : '#F8FAFC',
                             color: isSel ? '#0369A1' : '#475569',
-                            fontSize: '0.78rem',
+                            fontSize: '0.74rem',
                             fontWeight: 700,
                             cursor: 'pointer',
                             transition: 'all 0.2s ease'
@@ -658,17 +654,17 @@ export default function Calculator() {
                     step="any"
                     style={{ width: '100%', cursor: 'pointer' }}
                   />
-                  <div className="rf-minmax" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#94A3B8', marginTop: '6px' }}>
+                  <div className="rf-minmax" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', color: '#94A3B8', marginTop: '4px' }}>
                     <span>₹10 L</span>
                     <span>₹50 Cr</span>
                   </div>
                 </div>
 
                 {/* 2. Expected Rate (% p.a.) */}
-                <div className="range-field" style={{ marginBottom: '24px' }}>
-                  <div className="rf-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <label style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0F2942' }}>Expected Rate (% p.a.)</label>
-                    <div className="rf-input-wrap" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '4px 10px' }}>
+                <div className="range-field" style={{ marginBottom: '14px' }}>
+                  <div className="rf-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0F2942' }}>Expected Rate (% p.a.)</label>
+                    <div className="rf-input-wrap" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '2px 8px' }}>
                       <input
                         type="number"
                         className="rf-input"
@@ -676,9 +672,9 @@ export default function Calculator() {
                         onChange={(e) => setRate(e.target.value)}
                         onBlur={clampRate}
                         step="0.05"
-                        style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.95rem', color: '#0F2942', width: '60px', textAlign: 'right' }}
+                        style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.88rem', color: '#0F2942', width: '50px', textAlign: 'right' }}
                       />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>% p.a.</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569' }}>% p.a.</span>
                     </div>
                   </div>
                   <input
@@ -691,7 +687,7 @@ export default function Calculator() {
                     step="0.1"
                     style={{ width: '100%', cursor: 'pointer' }}
                   />
-                  <div className="rf-minmax" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#94A3B8', marginTop: '6px' }}>
+                  <div className="rf-minmax" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', color: '#94A3B8', marginTop: '4px' }}>
                     <span>{params.rateMin}%</span>
                     <span>{params.rateMax}%</span>
                   </div>
@@ -699,23 +695,23 @@ export default function Calculator() {
 
                 {/* 3. Loan Tenure */}
                 <div className="range-field">
-                  <div className="rf-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <label style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0F2942' }}>Loan Tenure</label>
-                    <div className="rf-input-wrap" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '4px 10px' }}>
+                  <div className="rf-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0F2942' }}>Loan Tenure</label>
+                    <div className="rf-input-wrap" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '2px 8px' }}>
                       <input
                         type="number"
                         className="rf-input"
                         value={tenure}
                         onChange={(e) => setTenure(e.target.value)}
                         onBlur={clampTenure}
-                        style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.95rem', color: '#0F2942', width: '60px', textAlign: 'right' }}
+                        style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.88rem', color: '#0F2942', width: '50px', textAlign: 'right' }}
                       />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>Months</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569' }}>Months</span>
                     </div>
                   </div>
 
                   {/* Preset Tenure Buttons */}
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
                     {[5, 10, 15, 20, 25, 30].map((yr) => {
                       const mo = yr * 12;
                       const isSel = tenure === mo;
@@ -725,12 +721,12 @@ export default function Calculator() {
                           type="button"
                           onClick={() => setTenure(mo)}
                           style={{
-                            padding: '4px 12px',
-                            borderRadius: '16px',
+                            padding: '3px 10px',
+                            borderRadius: '14px',
                             border: isSel ? '1px solid #0284C7' : '1px solid #E2E8F0',
                             background: isSel ? '#E0F2FE' : '#F8FAFC',
                             color: isSel ? '#0369A1' : '#475569',
-                            fontSize: '0.78rem',
+                            fontSize: '0.74rem',
                             fontWeight: 700,
                             cursor: 'pointer',
                             transition: 'all 0.2s ease'
@@ -752,7 +748,7 @@ export default function Calculator() {
                     step="12"
                     style={{ width: '100%', cursor: 'pointer' }}
                   />
-                  <div className="rf-minmax" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#94A3B8', marginTop: '6px' }}>
+                  <div className="rf-minmax" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', color: '#94A3B8', marginTop: '4px' }}>
                     <span>1 yr</span>
                     <span>30 yrs</span>
                   </div>
@@ -762,90 +758,90 @@ export default function Calculator() {
               {/* Right Column: YOUR MONTHLY EMI Card (Dark Slate Blue Card) */}
               <div style={{
                 background: 'linear-gradient(145deg, #0B192C 0%, #1E293B 100%)',
-                borderRadius: '20px',
-                padding: '32px',
+                borderRadius: '16px',
+                padding: '18px 22px',
                 color: '#FFFFFF',
                 display: 'flex',
                 flexDirection: 'column',
                 justify: 'space-between',
-                boxShadow: '0 10px 30px rgba(11,25,44,0.15)'
+                boxShadow: '0 4px 12px rgba(11,25,44,0.12)'
               }}>
                 <div>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.08em', color: '#94A3B8', textAlign: 'center', marginBottom: '8px' }}>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.08em', color: '#94A3B8', textAlign: 'center', marginBottom: '4px' }}>
                     YOUR MONTHLY EMI
                   </div>
-                  <div style={{ fontSize: '2.4rem', fontWeight: 900, textAlign: 'center', color: '#FFFFFF', letterSpacing: '-0.02em', marginBottom: '24px' }}>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 900, textAlign: 'center', color: '#FFFFFF', letterSpacing: '-0.02em', marginBottom: '12px' }}>
                     {fmtINRFull(emi)}
-                    <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#94A3B8', marginLeft: '6px' }}>/mo</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94A3B8', marginLeft: '4px' }}>/mo</span>
                   </div>
 
-                  {/* Doughnut Chart */}
-                  <div style={{ position: 'relative', width: '160px', height: '160px', margin: '0 auto 20px auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="160" height="160" viewBox="0 0 160 160" style={{ transform: 'rotate(-90deg)' }}>
-                      <circle cx="80" cy="80" r="64" stroke="rgba(255,255,255,0.08)" strokeWidth="16" fill="transparent" />
+                  {/* Compact Doughnut Chart */}
+                  <div style={{ position: 'relative', width: '120px', height: '120px', margin: '0 auto 12px auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="120" height="120" viewBox="0 0 120 120" style={{ transform: 'rotate(-90deg)' }}>
+                      <circle cx="60" cy="60" r="48" stroke="rgba(255,255,255,0.08)" strokeWidth="12" fill="transparent" />
                       <circle
-                        cx="80"
-                        cy="80"
-                        r="64"
+                        cx="60"
+                        cy="60"
+                        r="48"
                         stroke="#F59E0B"
-                        strokeWidth="16"
+                        strokeWidth="12"
                         fill="transparent"
-                        strokeDasharray={`${(100 - (totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50)) / 100 * (2 * Math.PI * 64)} ${2 * Math.PI * 64}`}
+                        strokeDasharray={`${(100 - (totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50)) / 100 * (2 * Math.PI * 48)} ${2 * Math.PI * 48}`}
                         strokeDashoffset={0}
                         style={{ transition: 'stroke-dasharray 0.4s ease' }}
                       />
                       <circle
-                        cx="80"
-                        cy="80"
-                        r="64"
+                        cx="60"
+                        cy="60"
+                        r="48"
                         stroke="#38BDF8"
-                        strokeWidth="16"
+                        strokeWidth="12"
                         fill="transparent"
-                        strokeDasharray={`${(totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50) / 100 * (2 * Math.PI * 64)} ${2 * Math.PI * 64}`}
-                        strokeDashoffset={-((100 - (totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50)) / 100 * (2 * Math.PI * 64))}
+                        strokeDasharray={`${(totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50) / 100 * (2 * Math.PI * 48)} ${2 * Math.PI * 48}`}
+                        strokeDashoffset={-((100 - (totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50)) / 100 * (2 * Math.PI * 48))}
                         style={{ transition: 'stroke-dasharray 0.4s ease' }}
                       />
                     </svg>
                     <div style={{ position: 'absolute', textAlign: 'center' }}>
-                      <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#38BDF8', lineHeight: 1 }}>{totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50}%</div>
-                      <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#94A3B8', letterSpacing: '0.06em', marginTop: '4px' }}>PRINCIPAL</div>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#38BDF8', lineHeight: 1 }}>{totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50}%</div>
+                      <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#94A3B8', letterSpacing: '0.06em', marginTop: '2px' }}>PRINCIPAL</div>
                     </div>
                   </div>
 
                   {/* Chart Legend */}
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', fontSize: '0.82rem', fontWeight: 700, marginBottom: '24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#38BDF8' }} />
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', fontSize: '0.76rem', fontWeight: 700, marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#38BDF8' }} />
                       <span style={{ color: '#E2E8F0' }}>Principal</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#F59E0B' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#F59E0B' }} />
                       <span style={{ color: '#E2E8F0' }}>Interest</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Inner Summary Boxes */}
-                <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.1)', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                     <div>
-                      <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#FFFFFF' }}>{fmtLakhCr(amount)}</div>
-                      <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94A3B8', letterSpacing: '0.04em' }}>PRINCIPAL</div>
+                      <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#FFFFFF' }}>{fmtLakhCr(amount)}</div>
+                      <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#94A3B8', letterSpacing: '0.04em' }}>PRINCIPAL</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#F59E0B' }}>{fmtLakhCr(totalInterest)}</div>
-                      <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94A3B8', letterSpacing: '0.04em' }}>TOTAL INTEREST</div>
+                      <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#F59E0B' }}>{fmtLakhCr(totalInterest)}</div>
+                      <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#94A3B8', letterSpacing: '0.04em' }}>TOTAL INTEREST</div>
                     </div>
                   </div>
 
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94A3B8' }}>TOTAL AMOUNT PAYABLE</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#38BDF8' }}>{fmtLakhCr(totalPayable)}</div>
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94A3B8' }}>TOTAL AMOUNT PAYABLE</div>
+                    <div style={{ fontSize: '1.05rem', fontWeight: 900, color: '#38BDF8' }}>{fmtLakhCr(totalPayable)}</div>
                   </div>
                 </div>
               </div>
             </div>
-            <div id="compare-lenders-section" style={{ background: '#FFFFFF', borderRadius: '20px', border: '1px solid #E2E8F0', padding: '32px', marginBottom: '32px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.03)' }}>
+            <div id="compare-lenders-section" style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '20px 24px', marginBottom: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
                 <div>
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#E0F2FE', color: '#0369A1', padding: '2px 8px', borderRadius: '10px', fontSize: '0.72rem', fontWeight: 800, marginBottom: '6px' }}>

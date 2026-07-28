@@ -12,7 +12,7 @@
 /* Top Gradient Header Area */
 .calc-header-gradient {
   background: linear-gradient(135deg, #1C2B54 0%, #253974 50%, #3B4B96 100%);
-  padding: 36px 24px 44px;
+  padding: 16px 20px 20px;
   color: #FFFFFF;
   text-align: center;
   position: relative;
@@ -21,8 +21,8 @@
 .calc-nav-top {
   display: flex;
   justify-content: center;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .calc-pill-btn {
@@ -30,8 +30,8 @@
   color: #FFFFFF;
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 20px;
-  padding: 6px 18px;
-  font-size: 0.8rem;
+  padding: 4px 14px;
+  font-size: 0.76rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -48,17 +48,17 @@
 
 .calc-hero-title {
   font-family: 'Playfair Display', Georgia, serif;
-  font-size: 2.3rem;
+  font-size: 1.45rem;
   font-weight: 700;
-  margin: 0 0 10px 0;
+  margin: 0 0 4px 0;
 }
 
 .calc-hero-sub {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   color: #CBD5E1;
   max-width: 620px;
-  margin: 0 auto 32px auto;
-  line-height: 1.5;
+  margin: 0 auto 14px auto;
+  line-height: 1.4;
 }
 
 /* 3-Step Progress Indicator */
@@ -123,7 +123,7 @@
 /* Main Body Wrapper */
 .calc-body-wrap {
   max-width: 1080px;
-  margin: 32px auto 40px;
+  margin: 16px auto 30px;
   padding: 0 20px;
   box-sizing: border-box;
 }
