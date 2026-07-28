@@ -45,6 +45,7 @@ export default function AdminDashboard() {
   ]);
   const [selectedLoanCategory, setSelectedLoanCategory] = useState("HL"); // HL, PL, BL, VL
   const [selectedRateType, setSelectedRateType] = useState("all_types");
+  const [activeKpiFilter, setActiveKpiFilter] = useState(null);
 
   // Filters states
   const [leadStatusFilter, setLeadStatusFilter] = useState("all_statuses");
@@ -910,7 +911,12 @@ export default function AdminDashboard() {
               {/* Stat KPIs Grid */}
               <div className="adm-kpi-grid-redesigned">
                 {/* 1. Total Applications */}
-                <div className="adm-kpi-card-new c-blue">
+                <div
+                  className={`adm-kpi-card-new c-blue ${activeKpiFilter === 'total' ? 'kpi-selected' : ''}`}
+                  onClick={() => setActiveKpiFilter(activeKpiFilter === 'total' ? null : 'total')}
+                  style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  title="Click to view total applications breakdown"
+                >
                   <div className="adm-kpi-card-top">
                     <div className="adm-kpi-icon-box">
                       <svg width="20" height="20" fill="none" stroke="#2563eb" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
@@ -922,7 +928,12 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* 2. Disbursed */}
-                <div className="adm-kpi-card-new c-green">
+                <div
+                  className={`adm-kpi-card-new c-green ${activeKpiFilter === 'disbursed' ? 'kpi-selected' : ''}`}
+                  onClick={() => setActiveKpiFilter(activeKpiFilter === 'disbursed' ? null : 'disbursed')}
+                  style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  title="Click to view disbursed loans"
+                >
                   <div className="adm-kpi-card-top">
                     <div className="adm-kpi-icon-box">
                       <svg width="20" height="20" fill="none" stroke="#16a34a" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
@@ -934,7 +945,12 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* 3. In Progress */}
-                <div className="adm-kpi-card-new c-orange">
+                <div
+                  className={`adm-kpi-card-new c-orange ${activeKpiFilter === 'in_progress' ? 'kpi-selected' : ''}`}
+                  onClick={() => setActiveKpiFilter(activeKpiFilter === 'in_progress' ? null : 'in_progress')}
+                  style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  title="Click to view in progress applications"
+                >
                   <div className="adm-kpi-card-top">
                     <div className="adm-kpi-icon-box">
                       <svg width="20" height="20" fill="none" stroke="#ea580c" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -946,7 +962,12 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* 4. Pending */}
-                <div className="adm-kpi-card-new c-brown">
+                <div
+                  className={`adm-kpi-card-new c-brown ${activeKpiFilter === 'pending' ? 'kpi-selected' : ''}`}
+                  onClick={() => setActiveKpiFilter(activeKpiFilter === 'pending' ? null : 'pending')}
+                  style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  title="Click to view pending applications"
+                >
                   <div className="adm-kpi-card-top">
                     <div className="adm-kpi-icon-box" style={{ background: '#fef3c7' }}>
                       <svg width="20" height="20" fill="none" stroke="#d97706" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
@@ -958,7 +979,12 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* 5. Rejected */}
-                <div className="adm-kpi-card-new c-red">
+                <div
+                  className={`adm-kpi-card-new c-red ${activeKpiFilter === 'rejected' ? 'kpi-selected' : ''}`}
+                  onClick={() => setActiveKpiFilter(activeKpiFilter === 'rejected' ? null : 'rejected')}
+                  style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  title="Click to view rejected applications"
+                >
                   <div className="adm-kpi-card-top">
                     <div className="adm-kpi-icon-box" style={{ background: '#fef2f2' }}>
                       <svg width="20" height="20" fill="none" stroke="#dc2626" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -970,7 +996,12 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* 6. Loan Volume */}
-                <div className="adm-kpi-card-new c-purple">
+                <div
+                  className={`adm-kpi-card-new c-purple ${activeKpiFilter === 'loan_volume' ? 'kpi-selected' : ''}`}
+                  onClick={() => setActiveKpiFilter(activeKpiFilter === 'loan_volume' ? null : 'loan_volume')}
+                  style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  title="Click to view loan volume breakdown"
+                >
                   <div className="adm-kpi-card-top">
                     <div className="adm-kpi-icon-box">
                       <svg width="20" height="20" fill="none" stroke="#7c3aed" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -990,7 +1021,12 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* 7. Active Partners */}
-                <div className="adm-kpi-card-new c-teal">
+                <div
+                  className="adm-kpi-card-new c-teal"
+                  onClick={() => setActiveTab("brokers")}
+                  style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  title="Click to open Partners Management tab"
+                >
                   <div className="adm-kpi-card-top">
                     <div className="adm-kpi-icon-box">
                       <svg width="20" height="20" fill="none" stroke="#0d9488" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -998,11 +1034,16 @@ export default function AdminDashboard() {
                   </div>
                   <div className="adm-kpi-card-value">{stats.approvedBrokers ?? brokers.filter(b => b.status === 'active').length}</div>
                   <div className="adm-kpi-card-label">ACTIVE PARTNERS</div>
-                  <div className="adm-kpi-card-subtext">of {stats.totalBrokers ?? brokers.length} total partners</div>
+                  <div className="adm-kpi-card-subtext">of {stats.totalBrokers ?? brokers.length} total partners &rarr;</div>
                 </div>
 
                 {/* 8. Lenders Active */}
-                <div className="adm-kpi-card-new c-brown">
+                <div
+                  className="adm-kpi-card-new c-brown"
+                  onClick={() => setActiveTab("rates")}
+                  style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  title="Click to open Lender Rate Management tab"
+                >
                   <div className="adm-kpi-card-top">
                     <div className="adm-kpi-icon-box">
                       <svg width="20" height="20" fill="none" stroke="#d97706" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" /></svg>
@@ -1010,9 +1051,189 @@ export default function AdminDashboard() {
                   </div>
                   <div className="adm-kpi-card-value">{activeLendersCount}</div>
                   <div className="adm-kpi-card-label">LENDERS ACTIVE</div>
-                  <div className="adm-kpi-card-subtext">In network</div>
+                  <div className="adm-kpi-card-subtext">View details &rarr;</div>
                 </div>
               </div>
+
+              {/* Expandable KPI Metric Content Card (Shown when KPI card is clicked) */}
+              {activeKpiFilter && (
+                <div className="animate-fade-up" style={{ marginTop: '20px', marginBottom: '24px' }}>
+                  <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+                    {/* Blue Title Header Bar with Close Button */}
+                    <div style={{ background: '#0284C7', color: '#FFFFFF', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, fontFamily: "'DM Sans', sans-serif" }}>
+                        {activeKpiFilter === 'total' && 'Total Applications'}
+                        {activeKpiFilter === 'disbursed' && 'Disbursed Loans'}
+                        {activeKpiFilter === 'in_progress' && 'In Progress'}
+                        {activeKpiFilter === 'pending' && 'Pending Action / Docs'}
+                        {activeKpiFilter === 'rejected' && 'Rejected Applications'}
+                        {activeKpiFilter === 'loan_volume' && 'Loan Volume Breakdown'}
+                      </h3>
+                      <button
+                        onClick={() => setActiveKpiFilter(null)}
+                        title="Close details"
+                        style={{
+                          background: 'rgba(255,255,255,0.25)',
+                          border: 'none',
+                          color: '#FFFFFF',
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '50%',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.9rem',
+                          fontWeight: 800
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    {(() => {
+                      const STAGE_PROGRESS_MAP = {
+                        'applied': { pct: 14, status: 'pending', color: '#F59E0B', bg: '#FEF3C7', textColor: '#B45309' },
+                        'submitted': { pct: 28, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'docs': { pct: 43, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'documents': { pct: 43, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'credit': { pct: 57, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'legal': { pct: 71, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'sanction': { pct: 86, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'approved': { pct: 86, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'disbursed': { pct: 100, status: 'disbursed', color: '#10B981', bg: '#DCFCE7', textColor: '#15803D' },
+                        'completed': { pct: 100, status: 'disbursed', color: '#10B981', bg: '#DCFCE7', textColor: '#15803D' },
+                        'rejected': { pct: 14, status: 'rejected', color: '#EF4444', bg: '#FEE2E2', textColor: '#991B1B' }
+                      };
+
+                      const defaultTimelinePreset = [
+                        { id: 2001, application_no: 'F4S-2001', name: 'Rajesh Kumar', product: 'Home Loan', lender: 'SBI', loan_amount: 5000000, stage: 'Disbursed', status: 'disbursed', createdAt: '2025-01-15T10:00:00Z', source: 'Direct' },
+                        { id: 2002, application_no: 'F4S-2002', name: 'Priya Sharma', product: 'Home Loan', lender: 'HDFC Bank', loan_amount: 7500000, stage: 'Submitted', status: 'in progress', createdAt: '2025-01-18T10:00:00Z', source: 'Direct' },
+                        { id: 2003, application_no: 'F4S-2003', name: 'Arun Mehta', product: 'Personal Loan', lender: 'ICICI Bank', loan_amount: 500000, stage: 'Credit', status: 'in progress', createdAt: '2025-01-22T10:00:00Z', source: 'Direct' },
+                        { id: 2004, application_no: 'F4S-2004', name: 'Sunita Patel', product: 'Business Loan', lender: 'Axis Bank', loan_amount: 2000000, stage: 'Applied', status: 'pending', createdAt: '2025-01-25T10:00:00Z', source: 'Direct' },
+                        { id: 2005, application_no: 'F4S-2005', name: 'Vikram Singh', product: 'Home Loan', lender: 'SBI', loan_amount: 4200000, stage: 'Disbursed', status: 'disbursed', createdAt: '2025-02-02T10:00:00Z', source: 'Direct' },
+                        { id: 2006, application_no: 'F4S-2006', name: 'Deepa Nair', product: 'Vehicle Loan', lender: 'Bajaj Finserv', loan_amount: 800000, stage: 'Sanction', status: 'in progress', createdAt: '2025-02-05T10:00:00Z', source: 'Direct' },
+                        { id: 2007, application_no: 'F4S-2007', name: 'Arjun Reddy', product: 'Loan Against Property', lender: 'HDFC Bank', loan_amount: 10000000, stage: 'Legal', status: 'in progress', createdAt: '2025-02-08T10:00:00Z', source: 'Direct' },
+                        { id: 2008, application_no: 'F4S-2008', name: 'Kavita Joshi', product: 'Personal Loan', lender: 'Kotak Mahindra', loan_amount: 900000, stage: 'Disbursed', status: 'disbursed', createdAt: '2025-02-10T10:00:00Z', source: 'Direct' },
+                        { id: 2009, application_no: 'F4S-2009', name: 'Amitabh Sen', product: 'Home Loan', lender: 'PNB Housing', loan_amount: 3500000, stage: 'Docs', status: 'pending', createdAt: '2025-02-12T10:00:00Z', source: 'Direct' },
+                        { id: 2013, application_no: 'F4S-2013', name: 'Ramesh Chandra', product: 'Loan Against Property', lender: 'ICICI Bank', loan_amount: 80000000, stage: 'Applied', status: 'pending', createdAt: '2025-03-01T10:00:00Z', source: 'Direct' }
+                      ];
+
+                      const sourceList = (Array.isArray(leads) && leads.length > 0) ? leads : defaultTimelinePreset;
+
+                      let filtered = sourceList;
+                      if (activeKpiFilter === 'disbursed') {
+                        filtered = sourceList.filter(l => ['disbursed', 'completed'].includes((l.status || l.stage || '').toLowerCase()));
+                      } else if (activeKpiFilter === 'in_progress') {
+                        filtered = sourceList.filter(l => !['disbursed', 'completed', 'rejected', 'pending'].includes((l.status || l.stage || '').toLowerCase()));
+                      } else if (activeKpiFilter === 'pending') {
+                        filtered = sourceList.filter(l => ['pending', 'applied'].includes((l.status || l.stage || '').toLowerCase()));
+                      } else if (activeKpiFilter === 'rejected') {
+                        filtered = sourceList.filter(l => (l.status || l.stage || '').toLowerCase() === 'rejected');
+                      } else if (activeKpiFilter === 'loan_volume') {
+                        filtered = [...sourceList].sort((a, b) => (parseFloat(b.loan_amount) || 0) - (parseFloat(a.loan_amount) || 0));
+                      }
+
+                      const directCount = filtered.filter(l => !l.partner_id && (!l.source || l.source === 'Direct')).length;
+                      const partnerCount = filtered.length - directCount;
+                      const totalVol = filtered.reduce((sum, l) => sum + (parseFloat(l.loan_amount) || 0), 0);
+                      const formattedVol = totalVol >= 10000000
+                        ? `₹${(totalVol / 10000000).toLocaleString('en-IN', { maximumFractionDigits: 2 })}Cr`
+                        : `₹${(totalVol / 100000).toLocaleString('en-IN', { maximumFractionDigits: 2 })}L`;
+
+                      return (
+                        <>
+                          {/* Subheader info line */}
+                          <div style={{ padding: '14px 24px', background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B', fontSize: '0.86rem', fontWeight: 600 }}>
+                            {activeKpiFilter === 'loan_volume'
+                              ? `Total loan volume: ${formattedVol} across ${filtered.length} applications`
+                              : `${filtered.length} applications · ${directCount} direct · ${partnerCount} via partner`
+                            }
+                          </div>
+
+                          {/* Items List */}
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            {filtered.length === 0 ? (
+                              <div style={{ padding: '30px', textAlign: 'center', color: '#94A3B8' }}>
+                                No applications match this criteria.
+                              </div>
+                            ) : (
+                              filtered.map(item => {
+                                const stageKey = (item.stage || item.status || 'Applied').toLowerCase().trim();
+                                const stageMeta = STAGE_PROGRESS_MAP[stageKey] || STAGE_PROGRESS_MAP['applied'];
+                                const appNo = item.application_no
+                                  ? (String(item.application_no).startsWith('F4S') ? item.application_no : `F4S-${item.application_no}`)
+                                  : `F4S-${2000 + item.id}`;
+
+                                const formattedDate = item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '15 Jan 2025';
+                                const formattedAmt = item.loan_amount ? `₹${Number(item.loan_amount).toLocaleString('en-IN')}` : '₹0';
+                                const prodIcon = getLoanIcon(item.product);
+
+                                return (
+                                  <div
+                                    key={item.id}
+                                    style={{
+                                      padding: '16px 24px',
+                                      borderBottom: '1px solid #F1F5F9',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
+                                      flexWrap: 'wrap',
+                                      gap: '16px'
+                                    }}
+                                  >
+                                    {/* Left Details Block */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: '280px' }}>
+                                      <span style={{ fontSize: '1.2rem', flexShrink: 0 }}>{prodIcon}</span>
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <div style={{ fontWeight: 800, color: '#0F2942', fontSize: '0.94rem' }}>
+                                          {item.name || `Borrower #${item.id}`}
+                                        </div>
+                                        <div style={{ color: '#64748B', fontSize: '0.8rem', fontWeight: 500 }}>
+                                          {appNo} · {item.product} · {item.lender || 'SBI'} · Applied: {formattedDate}
+                                        </div>
+
+                                        {/* Progress Bar & Stage Pill */}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
+                                          <div style={{ width: '90px', height: '6px', background: '#E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
+                                            <div style={{ width: `${stageMeta.pct}%`, height: '100%', background: stageMeta.color }} />
+                                          </div>
+                                          <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#475569' }}>
+                                            {item.stage || 'Applied'} · {stageMeta.pct}%
+                                          </span>
+                                          <span style={{
+                                            padding: '2px 8px',
+                                            borderRadius: '10px',
+                                            fontSize: '0.72rem',
+                                            fontWeight: 800,
+                                            background: stageMeta.bg,
+                                            color: stageMeta.textColor,
+                                            textTransform: 'lowercase'
+                                          }}>
+                                            {stageMeta.status}
+                                          </span>
+                                        </div>
+                                        <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: '2px' }}>
+                                          Last update: <strong style={{ color: '#475569' }}>{item.stage || 'Applied'}</strong> on {formattedDate}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Right Amount Block */}
+                                    <div style={{ fontWeight: 800, color: '#0F2942', fontSize: '1.05rem' }}>
+                                      {formattedAmt}
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+              )}
 
               {/* Lower Section: Recent Applications & Loan Type Breakdown */}
               <div className="adm-dash-row">
