@@ -829,9 +829,6 @@ export default function Calculator() {
                         {filteredAndSortedLenders[0].type || 'PRIVATE'}
                       </span>
                     </div>
-                    <div style={{ fontSize: '0.72rem', color: '#D97706', fontWeight: 700, marginTop: '1px' }}>
-                      🏷️ {filteredAndSortedLenders[0].offer || "Pre-approved offers available."}
-                    </div>
                   </div>
                 </div>
 
@@ -896,11 +893,6 @@ export default function Calculator() {
                                 <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', background: '#F1F5F9', padding: '1px 4px', borderRadius: '4px' }}>
                                   {lender.type || 'PRIVATE'}
                                 </span>
-                                {lender.offer && (
-                                  <span style={{ fontSize: '0.68rem', color: '#D97706', fontWeight: 600 }}>
-                                    🏷️ {lender.offer}
-                                  </span>
-                                )}
                               </div>
                             </div>
                           </div>
