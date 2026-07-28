@@ -1446,11 +1446,11 @@ export default function AdminDashboard() {
                     const initialLetter = (b.name || 'D').charAt(0).toUpperCase();
 
                     const leadsList = b.leads || [];
-                    const clientsCount = b.clientCount || (b.clients ? b.clients.length : 0);
-                    const disbursedCount = leadsList.filter(l => ['disbursed', 'completed'].includes((l.status || '').toLowerCase())).length;
-                    const inProgressCount = leadsList.filter(l => !['disbursed', 'completed', 'rejected', 'pending'].includes((l.status || '').toLowerCase())).length;
-                    const pendingCount = leadsList.filter(l => (l.status || '').toLowerCase() === 'pending' || (l.status || '').toLowerCase() === 'rejected').length;
-                    const totalVol = leadsList.reduce((acc, l) => acc + (parseFloat(l.loan_amount) || 0), 0);
+                    const clientsCount = b.clientCount !== undefined ? b.clientCount : (b.clients ? b.clients.length : 0);
+                    const disbursedCount = b.disbursed !== undefined ? b.disbursed : leadsList.filter(l => ['disbursed', 'completed'].includes((l.status || l.stage || '').toLowerCase())).length;
+                    const inProgressCount = b.inProgress !== undefined ? b.inProgress : leadsList.filter(l => ['in-progress', 'applied', 'submitted', 'docs', 'credit', 'legal', 'sanction', 'processing'].includes((l.status || l.stage || '').toLowerCase())).length;
+                    const pendingCount = b.pending !== undefined ? b.pending : leadsList.filter(l => ['pending', 'rejected'].includes((l.status || l.stage || '').toLowerCase())).length;
+                    const totalVol = b.volume !== undefined ? b.volume : leadsList.reduce((acc, l) => acc + (parseFloat(l.loan_amount) || 0), 0);
                     const volFormatted = totalVol >= 10000000 ? `₹${(totalVol / 10000000).toFixed(1)}Cr` : `₹${(totalVol / 100000).toFixed(1)}L`;
 
                     return (
