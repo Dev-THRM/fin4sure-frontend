@@ -51,8 +51,8 @@
 .loans-cards-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 32px;
-  max-width: 1080px;
+  gap: 20px;
+  max-width: 960px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -78,11 +78,11 @@
 .loan-card-top {
   position: relative;
   overflow: hidden;
-  padding: 24px 28px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 80px;
+  min-height: 60px;
   box-sizing: border-box;
 }
 
@@ -98,51 +98,51 @@
 }
 
 .loan-card-icon {
-  font-size: 2.2rem;
+  font-size: 1.7rem;
   line-height: 1;
   z-index: 1;
 }
 
 .loan-card-tag {
-  font-size: 0.68rem;
+  font-size: 0.60rem;
   font-weight: 800;
   letter-spacing: 0.05em;
-  padding: 6px 14px;
+  padding: 4px 10px;
   border-radius: 20px;
   text-transform: uppercase;
   z-index: 1;
 }
 
 .loan-card-body {
-  padding: 28px 28px 20px;
+  padding: 16px 20px 14px;
   flex-grow: 1;
 }
 
 .loan-card-title {
   font-family: 'Playfair Display', Georgia, serif;
-  font-size: 1.45rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #1C3A60;
-  margin: 0 0 14px 0;
+  margin: 0 0 10px 0;
 }
 
 .loan-card-rate-row {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  margin-bottom: 24px;
+  gap: 6px;
+  margin-bottom: 16px;
 }
 
 .loan-rate-val {
   font-family: 'Playfair Display', Georgia, serif;
-  font-size: 2.2rem;
+  font-size: 1.65rem;
   font-weight: 800;
   color: #1C3A60;
   line-height: 1;
 }
 
 .loan-rate-lbl {
-  font-size: 0.86rem;
+  font-size: 0.75rem;
   color: #516584;
   font-weight: 600;
 }
@@ -153,16 +153,16 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .loan-card-features li {
-  font-size: 0.92rem;
+  font-size: 0.80rem;
   color: #334155;
   font-weight: 500;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .check-icon {
@@ -172,22 +172,22 @@
 }
 
 .loan-card-footer {
-  padding: 16px 28px 28px;
+  padding: 12px 20px 20px;
 }
 
 .loan-apply-btn {
   width: 100%;
-  padding: 14px 24px;
-  border-radius: 12px;
+  padding: 10px 18px;
+  border-radius: 10px;
   border: none;
   color: #FFFFFF;
-  font-size: 0.98rem;
+  font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   transition: opacity 0.2s ease, transform 0.1s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
