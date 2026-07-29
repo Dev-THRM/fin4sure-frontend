@@ -2150,7 +2150,7 @@ export default function AdminDashboard() {
                                     <span>✏️</span> Edit
                                   </button>
                                   <button
-                                    onClick={() => openBorrowerLoans(b)}
+                                    onClick={() => openBorrowerLoansModal(b)}
                                     style={{
                                       padding: '4px 10px',
                                       borderRadius: '6px',
