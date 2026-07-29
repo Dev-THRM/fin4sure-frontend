@@ -53,6 +53,13 @@ export default function AdminDashboard() {
   const [brokerStatusFilter, setBrokerStatusFilter] = useState("all_partners");
   const [borrowerStatusFilter, setBorrowerStatusFilter] = useState("all_statuses");
 
+  // Pagination states (15 items per page)
+  const PAGE_SIZE = 15;
+  const [leadsPage, setLeadsPage] = useState(1);
+  const [brokersPage, setBrokersPage] = useState(1);
+  const [borrowersPage, setBorrowersPage] = useState(1);
+  const [ratesPage, setRatesPage] = useState(1);
+
   // Custom alert popup notification state
   const [customAlert, setCustomAlert] = useState(null);
 
@@ -789,6 +796,44 @@ export default function AdminDashboard() {
       return matchesSearch && matchesStatus;
     });
   }, [borrowers, searchTerm, borrowerStatusFilter]);
+
+  // Reset pagination when filters/search change
+  useEffect(() => { setLeadsPage(1); }, [filteredLeads]);
+  useEffect(() => { setBrokersPage(1); }, [filteredBrokers]);
+  useEffect(() => { setBorrowersPage(1); }, [filteredBorrowers]);
+
+  // Paginated slices
+  const pagedLeads = filteredLeads.slice((leadsPage - 1) * PAGE_SIZE, leadsPage * PAGE_SIZE);
+  const pagedBrokers = filteredBrokers.slice((brokersPage - 1) * PAGE_SIZE, brokersPage * PAGE_SIZE);
+  const pagedBorrowers = filteredBorrowers.slice((borrowersPage - 1) * PAGE_SIZE, borrowersPage * PAGE_SIZE);
+
+  // Reusable Pagination component
+  const Pagination = ({ total, page, setPage }) => {
+    const totalPages = Math.ceil(total / PAGE_SIZE);
+    if (totalPages <= 1) return null;
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '18px 0 6px', flexWrap: 'wrap' }}>
+        <button
+          onClick={() => setPage(p => Math.max(1, p - 1))}
+          disabled={page === 1}
+          style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid #E2E8F0', background: page === 1 ? '#F8FAFC' : '#fff', color: page === 1 ? '#94A3B8' : '#1E293B', cursor: page === 1 ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: '0.82rem' }}
+        >← Prev</button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
+          <button
+            key={pg}
+            onClick={() => setPage(pg)}
+            style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid', borderColor: pg === page ? '#2563EB' : '#E2E8F0', background: pg === page ? '#2563EB' : '#fff', color: pg === page ? '#fff' : '#1E293B', cursor: 'pointer', fontWeight: pg === page ? 700 : 500, fontSize: '0.82rem', minWidth: '34px' }}
+          >{pg}</button>
+        ))}
+        <button
+          onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+          disabled={page === totalPages}
+          style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid #E2E8F0', background: page === totalPages ? '#F8FAFC' : '#fff', color: page === totalPages ? '#94A3B8' : '#1E293B', cursor: page === totalPages ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: '0.82rem' }}
+        >Next →</button>
+        <span style={{ fontSize: '0.78rem', color: '#64748B', marginLeft: '6px' }}>Page {page} of {totalPages} · {total} total</span>
+      </div>
+    );
+  };
 
   // Loan Type Breakdown Aggregator
   const loanTypeCounts = useMemo(() => {
@@ -1585,7 +1630,7 @@ export default function AdminDashboard() {
                           <td colSpan="8" className="no-data-cell" style={{ padding: '40px 20px' }}>No applications match</td>
                         </tr>
                       ) : (
-                        filteredLeads.map((l) => {
+                        pagedLeads.map((l) => {
                           const rawSt = (l.status || '').toLowerCase().trim();
                           const statusDisplay = ['disbursed', 'completed'].includes(rawSt)
                             ? 'DISBURSED'
@@ -1728,6 +1773,7 @@ export default function AdminDashboard() {
                     )}
                     </tbody>
                   </table>
+                  <Pagination total={filteredLeads.length} page={leadsPage} setPage={setLeadsPage} />
                 </div>
               </div>
             </div>
@@ -1789,7 +1835,7 @@ export default function AdminDashboard() {
                     <p className="no-data-text">No partners match</p>
                   </div>
                 ) : (
-                  filteredBrokers.map((b) => {
+                  pagedBrokers.map((b) => {
                     const status = (b.status || 'inactive').toLowerCase();
                     const isLive = status === 'active';
                     const partnerCode = b.brokerId ? (String(b.brokerId).startsWith('P4S') || String(b.brokerId).startsWith('F4S') ? b.brokerId : `F4S-${String(b.brokerId).padStart(5, '0')}`) : `F4S-${String(b.id).padStart(5, '0')}`;
@@ -1958,6 +2004,7 @@ export default function AdminDashboard() {
                     );
                   })
                 )}
+                <Pagination total={filteredBrokers.length} page={brokersPage} setPage={setBrokersPage} />
               </div>
             </div>
           )}
@@ -2008,7 +2055,7 @@ export default function AdminDashboard() {
                           <td colSpan="8" className="no-data-cell" style={{ padding: '40px 20px' }}>No borrowers found</td>
                         </tr>
                       ) : (
-                        filteredBorrowers.map((b) => {
+                        pagedBorrowers.map((b) => {
                           const appliedDate = b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '15 Jan 2025';
                           const stage = b.bestStage || b.stage || 'Applied';
                           const status = (b.status || 'in progress').toLowerCase();
@@ -2128,6 +2175,7 @@ export default function AdminDashboard() {
                       )}
                     </tbody>
                   </table>
+                  <Pagination total={filteredBorrowers.length} page={borrowersPage} setPage={setBorrowersPage} />
                 </div>
               </div>
             </div>
