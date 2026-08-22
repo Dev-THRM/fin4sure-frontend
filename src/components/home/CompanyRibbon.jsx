@@ -1,4 +1,5 @@
 import React from "react";
+import logo from "../../assets/images/brandlogo.png";
 
 export default function CompanyRibbon() {
   return (
