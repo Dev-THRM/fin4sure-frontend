@@ -6,6 +6,9 @@ import { useSliderPaint } from "../hooks/useSliderPaint";
 import { fmtINR, fmtINRFull } from "../utils/formatters";
 import { calcEMI } from "../utils/emiCalculator";
 import "./styles/calculator.css";
+import { BASE_PATH } from "../config";
+import axios from "axios";
+import { LENDERS } from "../utils/loanConstants";
 
 export default function Calculator() {
   const location = useLocation();
@@ -48,13 +51,40 @@ export default function Calculator() {
     location.state?.rate,
     location.state?.tenure
   );
+// Applicant details state for Step 3
+  const [applicantData, setApplicantData] = useState({
+    name: user?.name || "",
+    mob_no: user?.number || "",
+    email: user?.email || "",
+    dob: "1995-05-15",
+    gender: "male",
+    address: "123 Green Avenue",
+    pincode: "110001",
+    state: "Delhi",
+    district: "Central",
+    city: "New Delhi",
+    loanPurpose: "Home Purchase / Refinance",
+    password: "Pass@1234"
+  });
 
-  // Fetch real lenders from DB endpoint `/api/lenders`
+  // Sync applicant fields when user loads
+  useEffect(() => {
+    if (user) {
+      setApplicantData((prev) => ({
+        ...prev,
+        name: user.name || prev.name,
+        email: user.email || prev.email,
+        mob_no: user.number || prev.mob_no
+      }));
+    }
+  }, [user]);
+
+  // Fetch real lenders from DB endpoint `${BASE_PATH}/api/lenders`
   useEffect(() => {
     const fetchLenders = async () => {
       try {
         setLoadingLenders(true);
-        const res = await fetch("/api/lenders");
+        const res = await fetch(`${BASE_PATH}/api/lenders`);
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
           setDbLenders(json.data);

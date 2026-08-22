@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { BASE_PATH } from "../config";
 
 const AuthContext = createContext(null);
 
@@ -8,7 +9,7 @@ export function AuthProvider({ children }) {
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch("/api/auth/profile", {
+      const res = await fetch(`${BASE_PATH}/api/auth/profile`, {
         credentials: "include",
       });
 
@@ -38,7 +39,7 @@ export function AuthProvider({ children }) {
 
   // Called on logout
   async function logout() {
-    await fetch("/api/auth/logout", {
+    await fetch(`${BASE_PATH}/api/auth/logout`, {
       method: "POST",
       credentials: "include",
     });

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./styles/login.css";
+import { BASE_PATH } from "../config";
 
 export default function Login() {
   const { login, fetchProfile } = useAuth();
@@ -18,7 +19,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const API_BASE = "/api/auth";
+  const API_BASE = `${BASE_PATH}/api/auth`;
 
   async function handleSubmit(e) {
     e.preventDefault();

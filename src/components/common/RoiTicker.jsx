@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { LENDERS } from "../../utils/loanConstants";
 import { useAuth } from "../../context/AuthContext";
 import "./roiTicker.css";
+import { BASE_PATH } from "../../config";
 
 export default function RoiTicker() {
   const [announcementText, setAnnouncementText] = useState("");
@@ -11,7 +12,7 @@ export default function RoiTicker() {
   const isAdmin = role === "admin" || user?.role === "admin" || (typeof window !== "undefined" && window.location.pathname.includes("admin"));
 
   useEffect(() => {
-    fetch("/api/location/public-settings")
+    fetch(`${BASE_PATH}/api/location/public-settings`)
       .then((res) => res.json())
       .then((data) => {
         if (data && data.announcement_banner) {
