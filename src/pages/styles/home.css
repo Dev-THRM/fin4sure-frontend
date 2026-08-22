@@ -14,8 +14,10 @@
 /* Left brand panel - DARK SLATE GRADIENT */
 .brand-panel {
   width: 44%;
-  /* Shifted from dark #0B1329 to a lighter slate navy */
-  background: linear-gradient(155deg, #1E293B 0%, #0F172A 60%, #1E293B 100%);
+  background: linear-gradient(155deg,
+      #2F4157 0%,
+      #1F3147 55%,
+      #2A3B52 100%);
   color: #F8FAFC;
   display: flex;
   flex-direction: column;
@@ -24,7 +26,7 @@
   position: relative;
   overflow: hidden;
   min-height: calc(100vh - var(--nav-h));
-  border-right: 1px solid #334155;
+  border-right: 1px solid #41546B;
   box-sizing: border-box;
 }
 
@@ -83,6 +85,11 @@
   display: flex;
   align-items: baseline;
   gap: 0;
+  color: #FFFFFF;
+}
+
+.b-logo-name span {
+  color: #5DD0C8;
 }
 
 .b-logo-name span {
@@ -325,21 +332,22 @@
 }
 
 .company-ribbon-name {
-  font-family: 'Playfair Display', serif;
-  font-weight: 800;
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-weight: 900;
   font-size: 1.6rem;
-  letter-spacing: -.01em;
+  letter-spacing: -.02em;
   line-height: 1;
   position: relative;
-  z-index: 1;
-  /* Dark Navy matching original top navbar */
-  color: #0D2B6B;
+  z-index: 5;
+  color: #1F3B63;
+  opacity: 1;
+  text-shadow: none;
 }
 
-.cr-accent {
-  -webkit-text-fill-color: initial;
-  /* Original Green Accent */
-  color: #059669;
+.company-ribbon-name .cr-accent {
+  color: #3D9F95;
+  -webkit-text-fill-color: #3D9F95;
+  opacity: 1;
 }
 
 .company-ribbon-tag {
