@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import validator from "validator";
 import "./styles/login.css";
 
 export default function Signup() {
   const navigate = useNavigate();
+  const { login, fetchProfile } = useAuth();
 
   // ---------------- FORM STATES ----------------
   const [fullName, setFullName] = useState("");
@@ -30,7 +32,7 @@ export default function Signup() {
   const [resendTimer, setResendTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
-  const API_BASE = "http://localhost:5000/api/auth";
+  const API_BASE = "/api/auth";
 
   // ---------------- RESEND TIMER LOGIC ----------------
   useEffect(() => {
@@ -170,7 +172,10 @@ export default function Signup() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Signup failed");
 
-      navigate("/login");
+      // Auto-login after successful signup
+      login(data);
+      await fetchProfile();
+      navigate("/client-dashboard");
     } catch (err) {
       setError(err.message || "Network error");
     } finally {

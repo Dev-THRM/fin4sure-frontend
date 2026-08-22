@@ -3,35 +3,21 @@ import { createContext, useContext, useEffect, useState } from "react";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const isAdmin = localStorage.getItem("admin_logged_in") === "true";
-    if (isAdmin) {
-      return { role: "admin", email: "admin@finn4sure.com", name: "Admin" };
-    }
-    return null;
-  });
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔥 Sync frontend auth with backend session
   const fetchProfile = async () => {
-    if (localStorage.getItem("admin_logged_in") === "true") {
-      setUser({ role: "admin", email: "admin@finn4sure.com", name: "Admin" });
-      setLoading(false);
-      return;
-    }
     try {
-      const res = await fetch("http://localhost:5000/api/auth/profile", {
+      const res = await fetch("/api/auth/profile", {
         credentials: "include",
       });
 
       if (res.ok) {
         const data = await res.json();
         setUser(data);
-      } else {
-        setUser(null);
       }
-    } catch {
-      setUser(null);
+    } catch (e) {
+      console.warn("Profile fetch network warning:", e.message);
     } finally {
       setLoading(false);
     }
@@ -47,16 +33,12 @@ export function AuthProvider({ children }) {
     setUser(userData);
   }
 
-  // Called on admin login
-  function adminLogin() {
-    localStorage.setItem("admin_logged_in", "true");
-    setUser({ role: "admin", email: "admin@finn4sure.com", name: "Admin" });
-  }
+  // Admin login is now handled directly by the /admin-login backend endpoint
+  // and syncs normally via login(userData) and fetchProfile()
 
   // Called on logout
   async function logout() {
-    localStorage.removeItem("admin_logged_in");
-    await fetch("http://localhost:5000/api/auth/logout", {
+    await fetch("/api/auth/logout", {
       method: "POST",
       credentials: "include",
     });
@@ -73,7 +55,6 @@ export function AuthProvider({ children }) {
         login,
         logout,
         fetchProfile,
-        adminLogin,
       }}
     >
       {children}

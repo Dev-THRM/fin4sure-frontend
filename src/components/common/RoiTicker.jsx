@@ -1,8 +1,26 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { LENDERS } from "../../utils/loanConstants";
+import { useAuth } from "../../context/AuthContext";
 import "./roiTicker.css";
 
 export default function RoiTicker() {
+  const [announcementText, setAnnouncementText] = useState("");
+  const [isBannerVisible, setIsBannerVisible] = useState(true);
+
+  const { role, user } = useAuth();
+  const isAdmin = role === "admin" || user?.role === "admin" || (typeof window !== "undefined" && window.location.pathname.includes("admin"));
+
+  useEffect(() => {
+    fetch("/api/location/public-settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.announcement_banner) {
+          setAnnouncementText(data.announcement_banner.trim());
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const tickerItems = useMemo(() => {
     const TICKER_ORDER = ['home', 'lap', 'business', 'personal', 'vehicle'];
     const typeLabels = {
@@ -38,33 +56,65 @@ export default function RoiTicker() {
     }));
   }, []);
 
-  if (tickerItems.length === 0) return null;
+  if (tickerItems.length === 0 && !announcementText) return null;
 
   // Duplicate sequence for seamless loop animation
   const displayItems = [...tickerItems, ...tickerItems];
 
+  // Repeat announcement for smooth continuous scrolling
+  const announcementRepeats = Array(12).fill(announcementText);
+
   return (
-    <div className="roi-ticker roi-ticker-global" id="roiTicker" aria-label="Lender interest rates">
-      <div className="roi-ticker-label">
-        <span className="roi-live-dot"></span>ROI
-      </div>
-      <div className="roi-ticker-viewport">
-        <div className="roi-ticker-track" id="roiTickerTrack">
-          {displayItems.map((item, index) => (
-            <span key={index} className="roi-item">
-              <span className="roi-name">{item.name}</span>
-              <span className="roi-type">{item.loanLabel}</span>
-              <span className="roi-val">{item.rate.toFixed(2)}%</span>
-              {item.down ? (
-                <span className="roi-arrow down">▼</span>
-              ) : (
-                <span className="roi-arrow up">▲</span>
-              )}
-            </span>
-          ))}
+    <>
+      {tickerItems.length > 0 && (
+        <div className="roi-ticker roi-ticker-global" id="roiTicker" aria-label="Lender interest rates">
+          <div className="roi-ticker-label">
+            <span className="roi-live-dot"></span>ROI
+          </div>
+          <div className="roi-ticker-viewport">
+            <div className="roi-ticker-track" id="roiTickerTrack">
+              {displayItems.map((item, index) => (
+                <span key={index} className="roi-item">
+                  <span className="roi-name">{item.name}</span>
+                  <span className="roi-type">{item.loanLabel}</span>
+                  <span className="roi-val">{item.rate.toFixed(2)}%</span>
+                  {item.down ? (
+                    <span className="roi-arrow down">▼</span>
+                  ) : (
+                    <span className="roi-arrow up">▲</span>
+                  )}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+
+      {announcementText && isBannerVisible && (
+        <div className="news-ticker-banner" aria-label="News ticker">
+          <div className="news-ticker-label">
+            <span className="news-pulse-dot"></span>
+            <span>NEWS</span>
+          </div>
+          <div className="news-ticker-viewport">
+            <div className="news-ticker-track">
+              {announcementRepeats.map((text, idx) => (
+                <span key={idx} className="news-ticker-item">
+                  <span className="news-icon">📢</span>
+                  <span className="news-text">{text}</span>
+                  <span className="news-diamond">✦</span>
+                </span>
+              ))}
+            </div>
+          </div>
+          {isAdmin && (
+            <button className="news-close-btn" onClick={() => setIsBannerVisible(false)} title="Dismiss (Admin Only)">
+              ✕
+            </button>
+          )}
+        </div>
+      )}
+    </>
   );
 }
 export { RoiTicker };

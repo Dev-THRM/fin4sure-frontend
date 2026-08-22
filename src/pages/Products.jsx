@@ -24,10 +24,8 @@ export default function Products() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [loanTypesRes, lendersRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/loan-types'),
-          axios.get('http://localhost:5000/api/lenders')
-        ]);
+        const loanTypesRes = await axios.get('/api/loan-types');
+        const lendersRes = await axios.get('/api/lenders');
         
         if (loanTypesRes.data.success) {
           const mappedTypes = loanTypesRes.data.data.map(lt => {
@@ -155,7 +153,9 @@ export default function Products() {
                   <div className="form-subtitle">Select at least 2 lenders you'd like to apply to</div>
                   
                   <div className="bl-lender-list">
-                    {lendersData.map(lender => {
+                    {lendersData
+                      .filter(lender => getRateForLoanType(lender, loanType) !== 'N/A')
+                      .map(lender => {
                       const isSel = selectedLenders.includes(lender.id);
                       const rate = getRateForLoanType(lender, loanType);
                       return (
@@ -173,8 +173,8 @@ export default function Products() {
                             <div className="bl-l-sub">{lender.type === 'psu' ? 'PSU' : 'Private'} Bank</div>
                           </div>
                           <div className="bl-l-rate">
-                            <div className="bl-l-rate-v">{rate !== 'N/A' ? `${rate}%` : 'N/A'}</div>
-                            {rate !== 'N/A' && <div className="bl-l-rate-l">p.a. onwards</div>}
+                            <div className="bl-l-rate-v">{rate}%</div>
+                            <div className="bl-l-rate-l">p.a. onwards</div>
                           </div>
                         </div>
                       );

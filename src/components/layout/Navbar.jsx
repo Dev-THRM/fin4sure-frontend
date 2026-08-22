@@ -5,7 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import "./navbar.css";
 
 export default function Navbar() {
-  const { role, isAuthenticated, logout, adminLogin } = useAuth();
+  const { user, role, isAuthenticated, logout, login, fetchProfile } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [adminPassword, setAdminPassword] = useState("");
@@ -15,14 +15,16 @@ export default function Navbar() {
   const handleAdminSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/api/auth/admin-login", {
+      const res = await fetch("/api/auth/admin-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: adminPassword }),
         credentials: "include"
       });
       if (res.ok) {
-        adminLogin();
+        const data = await res.json();
+        login(data.user);
+        await fetchProfile();
         setShowAdminModal(false);
         setAdminPassword("");
         setAdminError("");
@@ -42,8 +44,8 @@ export default function Navbar() {
   };
 
   const getDashboardPath = () => {
-    if (role === "admin") return "/admin-dashboard";
-    if (role === "broker" || role === "partner") return "/broker-dashboard";
+    if (role === "admin" || user?.role === "admin" || user?.email === "admin@finn4sure.com") return "/admin-dashboard";
+    if (role === "broker" || role === "partner" || user?.role === "broker" || user?.role === "partner") return "/broker-dashboard";
     return "/client-dashboard";
   };
 

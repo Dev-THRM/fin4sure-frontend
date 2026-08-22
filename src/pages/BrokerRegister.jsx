@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { districtsByState, states } from "../components/Statedata";
 import "./styles/login.css";
 
 export default function BrokerRegistration() {
   const navigate = useNavigate();
+  const { login, fetchProfile } = useAuth();
 
   // ---------------- FORM STATES ----------------
   const [fullName, setFullName] = useState("");
@@ -75,7 +77,7 @@ export default function BrokerRegistration() {
       setLoading(true);
       setOtpError("");
 
-      const res = await fetch(`http://localhost:5000/api/auth/send-otp`, {
+      const res = await fetch(`/api/auth/send-otp`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -107,7 +109,7 @@ export default function BrokerRegistration() {
       setOtpError("");
       setLoading(true);
 
-      const res = await fetch(`http://localhost:5000/api/auth/verify-otp`, {
+      const res = await fetch(`/api/auth/verify-otp`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -161,7 +163,7 @@ export default function BrokerRegistration() {
         district,
       };
 
-      const res = await fetch(`http://localhost:5000/api/auth/signup`, {
+      const res = await fetch(`/api/auth/signup`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -171,7 +173,10 @@ export default function BrokerRegistration() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Signup failed");
 
-      navigate("/login");
+      // Auto-login after successful signup
+      login(data);
+      await fetchProfile();
+      navigate("/broker-dashboard");
     } catch (err) {
       setError(err.message || "Network error");
     } finally {

@@ -1,18 +1,28 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { useEmiCalculator } from "../hooks/useEmiCalculator";
 import { useSliderPaint } from "../hooks/useSliderPaint";
-import { fmtINR, fmtINRFull, fmtTenure } from "../utils/formatters";
-import { LENDERS, LOAN_PARAMS } from "../utils/loanConstants";
+import { fmtINR, fmtINRFull } from "../utils/formatters";
 import { calcEMI } from "../utils/emiCalculator";
-import { EmiDonut } from "../components/emi/EmiDonut"; // We will create this subcomponent next
 import "./styles/calculator.css";
 
 export default function Calculator() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  // Initialize hook with parameters passed from Home page state (if any)
+  const [dbLenders, setDbLenders] = useState([]);
+  const [loadingLenders, setLoadingLenders] = useState(false);
+
+  // Sub-tabs & Lender filter/sort states for EMI Calculator Dashboard
+  const [subTab, setSubTab] = useState("summary"); // "summary" | "amortization"
+  const [lenderFilter, setLenderFilter] = useState("All");
+  const [lenderSort, setLenderSort] = useState("type_order");
+
+  // Derive initial loan type from location.state
+  const initialLoanType = location.state?.loanType || "home";
+
   const {
     loanType,
     amount,
@@ -20,13 +30,9 @@ export default function Calculator() {
     tenure,
     rateType,
     params,
-    amountStep,
     emi,
     totalPayable,
     totalInterest,
-    principalPercentage,
-    interestPercentage,
-    amortizationSchedule,
     setLoanType,
     setAmount,
     setRate,
@@ -37,24 +43,36 @@ export default function Calculator() {
     clampTenure,
     snapAmount
   } = useEmiCalculator(
-    location.state?.loanType || "home",
+    initialLoanType,
     location.state?.amount,
     location.state?.rate,
     location.state?.tenure
   );
 
-  // Local state for Amount text inputs to handle formatting safely
-  const [amtInputVal, setAmtInputVal] = useState("30");
+  // Fetch real lenders from DB endpoint `/api/lenders`
+  useEffect(() => {
+    const fetchLenders = async () => {
+      try {
+        setLoadingLenders(true);
+        const res = await fetch("/api/lenders");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          setDbLenders(json.data);
+        }
+      } catch (err) {
+        console.error("Error fetching live lenders from DB:", err);
+      } finally {
+        setLoadingLenders(false);
+      }
+    };
+    fetchLenders();
+  }, []);
+
+  // Local state for Amount text inputs
+  const [amtInputVal, setAmtInputVal] = useState("50");
   const [amtUnit, setAmtUnit] = useState(100000); // Lakhs vs Crores
 
-  // Local state for Schedule tab selection (summary or amort)
-  const [activeTab, setActiveTab] = useState("summary");
-
-  // Local state for Lender filters
-  const [lenderFilter, setLenderFilter] = useState("all");
-  const [lenderSort, setLenderSort] = useState("rate");
-
-  // Synchronize numeric input formatting with range slider amount changes
+  // Synchronize numeric input formatting
   useEffect(() => {
     if (amount >= 10000000) {
       setAmtUnit(10000000);
@@ -70,7 +88,7 @@ export default function Calculator() {
   const rateRef = useSliderPaint(rate, params.rateMin, params.rateMax);
   const tenureRef = useSliderPaint(tenure, params.tenureMin, params.tenureMax);
 
-  // Amount inputs handlers
+  // Amount input handlers
   const handleAmtInputChange = (e) => {
     const rawVal = e.target.value;
     setAmtInputVal(rawVal);
@@ -85,548 +103,863 @@ export default function Calculator() {
     setAmount(parsed * newUnit);
   };
 
-  // Quick pick helpers for Amount and Tenure
-  const quickAmountOptions = useMemo(() => {
-    const isPersonal = loanType === "personal";
-    const opts = isPersonal
-      ? [500000, 1000000, 1500000, 2000000, 2500000]
-      : [1000000, 2500000, 5000000, 10000000, 25000000];
-    return opts.filter((v) => v >= params.amtMin && v <= params.amtMax).slice(0, 5);
-  }, [loanType, params]);
+  // Handle rate type toggle with auto-updated expected ROI rate
+  const handleRateTypeChange = (type) => {
+    setRateType(type);
+    if (type === 'floating') {
+      setRate(7.20);
+    } else {
+      setRate(8.80);
+    }
+  };
 
-  const quickTenureOptions = useMemo(() => {
-    const opts = [60, 120, 180, 240, 300, 360];
-    return opts.filter((v) => v >= params.tenureMin && v <= params.tenureMax).slice(0, 5);
-  }, [params]);
-
-  // Filter and sort lenders dynamically
-  const filteredLenders = useMemo(() => {
-    const rk = rateType === "floating" ? "f" : "x";
-    
-    // Filter out lenders without rates for this specific loan type/rate type combination
-    let list = LENDERS.filter(
-      (l) =>
-        !l._hidden &&
-        l.rates[loanType]?.[rk] &&
-        l.rates[loanType][rk][0] !== null
-    );
-
-    // Apply category filters
-    if (lenderFilter !== "all") {
-      list = list.filter((l) => l.type === lenderFilter);
+  // Combine DB lenders or default fallback list with exact Floating vs Fixed rates
+  const mergedLendersList = useMemo(() => {
+    if (dbLenders.length > 0) {
+      return dbLenders.map((l) => {
+        let minR = rateType === 'floating' ? (l.flowLow || l.min_rate || 7.20) : (l.fixLow || l.min_rate || 8.80);
+        let maxR = rateType === 'floating' ? (l.flowHigh || l.max_rate || 9.80) : (l.fixHigh || l.max_rate || 11.50);
+        return {
+          id: l.id,
+          name: l.name,
+          type: l.type || "Private",
+          logo: l.logo || null,
+          rate: parseFloat(minR),
+          maxRate: parseFloat(maxR),
+          offer: l.offer || "Pre-approved offers available."
+        };
+      }).sort((a, b) => a.rate - b.rate);
     }
 
-    // Determine sorting logic
-    if (lenderSort === "rate") {
+    const defaultLenders = rateType === "floating" ? [
+      { id: 1, name: "HDFC Bank", type: "Private", offer: "Pre-approved offers for existing HDFC customers.", rate: 7.20, maxRate: 9.80 },
+      { id: 2, name: "Bajaj Finserv", type: "NBFC/HFC", offer: "Pre-approved personal loans up to ₹40L for eligible customers.", rate: 7.25, maxRate: 10.50 },
+      { id: 3, name: "Axis Bank", type: "Private", offer: "Special concession on processing fee.", rate: 7.30, maxRate: 10.00 },
+      { id: 4, name: "Kotak Mahindra", type: "Private", offer: "Instant digital in-principle sanction.", rate: 7.40, maxRate: 9.75 },
+      { id: 5, name: "Yes Bank", type: "Private", offer: "Pre-approved digital offer.", rate: 7.45, maxRate: 10.10 },
+      { id: 6, name: "PNB Housing", type: "NBFC/HFC", offer: "Custom tenure & low EMI options.", rate: 7.50, maxRate: 13.45 },
+      { id: 7, name: "LIC Housing", type: "NBFC/HFC", offer: "Griha Lakshmi: Special rate concession for women borrowers.", rate: 7.50, maxRate: 10.35 }
+    ] : [
+      { id: 1, name: "HDFC Bank", type: "Private", offer: "Pre-approved offers for existing HDFC customers.", rate: 8.80, maxRate: 11.50 },
+      { id: 3, name: "Axis Bank", type: "Private", offer: "Special concession on processing fee.", rate: 9.00, maxRate: 11.70 },
+      { id: 4, name: "Kotak Mahindra", type: "Private", offer: "Instant digital in-principle sanction.", rate: 9.00, maxRate: 11.50 },
+      { id: 2, name: "Bajaj Finserv", type: "NBFC/HFC", offer: "Pre-approved personal loans up to ₹40L for eligible customers.", rate: 9.00, maxRate: 12.00 },
+      { id: 6, name: "PNB Housing", type: "NBFC/HFC", offer: "Custom tenure & low EMI options.", rate: 9.00, maxRate: 14.00 },
+      { id: 5, name: "Yes Bank", type: "Private", offer: "Pre-approved digital offer.", rate: 9.10, maxRate: 11.80 },
+      { id: 8, name: "IndusInd Bank", type: "Private", offer: "Special rates for premium banking customers.", rate: 9.15, maxRate: 11.90 }
+    ];
+
+    return defaultLenders;
+  }, [dbLenders, rateType]);
+
+  // Format Lakhs/Crores for summary cards
+  const fmtLakhCr = (val) => {
+    const num = Number(val) || 0;
+    if (num >= 10000000) {
+      return `₹${(num / 10000000).toFixed(2)} Cr`;
+    } else if (num >= 100000) {
+      return `₹${(num / 100000).toFixed(2)} L`;
+    }
+    return `₹${num.toLocaleString('en-IN')}`;
+  };
+
+  // Calculate year-by-year amortization schedule
+  const amortizationSchedule = useMemo(() => {
+    const P = amount || 0;
+    const r = (rate || 0) / 12 / 100;
+    const n = tenure || 0;
+    if (!P || !r || !n || !emi) return [];
+
+    let balance = P;
+    const schedule = [];
+    const totalYears = Math.ceil(n / 12);
+
+    for (let yr = 1; yr <= totalYears; yr++) {
+      let yearlyPrincipal = 0;
+      let yearlyInterest = 0;
+
+      for (let m = 1; m <= 12; m++) {
+        const monthIndex = (yr - 1) * 12 + m;
+        if (monthIndex > n) break;
+
+        const interestForMonth = balance * r;
+        let principalForMonth = emi - interestForMonth;
+        if (balance < principalForMonth) {
+          principalForMonth = balance;
+        }
+        balance -= principalForMonth;
+        yearlyPrincipal += principalForMonth;
+        yearlyInterest += interestForMonth;
+      }
+
+      schedule.push({
+        year: yr,
+        principalPaid: Math.round(yearlyPrincipal),
+        interestPaid: Math.round(yearlyInterest),
+        totalPayment: Math.round(yearlyPrincipal + yearlyInterest),
+        balance: Math.max(0, Math.round(balance))
+      });
+    }
+
+    return schedule;
+  }, [amount, rate, tenure, emi]);
+
+  // Filtered and Sorted Lenders List for Compare Lenders section
+  const filteredAndSortedLenders = useMemo(() => {
+    let list = [...mergedLendersList];
+
+    if (lenderFilter !== "All") {
+      const fl = lenderFilter.toLowerCase();
+      list = list.filter(l => (l.type || '').toLowerCase().includes(fl));
+    }
+
+    // Type priority order: Private → NBFC/HFC → SFB → PSU
+    const typeOrder = { 'private': 0, 'nbfc/hfc': 1, 'nbfc': 1, 'hfc': 1, 'sfb': 2, 'psu': 3 };
+    const getTypeOrder = (type) => {
+      const t = (type || '').toLowerCase();
+      for (const key of Object.keys(typeOrder)) {
+        if (t.includes(key)) return typeOrder[key];
+      }
+      return 99;
+    };
+
+    if (lenderSort === "rate_asc") {
+      // Sort by rate first, then by type order for ties
       list.sort((a, b) => {
-        const rateA = a.rates[loanType][rk][0];
-        const rateB = b.rates[loanType][rk][0];
-        return rateA - rateB;
+        if (a.rate !== b.rate) return a.rate - b.rate;
+        return getTypeOrder(a.type) - getTypeOrder(b.type);
+      });
+    } else if (lenderSort === "rate_desc") {
+      list.sort((a, b) => {
+        if (b.rate !== a.rate) return b.rate - a.rate;
+        return getTypeOrder(a.type) - getTypeOrder(b.type);
+      });
+    } else if (lenderSort === "emi_asc") {
+      list.sort((a, b) => {
+        const diff = calcEMI(amount, a.rate, tenure) - calcEMI(amount, b.rate, tenure);
+        if (diff !== 0) return diff;
+        return getTypeOrder(a.type) - getTypeOrder(b.type);
       });
     } else {
-      list.sort((a, b) => {
-        const emiA = calcEMI(amount, a.rates[loanType][rk][0], tenure);
-        const emiB = calcEMI(amount, b.rates[loanType][rk][0], tenure);
-        return emiA - emiB;
-      });
+      // Default: sort purely by type order
+      list.sort((a, b) => getTypeOrder(a.type) - getTypeOrder(b.type));
     }
 
     return list;
-  }, [loanType, rateType, lenderFilter, lenderSort, amount, tenure]);
+  }, [mergedLendersList, lenderFilter, lenderSort, amount, tenure]);
 
-  const bestRate = useMemo(() => {
-    if (filteredLenders.length === 0) return 0;
-    const rk = rateType === "floating" ? "f" : "x";
-    return Math.min(...filteredLenders.map((l) => l.rates[loanType][rk][0]));
-  }, [filteredLenders, loanType, rateType]);
-
-  const typeLabels = {
-    psu: "PSU",
-    private: "Private",
-    nbfc: "NBFC",
-    small: "SFB"
-  };
-
-  const handleApplyLender = (lenderName) => {
+  const handleApplyToLender = (lenderId) => {
     navigate("/apply", {
-      state: { loanType, amount, rate, tenure, lender: lenderName }
+      state: {
+        loanType: loanType,
+        amount: amount,
+        rate: rate,
+        tenure: tenure,
+        selectedLenders: [lenderId]
+      }
     });
   };
 
   return (
-    <div className="emi-page-content animate-fade-up">
-      {/* ═══ HERO STRIP ═══ */}
-      <div className="emi-hero">
-        <div className="emi-hero-text">
-          <div className="emi-hero-tag">✦ EMI Calculator</div>
-          <h1>Plan your loan with confidence</h1>
-          <p>
-            Adjust the amount, rate and tenure to see your monthly EMI instantly — then compare live rates from 35+ lenders.
-          </p>
-        </div>
-
-        {/* Fixed/Floating Rate Toggle (Only shown for Home and LAP loans) */}
-        {(loanType === "home" || loanType === "lap") && (
-          <div className="rate-toggle" id="emiRateToggle">
-            <button
-              className={`rt-btn ${rateType === "floating" ? "active" : ""}`}
-              onClick={() => setRateType("floating")}
-            >
-              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-              </svg>
-              Floating
-            </button>
-            <button
-              className={`rt-btn ${rateType === "fixed" ? "active" : ""}`}
-              onClick={() => setRateType("fixed")}
-            >
-              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              Fixed
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Info Banner */}
-      <div className="rate-info-banner" id="rateInfoBanner">
-        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="8" x2="12" y2="12" />
-          <line x1="12" y1="16" x2="12.01" y2="16" />
-        </svg>
-        <span id="rateInfoText">
-          {rateType === "floating"
-            ? "Floating rate: Linked to RBI repo rate (5.25%). Currently favourable as rates are at multi-year lows."
-            : "Fixed rate: Rate stays constant throughout tenure. This loan type is offered on a fixed-rate basis by lenders."}
-        </span>
-      </div>
-
-      {/* ═══ CALCULATOR MAIN GRID ═══ */}
-      <div className="emi-calc-grid">
-        {/* Left Column: Inputs */}
-        <div className="emi-inputs-card">
-          <div className="eic-label">Loan Details</div>
-
-          {/* Loan Category Toggle */}
-          <div className="emi-loantype-row">
-            <button
-              className={`hltp ${loanType === "home" ? "active" : ""}`}
-              onClick={() => setLoanType("home")}
-            >
-              <span className="hltp-ic">🏠</span>Home
-            </button>
-            <button
-              className={`hltp ${loanType === "lap" ? "active" : ""}`}
-              onClick={() => setLoanType("lap")}
-            >
-              <span className="hltp-ic">🏢</span>LAP
-            </button>
-            <button
-              className={`hltp ${loanType === "personal" ? "active" : ""}`}
-              onClick={() => setLoanType("personal")}
-            >
-              <span className="hltp-ic">💳</span>Personal
-            </button>
-            <button
-              className={`hltp ${loanType === "business" ? "active" : ""}`}
-              onClick={() => setLoanType("business")}
-            >
-              <span className="hltp-ic">📦</span>Business
-            </button>
-            <button
-              className={`hltp ${loanType === "vehicle" ? "active" : ""}`}
-              onClick={() => setLoanType("vehicle")}
-            >
-              <span className="hltp-ic">🚗</span>Vehicle
-            </button>
-          </div>
-
-          {/* Loan Amount Range Field */}
-          <div className="range-field">
-            <div className="rf-header">
-              <label>Loan Amount</label>
-              <div className="rf-input-wrap">
-                <span className="rf-prefix">₹</span>
-                <input
-                  type="number"
-                  className="rf-input"
-                  value={amtInputVal}
-                  onChange={handleAmtInputChange}
-                  onBlur={clampAmount}
-                  step="0.01"
-                />
-                <select
-                  className="rf-unit"
-                  value={amtUnit}
-                  onChange={handleUnitChange}
-                >
-                  <option value={100000}>Lakh</option>
-                  <option value={10000000}>Crore</option>
-                </select>
-              </div>
+    <div className="calc-full-page animate-fade-up">
+      {/* ═══ STANDALONE EMI CALCULATOR HERO BANNER (COMPACT) ═══ */}
+      <div style={{
+        maxWidth: '1280px',
+        margin: '12px auto 8px',
+        padding: '0 16px',
+        boxSizing: 'border-box'
+      }}>
+        <div style={{
+          background: 'linear-gradient(135deg, #0F2942 0%, #1E3A8A 50%, #0369A1 100%)',
+          borderRadius: '16px',
+          padding: '12px 24px',
+          color: '#FFFFFF',
+          display: 'flex',
+          justify: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          boxShadow: '0 4px 16px rgba(15, 41, 66, 0.12)'
+        }}>
+          {/* Left Text */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              background: 'rgba(255, 255, 255, 0.15)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              color: '#38BDF8',
+              padding: '2px 8px',
+              borderRadius: '12px',
+              fontSize: '0.65rem',
+              fontWeight: 800,
+              letterSpacing: '0.06em'
+            }}>
+              ✦ EMI CALCULATOR
             </div>
-            <input
-              type="range"
-              ref={amtRef}
-              min={params.amtMin}
-              max={params.amtMax}
-              value={amount}
-              onChange={(e) => setAmount(snapAmount(e.target.value))}
-              step="any"
-            />
-            <div className="rf-minmax">
-              <span>₹{params.amtMin >= 10000000 ? `${params.amtMin / 10000000} Cr` : `${params.amtMin / 100000} Lakh`}</span>
-              <span>₹{params.amtMax >= 10000000 ? `${params.amtMax / 10000000} Cr` : `${params.amtMax / 100000} Crores`}</span>
-            </div>
-            <div className="amt-quick-btns">
-              {quickAmountOptions.map((val) => (
-                <button key={val} onClick={() => setAmount(val)}>
-                  {fmtINR(val)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Expected ROI Range Field */}
-          <div className="range-field">
-            <div className="rf-header">
-              <label>Expected ROI (p.a.)</label>
-              <div className="rf-input-wrap">
-                <input
-                  type="number"
-                  className="rf-input"
-                  value={rate}
-                  onChange={(e) => setRate(e.target.value)}
-                  onBlur={clampRate}
-                  step="0.1"
-                />
-                <span className="rf-suffix">% p.a.</span>
-              </div>
-            </div>
-            <input
-              type="range"
-              ref={rateRef}
-              min={params.rateMin}
-              max={params.rateMax}
-              value={rate}
-              onChange={(e) => setRate(e.target.value)}
-              step="0.25"
-            />
-            <div className="rf-minmax">
-              <span>{params.rateMin}%</span>
-              <span>{params.rateMax}%</span>
-            </div>
-          </div>
-
-          {/* Loan Tenure Range Field */}
-          <div className="range-field">
-            <div className="rf-header">
-              <label>Loan Tenure</label>
-              <div className="rf-input-wrap">
-                <input
-                  type="number"
-                  className="rf-input"
-                  value={tenure}
-                  onChange={(e) => setTenure(e.target.value)}
-                  onBlur={clampTenure}
-                />
-                <span className="rf-suffix">Months</span>
-              </div>
-            </div>
-            <input
-              type="range"
-              ref={tenureRef}
-              min={params.tenureMin}
-              max={params.tenureMax}
-              value={tenure}
-              onChange={(e) => setTenure(e.target.value)}
-              step="6"
-            />
-            <div className="rf-minmax">
-              <span>{params.tenureMin / 12} Year</span>
-              <span>{params.tenureMax / 12} Years</span>
-            </div>
-            <div className="amt-quick-btns">
-              {quickTenureOptions.map((val) => (
-                <button key={val} onClick={() => setTenure(val)}>
-                  {val / 12} yr
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Calculations & Donut */}
-        <div className="emi-result-card">
-          <div className="emi-result-top">
-            <div className="erp-label">Your Monthly EMI</div>
-            <div className="erp-emi">{fmtINRFull(emi)}</div>
-            <div className="erp-sub">{fmtTenure(tenure)}</div>
-          </div>
-
-          <EmiDonut
-            principal={amount}
-            interest={totalInterest}
-            principalPercentage={principalPercentage}
-          />
-
-          <div className="pie-legend">
-            <span>
-              <span className="legend-dot" style={{ backgroundColor: "#22D3EE" }}></span>
-              Principal
-            </span>
-            <span>
-              <span className="legend-dot" style={{ backgroundColor: "#D4AF37" }}></span>
-              Interest
+            <h1 style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: '1.2rem',
+              fontWeight: 800,
+              margin: 0,
+              color: '#FFFFFF'
+            }}>
+              Plan your loan with confidence
+            </h1>
+            <span style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.8)' }}>
+              Adjust amount, rate &amp; tenure to see your monthly EMI instantly — then compare 35+ lenders.
             </span>
           </div>
 
-          <div className="breakdown-grid">
-            <div className="bkd-box">
-              <div className="val">{fmtINRFull(amount)}</div>
-              <div className="lbl">Principal</div>
-            </div>
-            <div className="bkd-box">
-              <div className="val">{fmtINRFull(totalInterest)}</div>
-              <div className="lbl">Total Interest</div>
-            </div>
-            <div className="bkd-box bkd-full">
-              <div className="val">{fmtINRFull(totalPayable)}</div>
-              <div className="lbl">Total Amount Payable</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ═══ SCHEDULE ACCORDIONS / DETAIL TABS ═══ */}
-      <div className="emi-detail-tabs">
-        <button
-          className={`edt-tab ${activeTab === "summary" ? "active" : ""}`}
-          onClick={() => setActiveTab("summary")}
-        >
-          📊 Schedule Summary
-        </button>
-        <button
-          className={`edt-tab ${activeTab === "amort" ? "active" : ""}`}
-          onClick={() => setActiveTab("amort")}
-        >
-          📅 Amortisation Schedule
-        </button>
-      </div>
-
-      {/* Tab Panel: Summary */}
-      {activeTab === "summary" && (
-        <div className="emi-detail-panel animate-fade-up">
-          <div className="emi-summary-grid">
-            <div className="esg-card">
-              <div className="esg-ic">💰</div>
-              <div className="esg-v">{fmtINRFull(emi)}</div>
-              <div className="esg-l">Monthly EMI</div>
-            </div>
-            <div className="esg-card">
-              <div className="esg-ic">🏦</div>
-              <div className="esg-v">{fmtINR(amount)}</div>
-              <div className="esg-l">Principal</div>
-            </div>
-            <div className="esg-card">
-              <div className="esg-ic">📈</div>
-              <div className="esg-v">{fmtINR(totalInterest)}</div>
-              <div className="esg-l">Total Interest</div>
-            </div>
-            <div className="esg-card">
-              <div className="esg-ic">🧾</div>
-              <div className="esg-v">{fmtINR(totalPayable)}</div>
-              <div className="esg-l">Total Payable</div>
-            </div>
-          </div>
-          <div className="emi-summary-note">
-            Over <strong>{fmtTenure(tenure)}</strong>, you’ll pay <strong>{fmtINR(totalInterest)}</strong> in interest — about <strong>{interestPercentage}%</strong> of your total outgo. Choosing a lower expected ROI or shorter tenure reduces this. <em>Final ROI will be confirmed post credit assessment of the case.</em>
-          </div>
-        </div>
-      )}
-
-      {/* Tab Panel: Amortisation Table */}
-      {activeTab === "amort" && (
-        <div className="emi-detail-panel animate-fade-up">
-          <div className="amort-scroll">
-            <table className="amort-table">
-              <thead>
-                <tr>
-                  <th style={{ textAlign: "left" }}>Year</th>
-                  <th>EMI Paid</th>
-                  <th>Principal</th>
-                  <th>Interest</th>
-                  <th>Balance</th>
-                </tr>
-              </thead>
-              <tbody>
-                {amortizationSchedule.map((row) => (
-                  <tr key={row.year}>
-                    <td style={{ textAlign: "left", fontWeight: "600" }}>
-                      Year {row.year}
-                    </td>
-                    <td>{fmtINRFull(row.emiPaid)}</td>
-                    <td>{fmtINRFull(row.principalPaid)}</td>
-                    <td>{fmtINRFull(row.interestPaid)}</td>
-                    <td>{fmtINRFull(row.outstandingBalance)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* ═══ COMPARE LENDERS SECTION ═══ */}
-      <div className="lender-section">
-        <div className="lender-section-header">
-          <div>
-            <h3>Compare Lenders</h3>
-            <div className="lender-sub">
-              Live rates from 29 banks & NBFCs · sorted for your profile
-            </div>
-          </div>
-
-          <div className="emi-controls-row">
-            <div className="lender-filters">
-              <button
-                className={`lf-btn ${lenderFilter === "all" ? "active" : ""}`}
-                onClick={() => setLenderFilter("all")}
-              >
-                All
-              </button>
-              <button
-                className={`lf-btn ${lenderFilter === "psu" ? "active" : ""}`}
-                onClick={() => setLenderFilter("psu")}
-              >
-                PSU
-              </button>
-              <button
-                className={`lf-btn ${lenderFilter === "private" ? "active" : ""}`}
-                onClick={() => setLenderFilter("private")}
-              >
-                Private
-              </button>
-              <button
-                className={`lf-btn ${lenderFilter === "nbfc" ? "active" : ""}`}
-                onClick={() => setLenderFilter("nbfc")}
-              >
-                NBFC/HFC
-              </button>
-              <button
-                className={`lf-btn ${lenderFilter === "small" ? "active" : ""}`}
-                onClick={() => setLenderFilter("small")}
-              >
-                SFB
-              </button>
-            </div>
-
-            <select
-              className="lender-sort-select"
-              value={lenderSort}
-              onChange={(e) => setLenderSort(e.target.value)}
+          {/* Right Floating / Fixed Rate Toggle Card */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '16px',
+            padding: '3px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+          }}>
+            <button
+              type="button"
+              onClick={() => handleRateTypeChange('floating')}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '12px',
+                border: 'none',
+                fontSize: '0.78rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                background: rateType === 'floating' ? '#0F2942' : 'transparent',
+                color: rateType === 'floating' ? '#FFFFFF' : '#64748B',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
             >
-              <option value="rate">↓ Lowest Rate</option>
-              <option value="emi">↓ Lowest EMI</option>
-            </select>
+              ⚡ Floating
+            </button>
+            <button
+              type="button"
+              onClick={() => handleRateTypeChange('fixed')}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '12px',
+                border: 'none',
+                fontSize: '0.78rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                background: rateType === 'fixed' ? '#0F2942' : 'transparent',
+                color: rateType === 'fixed' ? '#FFFFFF' : '#64748B',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              — Fixed
+            </button>
           </div>
         </div>
 
-        {/* Lender rows list */}
-        <div className="lender-grid">
-          {filteredLenders.length > 0 ? (
-            <>
-              {/* Header row */}
-              <div className="lc-row lc-row-head">
-                <div className="lcr-lender">Lender</div>
-                <div className="lcr-rate">Expected ROI</div>
-                <div className="lcr-emi">Est. EMI</div>
-                <div className="lcr-act"></div>
+        {/* Floating / Fixed Info Notification Banner */}
+        <div style={{
+          background: '#FEF9C3',
+          border: '1px solid #FDE047',
+          borderRadius: '12px',
+          padding: '6px 14px',
+          margin: '8px 0 0 0',
+          color: '#854D0E',
+          fontSize: '0.78rem',
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
+        }}>
+          <span>ℹ️</span>
+          <span>
+            {rateType === 'fixed'
+              ? 'Fixed rate: Rate stays constant throughout tenure. This loan type is offered on a fixed-rate basis by lenders.'
+              : 'Floating rate: Rate adjusts with market interest rate benchmark (Repo Rate/MCLR). Offered on a floating-rate basis.'}
+          </span>
+        </div>
+      </div>
+
+      {/* ═══ MAIN CONTENT BODY (NO STEPPER) ═══ */}
+      <div className="calc-body-wrap">
+        {/* ═══ TOP SECTION: SCHEDULE SUMMARY | AMORTIZATION SCHEDULE ═══ */}
+        <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '18px 24px', marginBottom: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
+            <button
+              type="button"
+              onClick={() => setSubTab('summary')}
+              style={{
+                padding: '6px 18px',
+                borderRadius: '16px',
+                border: subTab === 'summary' ? '1px solid #0284C7' : '1px solid #E2E8F0',
+                background: subTab === 'summary' ? '#E0F2FE' : '#F8FAFC',
+                color: subTab === 'summary' ? '#0369A1' : '#64748B',
+                fontWeight: 700,
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              📊 Schedule Summary
+            </button>
+            <button
+              type="button"
+              onClick={() => setSubTab('amortization')}
+              style={{
+                padding: '6px 18px',
+                borderRadius: '16px',
+                border: subTab === 'amortization' ? '1px solid #0284C7' : '1px solid #E2E8F0',
+                background: subTab === 'amortization' ? '#E0F2FE' : '#F8FAFC',
+                color: subTab === 'amortization' ? '#0369A1' : '#64748B',
+                fontWeight: 700,
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              📅 Amortization Schedule
+            </button>
+          </div>
+
+          {subTab === 'summary' ? (
+            <div>
+              {/* 4 Stat Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '14px' }}>
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F2942' }}>{fmtINRFull(emi)}</div>
+                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>MONTHLY EMI</div>
+                </div>
+
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F2942' }}>{fmtLakhCr(amount)}</div>
+                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>PRINCIPAL</div>
+                </div>
+
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#D97706' }}>{fmtLakhCr(totalInterest)}</div>
+                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>TOTAL INTEREST</div>
+                </div>
+
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0284C7' }}>{fmtLakhCr(totalPayable)}</div>
+                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>TOTAL PAYABLE</div>
+                </div>
               </div>
 
-              {filteredLenders.map((l) => {
-                const rk = rateType === "floating" ? "f" : "x";
-                const ratesArr = l.rates[loanType][rk];
-                const estEmi = calcEMI(amount, ratesArr[0], tenure);
-                const isBest = ratesArr[0] === bestRate;
-
-                return (
-                  <div key={l.name} className={`lc-row ${isBest ? "lc-best" : ""}`}>
-                    <div className="lcr-lender">
-                      <div
-                        className="lcr-icon"
-                        style={{
-                          backgroundColor: `${l.color}1a`,
-                          color: l.color
-                        }}
-                      >
-                        {l.emoji}
-                      </div>
-                      <div className="lcr-info">
-                        <div className="lcr-name">
-                          {l.name}
-                          {isBest && <span className="lcr-best-tag">★ Best</span>}
-                        </div>
-                        <div className="lcr-badge">
-                          {typeLabels[l.type] || ""}{" "}
-                          {l.offer && (
-                            <>
-                              {" · "}
-                              <span className="lcr-offer">{l.offer}</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="lcr-rate">
-                      <span className="lcr-rate-v" style={isBest ? { color: "#059669" } : {}}>
-                        {ratesArr[0].toFixed(2)}%
-                      </span>
-                      <span className="lcr-rate-r">
-                        {ratesArr[0].toFixed(2)}–{ratesArr[1].toFixed(2)}
-                      </span>
-                    </div>
-
-                    <div className="lcr-emi">
-                      {fmtINRFull(estEmi)}
-                      <span className="lcr-emi-l">/mo</span>
-                    </div>
-
-                    <div className="lcr-act">
-                      <button
-                        className="lcr-btn"
-                        onClick={() => handleApplyLender(l.name)}
-                      >
-                        Apply →
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </>
+              {/* Summary Explanatory Banner */}
+              <div style={{ background: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '10px', padding: '10px 16px', color: '#0369A1', fontSize: '0.82rem', lineHeight: '1.4', fontWeight: 500 }}>
+                Over <strong>{Math.round(tenure / 12)} yrs</strong>, you'll pay <strong>{fmtLakhCr(totalInterest)}</strong> in interest — about <strong>{100 - (totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50)}%</strong> of your total outlay. Choosing lower expected ROI or shorter tenure reduces this. Final ROI will be confirmed post credit assessment of the case.
+              </div>
+            </div>
           ) : (
-            <div style={{ textAlign: "center", padding: "40px", color: "var(--text2)" }}>
-              No lenders available for this filter/loan type combination.
+            /* Amortization Table */
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                <thead>
+                  <tr style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0', textAlign: 'left', color: '#475569' }}>
+                    <th style={{ padding: '10px 14px', fontWeight: 800 }}>YEAR</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 800 }}>PRINCIPAL PAID</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 800 }}>INTEREST PAID</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 800 }}>TOTAL PAYMENT</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 800 }}>REMAINING BALANCE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {amortizationSchedule.map((row) => (
+                    <tr key={row.year} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                      <td style={{ padding: '10px 14px', fontWeight: 700, color: '#0F2942' }}>Year {row.year}</td>
+                      <td style={{ padding: '10px 14px', fontWeight: 600, color: '#0369A1' }}>₹{row.principalPaid.toLocaleString('en-IN')}</td>
+                      <td style={{ padding: '10px 14px', fontWeight: 600, color: '#D97706' }}>₹{row.interestPaid.toLocaleString('en-IN')}</td>
+                      <td style={{ padding: '10px 14px', fontWeight: 700, color: '#0F2942' }}>₹{row.totalPayment.toLocaleString('en-IN')}</td>
+                      <td style={{ padding: '10px 14px', fontWeight: 600, color: '#64748B' }}>₹{row.balance.toLocaleString('en-IN')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
 
-        <div className="roi-confirm-note">
-          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
-          </svg>
-          <span>
-            <strong>Note:</strong> Final ROI will be confirmed post credit assessment of the case. Processing fee, where applicable, is confirmed by the lender at sanction. Rates shown are indicative, updated June 2026.
-          </span>
+        {/* ═══ UNIFIED SIDE-BY-SIDE GRID (LEFT: CALCULATOR | RIGHT: COMPARE LENDERS TABLE) ═══ */}
+        <div className="calc-main-side-grid" style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: '20px', alignItems: 'start', marginBottom: '24px' }}>
+          
+          {/* ═══ LEFT PANEL: LOAN CALCULATOR & EMI READOUT ═══ */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '18px 20px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <div style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.08em', color: '#64748B' }}>
+                  LOAN CALCULATOR
+                </div>
+                {/* Floating | Fixed Toggle */}
+                <div style={{ display: 'inline-flex', background: '#F1F5F9', padding: '3px', borderRadius: '20px', border: '1px solid #CBD5E1' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleRateTypeChange('floating')}
+                    style={{
+                      padding: '4px 12px',
+                      borderRadius: '16px',
+                      border: 'none',
+                      fontSize: '0.76rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      background: rateType === 'floating' ? '#0F2942' : 'transparent',
+                      color: rateType === 'floating' ? '#FFFFFF' : '#64748B',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    ⚡ Floating
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRateTypeChange('fixed')}
+                    style={{
+                      padding: '4px 12px',
+                      borderRadius: '16px',
+                      border: 'none',
+                      fontSize: '0.76rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      background: rateType === 'fixed' ? '#0F2942' : 'transparent',
+                      color: rateType === 'fixed' ? '#FFFFFF' : '#64748B',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    — Fixed
+                  </button>
+                </div>
+              </div>
+
+              {/* 1. Loan Amount */}
+              <div className="range-field" style={{ marginBottom: '14px' }}>
+                <div className="rf-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0F2942' }}>Loan Amount</label>
+                  <div className="rf-input-wrap" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '2px 6px' }}>
+                    <span className="rf-prefix" style={{ fontWeight: 700, color: '#0F2942', fontSize: '0.8rem' }}>₹</span>
+                    <input
+                      type="number"
+                      className="rf-input"
+                      value={amtInputVal}
+                      onChange={handleAmtInputChange}
+                      onBlur={clampAmount}
+                      step="0.01"
+                      style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.85rem', color: '#0F2942', width: '65px', textAlign: 'right' }}
+                    />
+                    <select
+                      className="rf-unit"
+                      value={amtUnit}
+                      onChange={handleUnitChange}
+                      style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 700, fontSize: '0.78rem', color: '#475569', cursor: 'pointer' }}
+                    >
+                      <option value={100000}>Lakh ▾</option>
+                      <option value={10000000}>Crore ▾</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                  {[1000000, 2500000, 5000000, 10000000, 25000000].map((presetAmt) => {
+                    const isSel = amount === presetAmt;
+                    const label = presetAmt >= 10000000 ? `₹${(presetAmt / 10000000).toFixed(2)} Cr` : `₹${(presetAmt / 100000).toFixed(2)} L`;
+                    return (
+                      <button
+                        key={presetAmt}
+                        type="button"
+                        onClick={() => setAmount(presetAmt)}
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: '12px',
+                          border: isSel ? '1px solid #0284C7' : '1px solid #E2E8F0',
+                          background: isSel ? '#E0F2FE' : '#F8FAFC',
+                          color: isSel ? '#0369A1' : '#475569',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <input
+                  type="range"
+                  ref={amtRef}
+                  min={params.amtMin}
+                  max={params.amtMax}
+                  value={amount}
+                  onChange={(e) => setAmount(snapAmount(e.target.value))}
+                  step="any"
+                  style={{ width: '100%', cursor: 'pointer' }}
+                />
+              </div>
+
+              {/* 2. Expected Rate (% p.a.) */}
+              <div className="range-field" style={{ marginBottom: '14px' }}>
+                <div className="rf-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0F2942' }}>Expected Rate (% p.a.)</label>
+                  <div className="rf-input-wrap" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '2px 6px' }}>
+                    <input
+                      type="number"
+                      className="rf-input"
+                      value={rate}
+                      onChange={(e) => setRate(e.target.value)}
+                      onBlur={clampRate}
+                      step="0.05"
+                      style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.85rem', color: '#0F2942', width: '45px', textAlign: 'right' }}
+                    />
+                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569' }}>%</span>
+                  </div>
+                </div>
+                <input
+                  type="range"
+                  ref={rateRef}
+                  min={params.rateMin}
+                  max={params.rateMax}
+                  value={rate}
+                  onChange={(e) => setRate(e.target.value)}
+                  step="0.1"
+                  style={{ width: '100%', cursor: 'pointer' }}
+                />
+              </div>
+
+              {/* 3. Loan Tenure */}
+              <div className="range-field">
+                <div className="rf-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0F2942' }}>Loan Tenure</label>
+                  <div className="rf-input-wrap" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '2px 6px' }}>
+                    <input
+                      type="number"
+                      className="rf-input"
+                      value={tenure}
+                      onChange={(e) => setTenure(e.target.value)}
+                      onBlur={clampTenure}
+                      style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.85rem', color: '#0F2942', width: '45px', textAlign: 'right' }}
+                    />
+                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569' }}>Mos</span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                  {[5, 10, 15, 20, 25, 30].map((yr) => {
+                    const mo = yr * 12;
+                    const isSel = tenure === mo;
+                    return (
+                      <button
+                        key={yr}
+                        type="button"
+                        onClick={() => setTenure(mo)}
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: '12px',
+                          border: isSel ? '1px solid #0284C7' : '1px solid #E2E8F0',
+                          background: isSel ? '#E0F2FE' : '#F8FAFC',
+                          color: isSel ? '#0369A1' : '#475569',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {yr} yr
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <input
+                  type="range"
+                  ref={tenureRef}
+                  min={params.tenureMin}
+                  max={params.tenureMax}
+                  value={tenure}
+                  onChange={(e) => setTenure(e.target.value)}
+                  step="12"
+                  style={{ width: '100%', cursor: 'pointer' }}
+                />
+              </div>
+            </div>
+
+            {/* ═══ YOUR MONTHLY EMI CARD ═══ */}
+            <div style={{
+              background: 'linear-gradient(145deg, #0B192C 0%, #1E293B 100%)',
+              borderRadius: '20px',
+              padding: '24px 20px',
+              color: '#FFFFFF',
+              boxShadow: '0 8px 24px rgba(11,25,44,0.15)'
+            }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.08em', color: '#94A3B8', textAlign: 'center', marginBottom: '4px' }}>
+                YOUR MONTHLY EMI
+              </div>
+
+              <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '2.2rem', fontWeight: 900, textAlign: 'center', color: '#FFFFFF', letterSpacing: '-0.02em' }}>
+                {fmtINRFull(emi)}
+              </div>
+              <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#38BDF8', textAlign: 'center', marginBottom: '16px' }}>
+                {Math.round(tenure / 12)} Yrs
+              </div>
+
+              {/* Doughnut SVG Chart */}
+              <div style={{ position: 'relative', width: '150px', height: '150px', margin: '0 auto 14px auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="150" height="150" viewBox="0 0 150 150" style={{ transform: 'rotate(-90deg)' }}>
+                  <circle cx="75" cy="75" r="60" stroke="rgba(255,255,255,0.08)" strokeWidth="16" fill="transparent" />
+                  <circle
+                    cx="75"
+                    cy="75"
+                    r="60"
+                    stroke="#F59E0B"
+                    strokeWidth="16"
+                    fill="transparent"
+                    strokeDasharray={`${(100 - (totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50)) / 100 * (2 * Math.PI * 60)} ${2 * Math.PI * 60}`}
+                    strokeDashoffset={0}
+                    style={{ transition: 'stroke-dasharray 0.4s ease' }}
+                  />
+                  <circle
+                    cx="75"
+                    cy="75"
+                    r="60"
+                    stroke="#38BDF8"
+                    strokeWidth="16"
+                    fill="transparent"
+                    strokeDasharray={`${(totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50) / 100 * (2 * Math.PI * 60)} ${2 * Math.PI * 60}`}
+                    strokeDashoffset={-((100 - (totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50)) / 100 * (2 * Math.PI * 60))}
+                    style={{ transition: 'stroke-dasharray 0.4s ease' }}
+                  />
+                </svg>
+                <div style={{ position: 'absolute', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#FFFFFF', lineHeight: 1 }}>{totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50}%</div>
+                  <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#94A3B8', letterSpacing: '0.06em', marginTop: '2px' }}>PRINCIPAL</div>
+                </div>
+              </div>
+
+              {/* Chart Legend */}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', fontSize: '0.8rem', fontWeight: 600, marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#38BDF8' }} />
+                  <span style={{ color: '#FFFFFF' }}>Principal</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#F59E0B' }} />
+                  <span style={{ color: '#FFFFFF' }}>Interest</span>
+                </div>
+              </div>
+
+              {/* 2 Side-by-Side Metric Boxes */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                <div style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '14px' }}>
+                  <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.25rem', fontWeight: 900, color: '#FFFFFF' }}>{fmtLakhCr(amount)}</div>
+                  <div style={{ fontSize: '0.68rem', fontWeight: 800, color: '#94A3B8', marginTop: '4px', letterSpacing: '0.04em' }}>PRINCIPAL</div>
+                </div>
+
+                <div style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '14px' }}>
+                  <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.25rem', fontWeight: 900, color: '#FFFFFF' }}>{fmtLakhCr(totalInterest)}</div>
+                  <div style={{ fontSize: '0.68rem', fontWeight: 800, color: '#94A3B8', marginTop: '4px', letterSpacing: '0.04em' }}>TOTAL INTEREST</div>
+                </div>
+              </div>
+
+              {/* 1 Full-Width Bottom Metric Box */}
+              <div style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '14px', padding: '14px 16px' }}>
+                <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.35rem', fontWeight: 900, color: '#38BDF8' }}>{fmtLakhCr(totalPayable)}</div>
+                <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#94A3B8', marginTop: '4px', letterSpacing: '0.04em' }}>TOTAL AMOUNT PAYABLE</div>
+              </div>
+            </div>
+          </div>
+
+          {/* ═══ RIGHT PANEL: COMPARE LENDERS TABLE ═══ */}
+          <div id="compare-lenders-section" style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '18px 20px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
+              <div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#E0F2FE', color: '#0369A1', padding: '2px 6px', borderRadius: '8px', fontSize: '0.68rem', fontWeight: 800 }}>
+                  ⚡ LIVE {rateType.toUpperCase()} RATES
+                </div>
+                <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.25rem', fontWeight: 800, color: '#0F2942', margin: '2px 0 0 0' }}>
+                  Compare Lenders ({rateType === 'floating' ? 'Floating' : 'Fixed'})
+                </h2>
+              </div>
+
+              {/* Filter Pills & Sort Dropdown */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '4px', background: '#F8FAFC', padding: '3px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                  {["All", "PSU", "Private", "NBFC/HFC", "SFB"].map((fl) => (
+                    <button
+                      key={fl}
+                      type="button"
+                      onClick={() => setLenderFilter(fl)}
+                      style={{
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        fontSize: '0.74rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        background: lenderFilter === fl ? '#0F2942' : 'transparent',
+                        color: lenderFilter === fl ? '#FFFFFF' : '#64748B',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      {fl}
+                    </button>
+                  ))}
+                </div>
+
+                <select
+                  value={lenderSort}
+                  onChange={(e) => setLenderSort(e.target.value)}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    border: '1px solid #CBD5E1',
+                    background: '#FFFFFF',
+                    fontSize: '0.76rem',
+                    fontWeight: 700,
+                    color: '#0F2942',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="type_order">Type Order ▾</option>
+                  <option value="rate_asc">Lowest Rate ▾</option>
+                  <option value="rate_desc">Highest Rate ▾</option>
+                  <option value="emi_asc">Lowest EMI ▾</option>
+                </select>
+              </div>
+            </div>
+
+            {filteredAndSortedLenders.length > 0 && (
+              <div style={{
+                background: 'linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%)',
+                border: '1.5px solid #BFDBFE',
+                borderRadius: '12px',
+                padding: '12px 16px',
+                marginBottom: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                justify: 'space-between',
+                gap: '12px',
+                flexWrap: 'wrap'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>
+                    🏛️
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0F2942' }}>{filteredAndSortedLenders[0].name}</span>
+                      <span style={{ padding: '1px 6px', borderRadius: '8px', background: '#DBEAFE', color: '#1E40AF', fontSize: '0.65rem', fontWeight: 700 }}>
+                        {filteredAndSortedLenders[0].type || 'PRIVATE'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '1rem', fontWeight: 900, color: '#0F2942' }}>{filteredAndSortedLenders[0].rate.toFixed(2)}%</div>
+                    <div style={{ fontSize: '0.68rem', color: '#64748B', fontWeight: 600 }}>{filteredAndSortedLenders[0].rate.toFixed(2)}–{filteredAndSortedLenders[0].maxRate.toFixed(2)}</div>
+                  </div>
+
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '1rem', fontWeight: 900, color: '#0284C7' }}>
+                      {fmtINRFull(calcEMI(amount, filteredAndSortedLenders[0].rate, tenure))}<span style={{ fontSize: '0.7rem', fontWeight: 600 }}>/mo</span>
+                    </div>
+                    <div style={{ fontSize: '0.68rem', color: '#64748B', fontWeight: 600 }}>Est. EMI</div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleApplyToLender(filteredAndSortedLenders[0].id)}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      background: '#0F2942',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      fontWeight: 800,
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(15,41,66,0.2)'
+                    }}
+                  >
+                    Apply →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Lenders Table */}
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                <thead>
+                  <tr style={{ background: '#0F2942', color: '#FFFFFF', textAlign: 'left' }}>
+                    <th style={{ padding: '10px 14px', borderRadius: '8px 0 0 0', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.05em' }}>LENDER</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.05em' }}>EXPECTED ROI ({rateType === 'floating' ? 'FLOATING' : 'FIXED'})</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.05em' }}>EST. EMI</th>
+                    <th style={{ padding: '10px 14px', borderRadius: '0 8px 0 0', textAlign: 'right', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.05em' }}>ACTION</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredAndSortedLenders.map((lender) => {
+                    const lEmi = calcEMI(amount, lender.rate, tenure);
+                    return (
+                      <tr key={lender.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                        <td style={{ padding: '10px 14px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div style={{ width: '30px', height: '30px', borderRadius: '6px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.95rem' }}>
+                              🏛️
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 800, color: '#0F2942' }}>{lender.name}</div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '1px' }}>
+                                <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', background: '#F1F5F9', padding: '1px 4px', borderRadius: '4px' }}>
+                                  {lender.type || 'PRIVATE'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td style={{ padding: '10px 14px' }}>
+                          <div style={{ fontWeight: 800, color: '#0F2942', fontSize: '0.88rem' }}>{lender.rate.toFixed(2)}%</div>
+                          <div style={{ fontSize: '0.68rem', color: '#64748B' }}>{lender.rate.toFixed(2)}–{lender.maxRate.toFixed(2)}</div>
+                        </td>
+
+                        <td style={{ padding: '10px 14px' }}>
+                          <div style={{ fontWeight: 800, color: '#0284C7', fontSize: '0.88rem' }}>{fmtINRFull(lEmi)}<span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#64748B' }}>/mo</span></div>
+                        </td>
+
+                        <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleApplyToLender(lender.id)}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '6px',
+                              background: '#0F2942',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              fontWeight: 800,
+                              fontSize: '0.78rem',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            Apply →
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-export { Calculator };

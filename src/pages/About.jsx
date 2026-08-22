@@ -240,8 +240,8 @@ export default function About() {
               <h3>Ready to get started?</h3>
               <p>Find the cheapest lender options for your parameters in 2 minutes.</p>
 
-              <Link to="/loans" className="acc-cta-btn">
-                Compare Loans
+              <Link to="/" className="acc-cta-btn">
+                Check Loan Options
               </Link>
               <Link to="/" state={{ activeView: "partnerStepper" }} className="acc-cta-btn partner-cta">
                 Become a Partner

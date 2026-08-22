@@ -64,7 +64,7 @@ export default function UploadDocs() {
         { type: "bank statement", name: docs.bankStatement.name },
       ];
 
-      const res = await fetch(`http://localhost:5000/api/client/upload-docs/${applicationId}`, {
+      const res = await fetch(`/api/client/upload-docs/${applicationId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ files: filesPayload }),
