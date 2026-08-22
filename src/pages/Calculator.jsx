@@ -127,12 +127,17 @@ export default function Calculator() {
 
   const handleUnitChange = (e) => {
     const newUnit = Number(e.target.value);
+    const numericValue = parseFloat(amtInputVal) || 0;
 
     setAmtUnit(newUnit);
-    setAmtInputVal(
-      Number(amount / newUnit).toString()
-    );
+
+    // Keep the number entered by the user unchanged
+    setAmtInputVal(numericValue.toString());
+
+    // Apply the new unit to that same number
+    setAmount(numericValue * newUnit);
   };
+
   // Handle rate type toggle with auto-updated expected ROI rate
   const handleRateTypeChange = (type) => {
     setRateType(type);
