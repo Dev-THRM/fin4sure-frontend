@@ -53,7 +53,7 @@ export default function Signup() {
     { test: (pw) => pw.length >= 8, message: "At least 8 characters" },
     { test: (pw) => /[A-Z]/.test(pw), message: "At least 1 uppercase letter" },
     { test: (pw) => /[0-9]/.test(pw), message: "At least 1 number" },
-    { test: (pw) => /[!@#$%^&*(),.?\":{}|<>]/.test(pw), message: "At least 1 special character" },
+    { test: (pw) => /[!@#$%^&*(),.?":{}|<>]/.test(pw), message: "At least 1 special character" },
     { test: (pw) => /[a-zA-Z]/.test(pw), message: "At least 1 letter" },
   ];
 
@@ -76,8 +76,8 @@ export default function Signup() {
 
   // ---------------- SEND OTP ----------------
   const sendOTP = async () => {
-    if (number.length !== 10) {
-      setError("Enter a valid 10-digit mobile number");
+    if (!email || !validator.isEmail(email)) {
+      setError("Please enter a valid email address before requesting OTP");
       return;
     }
 
@@ -89,7 +89,7 @@ export default function Signup() {
       const res = await fetch(`${API_BASE}/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ number }),
+        body: JSON.stringify({ email: email.toLowerCase().trim() }),
       });
 
       const data = await res.json();
@@ -119,7 +119,7 @@ export default function Signup() {
       const res = await fetch(`${API_BASE}/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ number, otp: receivedOtp }),
+        body: JSON.stringify({ email: email.toLowerCase().trim(), otp: receivedOtp }),
       });
 
       const data = await res.json();
@@ -192,7 +192,7 @@ export default function Signup() {
             Create Borrower Account
           </h2>
           <p style={{ fontSize: ".78rem", color: "var(--text2)", marginBottom: "22px", lineHeight: "1.4" }}>
-            Start your digital loan verification. Verification codes are submitted to your WhatsApp.
+            Start your digital loan verification. A verification code will be sent to your email.
           </p>
 
           {error && (
@@ -214,15 +214,16 @@ export default function Signup() {
               />
             </div>
 
-            {/* EMAIL */}
+            {/* EMAIL — also used for OTP */}
             <div>
               <div className="input-wrap">
                 <span className="icon">📧</span>
                 <input
                   type="email"
-                  placeholder="Email Address"
+                  placeholder="Email Address *"
                   value={email}
                   onChange={handleEmailChange}
+                  disabled={otpVerified}
                   required
                 />
               </div>
@@ -306,13 +307,12 @@ export default function Signup() {
               <span className="icon">📱</span>
               <input
                 type="tel"
-                placeholder="WhatsApp Number"
+                placeholder="Mobile Number"
                 value={number}
                 onChange={(e) => {
                   const val = e.target.value.replace(/\D/g, "");
-                  if (!otpVerified && val.length <= 10) setNumber(val);
+                  if (val.length <= 10) setNumber(val);
                 }}
-                disabled={otpVerified}
                 required
               />
             </div>
@@ -354,14 +354,14 @@ export default function Signup() {
               disabled={loading || otpSent}
               style={{ height: "44px" }}
             >
-              {otpSent ? "OTP Sent Successfully" : "Send WhatsApp OTP"}
+              {otpSent ? "OTP Sent to Email ✓" : "Send Email OTP"}
             </button>
 
             {/* OTP VERIFY SECTION */}
             {otpSent && (
               <div className="apply-autofill-banner" style={{ background: "#F0FDF4", borderColor: "#A7F3D0", padding: "14px", display: "flex", flexDirection: "column", gap: "10px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".76rem" }}>
-                  <span style={{ color: "#065F46", fontWeight: 700 }}>Enter WhatsApp code</span>
+                  <span style={{ color: "#065F46", fontWeight: 700 }}>Enter code sent to your email</span>
                   {!canResend ? (
                     <span style={{ color: "var(--text2)" }}>Resend in {resendTimer}s</span>
                   ) : (
@@ -375,7 +375,7 @@ export default function Signup() {
                   <span className="icon">🔑</span>
                   <input
                     type="text"
-                    placeholder="Enter OTP (e.g. 123456)"
+                    placeholder="Enter OTP"
                     maxLength={6}
                     value={receivedOtp}
                     onChange={(e) => setReceivedOtp(e.target.value.replace(/\D/g, ""))}
