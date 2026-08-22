@@ -8,7 +8,6 @@ import { fmtINR, fmtINRFull } from "../utils/formatters";
 import { calcEMI } from "../utils/emiCalculator";
 import "./styles/calculator.css";
 import "./styles/apply.css";
-import { BASE_PATH } from "../config";
 
 export default function Apply() {
   const location = useLocation();
@@ -143,7 +142,7 @@ export default function Apply() {
     const fetchLenders = async () => {
       try {
         setLoadingLenders(true);
-        const res = await fetch(`${BASE_PATH}/api/lenders`);
+        const res = await fetch("/api/lenders");
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
           setDbLenders(json.data);
@@ -344,7 +343,7 @@ export default function Apply() {
     const targetLenders = selectedLenders.length > 0 ? selectedLenders : [1, 2];
 
     try {
-      const res = await axios.post(`${BASE_PATH}/api/client/apply-loan`, {
+      const res = await axios.post("/api/client/apply-loan", {
         product: loanType,
         loanAmount: amount,
         tenure: tenure,

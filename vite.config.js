@@ -8,8 +8,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        // target: 'https://palevioletred-ape-449755.hostingersite.com',
-        target: 'https://localhost:5173',
+        target: 'https://palevioletred-ape-449755.hostingersite.com',
         changeOrigin: true,
         secure: false,
       }

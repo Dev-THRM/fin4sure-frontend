@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "../../pages/styles/stepper.css";
-import { BASE_PATH } from "../../config";
 
 const CITIES = [
     "Mumbai", "Delhi", "Bengaluru", "Kolkata", "Chennai", "Hyderabad",
@@ -125,7 +124,7 @@ export default function PartnerStepper({ onBack }) {
                 pincode: "000000"
             };
 
-            const res = await fetch(`${BASE_PATH}/api/auth/signup`, {
+            const res = await fetch("/api/auth/signup", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",

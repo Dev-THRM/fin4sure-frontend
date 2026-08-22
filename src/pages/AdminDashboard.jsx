@@ -2,7 +2,6 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./styles/adminDashboard.css";
-import { BASE_PATH } from "../config";
 
 function getLoanIcon(name) {
   if (!name) return "📋";
@@ -301,7 +300,7 @@ export default function AdminDashboard() {
 
   async function fetchStats() {
     try {
-      const res = await fetch(`${BASE_PATH}/api/admin/stats`, {
+      const res = await fetch("/api/admin/stats", {
         credentials: "include",
         headers: getAuthHeaders()
       });
@@ -316,7 +315,7 @@ export default function AdminDashboard() {
 
   async function fetchBrokers() {
     try {
-      const res = await fetch(`${BASE_PATH}/api/admin/brokers`, {
+      const res = await fetch("/api/admin/brokers", {
         credentials: "include",
         headers: getAuthHeaders()
       });
@@ -328,7 +327,7 @@ export default function AdminDashboard() {
 
   async function fetchLeads() {
     try {
-      const res = await fetch(`${BASE_PATH}/api/admin/leads`, { credentials: "include" });
+      const res = await fetch("/api/admin/leads", { credentials: "include", headers: getAuthHeaders() });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) setLeads(data);
@@ -340,7 +339,7 @@ export default function AdminDashboard() {
 
   async function fetchBorrowers() {
     try {
-      const res = await fetch(`${BASE_PATH}/api/admin/clients`, {
+      const res = await fetch("/api/admin/clients", {
         credentials: "include",
         headers: getAuthHeaders()
       });
@@ -352,7 +351,7 @@ export default function AdminDashboard() {
 
   async function fetchTimeline() {
     try {
-      const res = await fetch(`${BASE_PATH}/api/admin/timeline`, {
+      const res = await fetch("/api/admin/timeline", {
         credentials: "include",
         headers: getAuthHeaders()
       });
@@ -364,7 +363,7 @@ export default function AdminDashboard() {
 
   async function fetchLenderRates() {
     try {
-      const res = await fetch(`${BASE_PATH}/api/admin/lender-rates?loanTypeShortId=${selectedLoanCategory}`, {
+      const res = await fetch(`/api/admin/lender-rates?loanTypeShortId=${selectedLoanCategory}`, {
         credentials: "include",
         headers: getAuthHeaders()
       });
@@ -382,7 +381,7 @@ export default function AdminDashboard() {
 
   async function saveLenderRates() {
     try {
-      const res = await fetch(`${BASE_PATH}/api/admin/lender-rates`, {
+      const res = await fetch("/api/admin/lender-rates", {
         method: "POST",
         credentials: "include",
         headers: getAuthHeaders(true),
@@ -399,7 +398,7 @@ export default function AdminDashboard() {
 
   async function fetchSettings() {
     try {
-      const resRM = await fetch(`${BASE_PATH}/api/admin/relationship-manager`, {
+      const resRM = await fetch("/api/admin/relationship-manager", {
         credentials: "include",
         headers: getAuthHeaders()
       });
@@ -412,7 +411,7 @@ export default function AdminDashboard() {
         setRmAvailability(data.availability || "");
       }
 
-      const resAdmin = await fetch(`${BASE_PATH}/api/admin/admin-access-details`, {
+      const resAdmin = await fetch("/api/admin/admin-access-details", {
         credentials: "include",
         headers: getAuthHeaders()
       });
@@ -423,7 +422,7 @@ export default function AdminDashboard() {
         setAdminSessionStatus(data.sessionStatus || "Active");
       }
 
-      const resPlat = await fetch(`${BASE_PATH}/api/admin/platform-settings`, {
+      const resPlat = await fetch("/api/admin/platform-settings", {
         credentials: "include",
         headers: getAuthHeaders()
       });
@@ -443,7 +442,7 @@ export default function AdminDashboard() {
 
   async function handleSaveRM() {
     try {
-      const res = await fetch(`${BASE_PATH}/api/admin/relationship-manager`, {
+      const res = await fetch("/api/admin/relationship-manager", {
         method: "POST",
         credentials: "include",
         headers: getAuthHeaders(true),
@@ -469,7 +468,7 @@ export default function AdminDashboard() {
 
   async function handleSaveContent() {
     try {
-      const res = await fetch(`${BASE_PATH}/api/admin/platform-settings`, {
+      const res = await fetch("/api/admin/platform-settings", {
         method: "POST",
         credentials: "include",
         headers: getAuthHeaders(true),
@@ -492,7 +491,7 @@ export default function AdminDashboard() {
 
   async function handleApplyStats() {
     try {
-      const res = await fetch(`${BASE_PATH}/api/admin/platform-settings`, {
+      const res = await fetch("/api/admin/platform-settings", {
         method: "POST",
         credentials: "include",
         headers: getAuthHeaders(true),
@@ -517,7 +516,7 @@ export default function AdminDashboard() {
 
   async function updateBrokerStatus(brokerId, status) {
     try {
-      const res = await fetch(`${BASE_PATH}/api/admin/broker-status`, {
+      const res = await fetch("/api/admin/broker-status", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -552,7 +551,7 @@ export default function AdminDashboard() {
 
   async function updateLeadStatus(leadId, status) {
     try {
-      const res = await fetch(`${BASE_PATH}/api/admin/lead-status`, {
+      const res = await fetch("/api/admin/lead-status", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -579,7 +578,7 @@ export default function AdminDashboard() {
     const nextStatus = nextStage === 'Disbursed' ? 'disbursed' : 'in progress';
 
     try {
-      const res = await fetch(`${BASE_PATH}/api/admin/update-application`, {
+      const res = await fetch("/api/admin/update-application", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -603,7 +602,7 @@ export default function AdminDashboard() {
 
   async function disburseLead(lead) {
     try {
-      const res = await fetch(`${BASE_PATH}/api/admin/update-application`, {
+      const res = await fetch("/api/admin/update-application", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -647,7 +646,7 @@ export default function AdminDashboard() {
         payload.stage = 'Disbursed';
       }
 
-      const res = await fetch(`${BASE_PATH}/api/admin/update-application`, {
+      const res = await fetch("/api/admin/update-application", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -716,7 +715,7 @@ export default function AdminDashboard() {
       setCustomAlert({ message: "Please select a valid date range", type: "warning" });
       return;
     }
-    const url = `${BASE_PATH}/api/admin/export?type=${type}&from=${from}&to=${to}&format=${format}`;
+    const url = `/api/admin/export?type=${type}&from=${from}&to=${to}&format=${format}`;
     window.open(url, "_blank");
   }
 

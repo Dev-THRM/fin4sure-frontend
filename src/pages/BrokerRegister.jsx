@@ -3,7 +3,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { districtsByState, states } from "../components/Statedata";
 import "./styles/login.css";
-import { BASE_PATH } from "../config";
 
 export default function BrokerRegistration() {
   const navigate = useNavigate();
@@ -78,7 +77,7 @@ export default function BrokerRegistration() {
       setLoading(true);
       setOtpError("");
 
-      const res = await fetch(`${BASE_PATH}/api/auth/send-otp`, {
+      const res = await fetch(`/api/auth/send-otp`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -110,7 +109,7 @@ export default function BrokerRegistration() {
       setOtpError("");
       setLoading(true);
 
-      const res = await fetch(`${BASE_PATH}/api/auth/verify-otp`, {
+      const res = await fetch(`/api/auth/verify-otp`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -164,7 +163,7 @@ export default function BrokerRegistration() {
         district,
       };
 
-      const res = await fetch(`${BASE_PATH}/api/auth/signup`, {
+      const res = await fetch(`/api/auth/signup`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './styles/stepper.css';
-import { BASE_PATH } from "../config";
 
 const LOAN_TYPE_MAPPING = {
   'Home Loan': { id: 'home', icon: '🏠', desc: 'Buy, build or renovate your home' },
@@ -25,8 +24,8 @@ export default function Products() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const loanTypesRes = await axios.get(`${BASE_PATH}/api/loan-types`);
-        const lendersRes = await axios.get(`${BASE_PATH}/api/lenders`);
+        const loanTypesRes = await axios.get('/api/loan-types');
+        const lendersRes = await axios.get('/api/lenders');
         
         if (loanTypesRes.data.success) {
           const mappedTypes = loanTypesRes.data.data.map(lt => {
