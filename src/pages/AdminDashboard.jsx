@@ -579,7 +579,7 @@ export default function AdminDashboard() {
     const nextStatus = nextStage === 'Disbursed' ? 'disbursed' : 'in progress';
 
     try {
-      const res = await fetch("${BASE_PATH}/api/admin/update-application", {
+      const res = await fetch(`${BASE_PATH}/api/admin/update-application`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -603,7 +603,7 @@ export default function AdminDashboard() {
 
   async function disburseLead(lead) {
     try {
-      const res = await fetch("${BASE_PATH}/api/admin/update-application", {
+      const res = await fetch(`${BASE_PATH}/api/admin/update-application`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -647,7 +647,7 @@ export default function AdminDashboard() {
         payload.stage = 'Disbursed';
       }
 
-      const res = await fetch("${BASE_PATH}/api/admin/update-application", {
+      const res = await fetch(`${BASE_PATH}/api/admin/update-application`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
