@@ -578,56 +578,71 @@ export default function Calculator() {
                   <div
                     className="rf-input-wrap"
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      background: '#F8FAFC',
-                      border: '1px solid #CBD5E1',
-                      borderRadius: '8px',
-                      padding: '2px 10px',
-                      minWidth: '230px',
-                      overflow: 'visible'
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      background: "#F8FAFC",
+                      border: "1px solid #CBD5E1",
+                      borderRadius: "8px",
+                      padding: "2px 10px",
+                      width: "230px",
+                      boxSizing: "border-box",
+                      flexShrink: 0
                     }}
                   >
-                    <span className="rf-prefix" style={{ fontWeight: 700, color: '#0F2942', fontSize: '0.8rem' }}>₹</span>
+                    <span
+                      className="rf-prefix"
+                      style={{
+                        fontWeight: 700,
+                        color: "#0F2942",
+                        fontSize: "0.8rem",
+                        flexShrink: 0
+                      }}
+                    >
+                      ₹
+                    </span>
+
                     <input
                       type="number"
                       className="rf-input"
                       value={amtInputVal}
-                      onChange={handleAmtInputChange}
                       onFocus={() => setIsEditingAmount(true)}
+                      onChange={handleAmtInputChange}
                       onBlur={handleAmtBlur}
                       step="0.01"
                       style={{
-                        border: 'none',
-                        background: 'transparent',
-                        outline: 'none',
+                        border: "none",
+                        background: "transparent",
+                        outline: "none",
                         fontWeight: 800,
-                        fontSize: '0.85rem',
-                        color: '#0F2942',
-                        width: '70px',
+                        fontSize: "0.85rem",
+                        color: "#0F2942",
+                        width: "65px",
+                        minWidth: 0,
                         flexShrink: 0,
-                        textAlign: 'right'
+                        textAlign: "right"
                       }}
                     />
+
                     <select
                       className="rf-unit"
                       value={amtUnit}
                       onChange={handleUnitChange}
                       style={{
-                        border: 'none',
-                        background: 'transparent',
-                        outline: 'none',
+                        border: "none",
+                        background: "transparent",
+                        outline: "none",
                         fontWeight: 700,
-                        fontSize: '0.78rem',
-                        color: '#475569',
-                        cursor: 'pointer',
-                        minWidth: '72px',
+                        fontSize: "0.78rem",
+                        color: "#475569",
+                        cursor: "pointer",
+                        width: "75px",
+                        minWidth: "75px",
                         flexShrink: 0
                       }}
                     >
-                      <option value={100000}>Lakh ▾</option>
-                      <option value={10000000}>Crore ▾</option>
+                      <option value={100000}>Lakh</option>
+                      <option value={10000000}>Crore</option>
                     </select>
                   </div>
                 </div>
