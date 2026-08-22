@@ -62,6 +62,12 @@ export default function BrandPanel({ mode = "borrower" }) {
             <div className="b-feat">
               <span className="b-feat-ic">🔒</span> Bank-grade Data Encryption
             </div>
+            <div className="b-feat">
+              <span className="b-feat-ic">💡</span> EMI Saver
+            </div>
+            <div className="b-feat">
+              <span className="b-feat-ic">🔄</span> Home Loan Top-ups & Balance Transfer
+            </div>
           </>
         )}
       </div>
