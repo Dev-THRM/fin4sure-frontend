@@ -570,7 +570,20 @@ export default function Calculator() {
               <div className="range-field" style={{ marginBottom: '14px' }}>
                 <div className="rf-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <label style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0F2942' }}>Loan Amount</label>
-                  <div className="rf-input-wrap" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '2px 6px' }}>
+                  <div
+                    className="rf-input-wrap"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: '#F8FAFC',
+                      border: '1px solid #CBD5E1',
+                      borderRadius: '8px',
+                      padding: '2px 10px',
+                      minWidth: '230px',
+                      overflow: 'visible'
+                    }}
+                  >
                     <span className="rf-prefix" style={{ fontWeight: 700, color: '#0F2942', fontSize: '0.8rem' }}>₹</span>
                     <input
                       type="number"
@@ -580,13 +593,33 @@ export default function Calculator() {
                       onFocus={() => setIsEditingAmount(true)}
                       onBlur={handleAmtBlur}
                       step="0.01"
-                      style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.85rem', color: '#0F2942', width: '65px', textAlign: 'right' }}
+                      style={{
+                        border: 'none',
+                        background: 'transparent',
+                        outline: 'none',
+                        fontWeight: 800,
+                        fontSize: '0.85rem',
+                        color: '#0F2942',
+                        width: '70px',
+                        flexShrink: 0,
+                        textAlign: 'right'
+                      }}
                     />
                     <select
                       className="rf-unit"
                       value={amtUnit}
                       onChange={handleUnitChange}
-                      style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 700, fontSize: '0.78rem', color: '#475569', cursor: 'pointer' }}
+                      style={{
+                        border: 'none',
+                        background: 'transparent',
+                        outline: 'none',
+                        fontWeight: 700,
+                        fontSize: '0.78rem',
+                        color: '#475569',
+                        cursor: 'pointer',
+                        minWidth: '72px',
+                        flexShrink: 0
+                      }}
                     >
                       <option value={100000}>Lakh ▾</option>
                       <option value={10000000}>Crore ▾</option>
@@ -636,7 +669,20 @@ export default function Calculator() {
               <div className="range-field" style={{ marginBottom: '14px' }}>
                 <div className="rf-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <label style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0F2942' }}>Expected Rate (% p.a.)</label>
-                  <div className="rf-input-wrap" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '2px 6px' }}>
+                  <div
+                    className="rf-input-wrap"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      background: "#F8FAFC",
+                      border: "1px solid #CBD5E1",
+                      borderRadius: "8px",
+                      padding: "2px 10px",
+                      minWidth: "230px",
+                      overflow: "visible"
+                    }}
+                  >
                     <input
                       type="number"
                       className="rf-input"
@@ -644,7 +690,7 @@ export default function Calculator() {
                       onChange={(e) => setRate(e.target.value)}
                       onBlur={clampRate}
                       step="0.05"
-                      style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.85rem', color: '#0F2942', width: '45px', textAlign: 'right' }}
+                      style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.85rem', color: '#0F2942', width: '70px', textAlign: 'right' }}
                     />
                     <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569' }}>%</span>
                   </div>
