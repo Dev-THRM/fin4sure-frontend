@@ -134,7 +134,7 @@ export default function BorrowerStepper({ onBack }) {
     }
   };
 
-  const handlePincodeChange = (e) => {
+  const handlePincodeChange = async (e) => {
     const val = e.target.value.replace(/\D/g, "");
     setFormData(prev => ({ ...prev, pincode: val }));
     
