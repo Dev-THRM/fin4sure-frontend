@@ -71,9 +71,12 @@ export default function Calculator() {
   // Local state for Amount text inputs
   const [amtInputVal, setAmtInputVal] = useState("50");
   const [amtUnit, setAmtUnit] = useState(100000); // Lakhs vs Crores
+  const [isEditingAmount, setIsEditingAmount] = useState(false);
 
   // Synchronize numeric input formatting
   useEffect(() => {
+    if (isEditingAmount) return;
+
     if (amount >= 10000000) {
       setAmtUnit(10000000);
       setAmtInputVal((amount / 10000000).toFixed(2));
@@ -81,7 +84,7 @@ export default function Calculator() {
       setAmtUnit(100000);
       setAmtInputVal((amount / 100000).toFixed(2));
     }
-  }, [amount]);
+  }, [amount, isEditingAmount]);
 
   // Hook refs to paint range slider backgrounds dynamically
   const amtRef = useSliderPaint(amount, params.amtMin, params.amtMax);
@@ -90,19 +93,46 @@ export default function Calculator() {
 
   // Amount input handlers
   const handleAmtInputChange = (e) => {
-    const rawVal = e.target.value;
-    setAmtInputVal(rawVal);
-    const parsed = parseFloat(rawVal) || 0;
-    setAmount(parsed * amtUnit);
+    const value = e.target.value;
+
+    // Keep exactly what the user types
+    setAmtInputVal(value);
+
+    const numericValue = parseFloat(value);
+
+    if (!isNaN(numericValue)) {
+      setAmount(numericValue * amtUnit);
+    }
+  };
+
+  const handleAmtBlur = () => {
+    setIsEditingAmount(false);
+
+    const numericValue = parseFloat(amtInputVal);
+
+    if (isNaN(numericValue) || numericValue <= 0) {
+      setAmtInputVal((amount / amtUnit).toFixed(2));
+      return;
+    }
+
+    const newAmount = numericValue * Number(amtUnit);
+
+    const finalAmount = Math.max(
+      params.amtMin,
+      Math.min(params.amtMax, newAmount)
+    );
+
+    setAmount(finalAmount);
   };
 
   const handleUnitChange = (e) => {
-    const newUnit = parseInt(e.target.value);
-    setAmtUnit(newUnit);
-    const parsed = parseFloat(amtInputVal) || 0;
-    setAmount(parsed * newUnit);
-  };
+    const newUnit = Number(e.target.value);
 
+    setAmtUnit(newUnit);
+    setAmtInputVal(
+      Number(amount / newUnit).toString()
+    );
+  };
   // Handle rate type toggle with auto-updated expected ROI rate
   const handleRateTypeChange = (type) => {
     setRateType(type);
@@ -489,7 +519,7 @@ export default function Calculator() {
 
         {/* ═══ UNIFIED SIDE-BY-SIDE GRID (LEFT: CALCULATOR | RIGHT: COMPARE LENDERS TABLE) ═══ */}
         <div className="calc-main-side-grid" style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: '20px', alignItems: 'start', marginBottom: '24px' }}>
-          
+
           {/* ═══ LEFT PANEL: LOAN CALCULATOR & EMI READOUT ═══ */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '18px 20px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
@@ -547,7 +577,8 @@ export default function Calculator() {
                       className="rf-input"
                       value={amtInputVal}
                       onChange={handleAmtInputChange}
-                      onBlur={clampAmount}
+                      onFocus={() => setIsEditingAmount(true)}
+                      onBlur={handleAmtBlur}
                       step="0.01"
                       style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.85rem', color: '#0F2942', width: '65px', textAlign: 'right' }}
                     />
