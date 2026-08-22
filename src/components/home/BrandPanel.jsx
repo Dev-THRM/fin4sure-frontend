@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import logo from "../../assets/images/logo.png";
+import logo from "../../assets/images/logo.jpeg";
 
 export default function BrandPanel({ mode = "borrower" }) {
   const isPartner = mode === "partner";
