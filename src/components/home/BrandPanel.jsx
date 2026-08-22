@@ -9,7 +9,11 @@ export default function BrandPanel({ mode = "borrower" }) {
     <aside className={`brand-panel ${isPartner ? "partner-mode" : ""}`} id="brandPanel">
       {/* Brand logo */}
       <Link to="/" className="nav-logo">
-        <img src={logo} className="nav-logo-img" alt="Finn4sure Logo" />
+        <img
+          src={logo}
+          className="brand-panel-logo"
+          alt="Finn4sure Logo"
+        />
       </Link>
 
       {/* Brand hero text */}

@@ -11,6 +11,26 @@
   width: 100%;
 }
 
+.brand-panel-logo {
+  width: 130px;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+/* Left panel logo background so dark logo text is visible */
+.brand-panel .nav-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 10px 14px;
+  background: #ffffff;
+  border-radius: 12px;
+  position: relative;
+  z-index: 2;
+}
+
 /* Left brand panel - DARK SLATE GRADIENT */
 .brand-panel {
   width: 44%;
@@ -69,33 +89,6 @@
   background-image: radial-gradient(rgba(16, 185, 129, .3) 1px, transparent 1px);
 }
 
-.b-logo {
-  display: inline-flex;
-  align-items: center;
-  padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: 12px;
-  width: fit-content;
-}
-
-.b-logo-name {
-  font-family: 'Arial Black', Impact, sans-serif;
-  font-size: 1.3rem;
-  letter-spacing: -.01em;
-  font-weight: 900;
-  display: flex;
-  align-items: baseline;
-  gap: 0;
-  color: #F8FAFC;
-}
-
-.b-logo-name span {
-  color: #4FC3B5;
-}
-
-.brand-panel.partner-mode .b-logo-name span {
-  color: #ECFDF5;
-}
 
 .b-hero {
   position: relative;
@@ -326,6 +319,13 @@
   inset: 0;
   pointer-events: none;
   background: radial-gradient(ellipse 50% 120% at 50% 0%, rgba(14, 165, 233, .1) 0%, transparent 65%);
+}
+
+.company-ribbon-logo {
+  height: 42px;
+  width: auto;
+  display: block;
+  object-fit: contain;
 }
 
 .company-ribbon-name {

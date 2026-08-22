@@ -4,7 +4,11 @@ export default function CompanyRibbon() {
   return (
     <div className="company-ribbon">
       <div className="company-ribbon-name">
-        Finn<span className="cr-accent">4</span>sure
+        <img
+          src={logo}
+          className="company-ribbon-logo"
+          alt="Finn4sure Logo"
+        />
       </div>
       <div className="company-ribbon-tag">
         Direct Lender Matchmaking Engine
