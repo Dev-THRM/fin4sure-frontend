@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════
-   Home Page Custom Layout CSS
+   Home Page Custom Layout CSS (Light Theme)
 ═══════════════════════════════════════════ */
 
 /* Layout wrapper */
@@ -11,11 +11,11 @@
   width: 100%;
 }
 
-/* Left brand panel */
+/* Left brand panel - LIGHT MODE */
 .brand-panel {
   width: 44%;
-  background: linear-gradient(155deg, #0A1F4D 0%, #0D2B6B 38%, #0E4A6E 70%, #0C5E5A 100%);
-  color: #EAF4FF;
+  background: linear-gradient(155deg, #F0F9FF 0%, #E0F2FE 40%, #E0F2FE 70%, #CCFBF1 100%);
+  color: #0F172A;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -23,7 +23,7 @@
   position: relative;
   overflow: hidden;
   min-height: calc(100vh - var(--nav-h));
-  border-right: 1px solid rgba(56, 189, 248, .25);
+  border-right: 1px solid #BAE6FD;
   box-sizing: border-box;
 }
 
@@ -32,9 +32,9 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse 60% 50% at 92% 0%, rgba(34, 211, 238, .4) 0%, transparent 58%),
-    radial-gradient(ellipse 55% 55% at 0% 100%, rgba(99, 102, 241, .32) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 40% at 50% 55%, rgba(56, 189, 248, .18) 0%, transparent 70%);
+  background: radial-gradient(ellipse 60% 50% at 92% 0%, rgba(14, 165, 233, .12) 0%, transparent 58%),
+    radial-gradient(ellipse 55% 55% at 0% 100%, rgba(99, 102, 241, .1) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 50% 55%, rgba(56, 189, 248, .12) 0%, transparent 70%);
 }
 
 .brand-panel::after {
@@ -42,28 +42,29 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: .5;
-  background-image: radial-gradient(rgba(125, 211, 252, .22) 1px, transparent 1px);
+  opacity: .35;
+  background-image: radial-gradient(rgba(2, 132, 199, .25) 1px, transparent 1px);
   background-size: 24px 24px;
   -webkit-mask-image: linear-gradient(160deg, transparent 25%, #000 100%);
   mask-image: linear-gradient(160deg, transparent 25%, #000 100%);
 }
 
+/* Partner Mode Light Style */
 .brand-panel.partner-mode {
-  background: linear-gradient(155deg, #042F2A 0%, #064E3B 40%, #0A5C54 72%, #0E4A5C 100%);
-  color: #E6FFFA;
-  border-right: 1px solid rgba(16, 185, 129, .4);
+  background: linear-gradient(155deg, #F0FDF4 0%, #DCFCE7 40%, #D1FAE5 72%, #E0F2FE 100%);
+  color: #064E3B;
+  border-right: 1px solid #A7F3D0;
 }
 
 .brand-panel.partner-mode::before {
-  background: radial-gradient(ellipse 60% 50% at 90% 0%, rgba(16, 185, 129, .4) 0%, transparent 58%),
-    radial-gradient(ellipse 55% 55% at 5% 100%, rgba(20, 184, 166, .3) 0%, transparent 60%),
-    radial-gradient(ellipse 45% 45% at 50% 55%, rgba(6, 182, 212, .18) 0%, transparent 70%);
+  background: radial-gradient(ellipse 60% 50% at 90% 0%, rgba(16, 185, 129, .15) 0%, transparent 58%),
+    radial-gradient(ellipse 55% 55% at 5% 100%, rgba(20, 184, 166, .12) 0%, transparent 60%),
+    radial-gradient(ellipse 45% 45% at 50% 55%, rgba(6, 182, 212, .1) 0%, transparent 70%);
 }
 
 .brand-panel.partner-mode::after {
-  opacity: .25;
-  background-image: radial-gradient(rgba(16, 185, 129, .4) 1px, transparent 1px);
+  opacity: .3;
+  background-image: radial-gradient(rgba(16, 185, 129, .3) 1px, transparent 1px);
 }
 
 .b-logo {
@@ -85,11 +86,11 @@
 }
 
 .b-logo-name span {
-  color: #EAF4FF;
+  color: #0F172A;
 }
 
 .brand-panel.partner-mode .b-logo-name span {
-  color: #E6FFFA;
+  color: #064E3B;
 }
 
 .b-hero {
@@ -102,24 +103,24 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, .12);
+  background: rgba(14, 165, 233, 0.1);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(125, 211, 252, .35);
-  color: #7DD3FC;
+  border: 1px solid rgba(14, 165, 233, 0.25);
+  color: #0284C7;
   font-size: .72rem;
   font-weight: 600;
   letter-spacing: .03em;
   padding: 6px 14px;
   border-radius: 30px;
   margin-bottom: 18px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, .05);
 }
 
 .brand-panel.partner-mode .b-eyebrow {
-  color: #6EE7B7;
-  border-color: rgba(110, 231, 183, .35);
-  background: rgba(255, 255, 255, .1);
+  color: #059669;
+  border-color: rgba(16, 185, 129, .35);
+  background: rgba(16, 185, 129, .12);
 }
 
 .b-hero h1 {
@@ -129,26 +130,27 @@
   margin-bottom: 16px;
   font-weight: 700;
   letter-spacing: -.01em;
+  color: #0F172A;
 }
 
 .b-hero h1 em {
   font-style: normal;
   transition: color .4s;
-  background: linear-gradient(120deg, #38BDF8, #22D3EE 55%, #67E8F9);
+  background: linear-gradient(120deg, #0284C7, #0D9488);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .brand-panel.partner-mode .b-hero h1 em {
-  background: linear-gradient(120deg, #34D399, #2DD4BF 55%, #22D3EE);
+  background: linear-gradient(120deg, #059669, #0D9488);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .b-hero p {
-  color: rgba(234, 244, 255, .78);
+  color: #334155;
   font-size: .94rem;
   line-height: 1.7;
   max-width: 360px;
@@ -169,7 +171,7 @@
   gap: 11px;
   font-size: .85rem;
   font-weight: 500;
-  color: #D6ECFF;
+  color: #1E293B;
 }
 
 .b-feat-ic {
@@ -179,13 +181,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, .12);
+  background: rgba(255, 255, 255, .8);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  border: 1px solid rgba(125, 211, 252, .25);
-  border-radius: 9px;
+  border: 1px solid #BAE6FD;
+  border-radius: 99px;
   font-size: .95rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, .05);
 }
 
 .b-stats {
@@ -193,13 +195,13 @@
   gap: 14px;
   position: relative;
   z-index: 1;
-  background: rgba(255, 255, 255, .08);
+  background: rgba(255, 255, 255, .7);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, .16);
+  border: 1px solid rgba(15, 23, 42, .1);
   border-radius: 16px;
   padding: 18px 22px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, .25);
+  box-shadow: 0 4px 24px rgba(15, 23, 42, .06);
 }
 
 .brand-panel.partner-mode .b-stats {
@@ -236,25 +238,25 @@
 }
 
 .stat+.stat {
-  border-left: 1px solid rgba(125, 211, 252, .2);
+  border-left: 1px solid rgba(15, 23, 42, .12);
 }
 
 .stat-val {
   font-family: 'Playfair Display', serif;
   font-size: 1.7rem;
-  color: #67E8F9;
+  color: #0284C7;
   font-weight: 700;
   line-height: 1;
   transition: color .4s;
 }
 
 .brand-panel.partner-mode .stat-val {
-  color: #6EE7B7;
+  color: #059669;
 }
 
 .stat-lbl {
   font-size: .66rem;
-  color: rgba(234, 244, 255, .65);
+  color: #64748B;
   margin-top: 5px;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -292,7 +294,7 @@
   max-width: 440px;
 }
 
-/* ═══ Company Name Ribbon ═══ */
+/* ═══ Company Name Ribbon - LIGHT MODE ═══ */
 .top-header-stack {
   width: calc(100% + 120px);
   margin: 0 -60px 8px;
@@ -311,12 +313,12 @@
   justify-content: center;
   gap: 14px;
   flex-wrap: wrap;
-  background: linear-gradient(135deg, #0A1F4D 0%, #0D2B6B 40%, #0E4A6E 72%, #0C5E5A 100%);
-  border-bottom: 1px solid rgba(56, 189, 248, .3);
+  background: linear-gradient(135deg, #FFFFFF 0%, #F0F9FF 50%, #E0F2FE 100%);
+  border-bottom: 1px solid #BAE6FD;
   padding: 13px 24px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 18px rgba(13, 43, 107, .22);
+  box-shadow: 0 4px 18px rgba(15, 23, 42, .06);
 }
 
 .company-ribbon::before {
@@ -324,7 +326,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse 50% 120% at 50% 0%, rgba(34, 211, 238, .22) 0%, transparent 65%);
+  background: radial-gradient(ellipse 50% 120% at 50% 0%, rgba(14, 165, 233, .1) 0%, transparent 65%);
 }
 
 .company-ribbon-name {
@@ -335,26 +337,23 @@
   line-height: 1;
   position: relative;
   z-index: 1;
-  background: linear-gradient(120deg, #EAF4FF, #A5F3FC 60%, #67E8F9);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #0F172A;
 }
 
 .cr-accent {
-  -webkit-text-fill-color: #38BDF8;
-  color: #38BDF8;
+  -webkit-text-fill-color: #0284C7;
+  color: #0284C7;
 }
 
 .company-ribbon-tag {
   font-size: .74rem;
   font-weight: 600;
   letter-spacing: .04em;
-  color: rgba(167, 243, 252, .85);
+  color: #0369A1;
   position: relative;
   z-index: 1;
   padding-left: 14px;
-  border-left: 1px solid rgba(125, 211, 252, .3);
+  border-left: 1px solid #BAE6FD;
 }
 
 /* Welcome heading */
@@ -826,11 +825,11 @@
     min-height: auto;
     padding: 36px 24px;
     border-right: none;
-    border-bottom: 1px solid rgba(56, 189, 248, .25);
+    border-bottom: 1px solid #BAE6FD;
   }
 
   .brand-panel.partner-mode {
-    border-bottom-color: rgba(16, 185, 129, .4);
+    border-bottom-color: #A7F3D0;
   }
 
   .b-hero h1 {
