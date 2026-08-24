@@ -53,6 +53,7 @@ export default function ClientDashboard() {
         method: "GET",
         headers: { "content-type": "application/json" },
         credentials: "include",
+        cache: "no-store",
       });
 
       if (res.ok) {

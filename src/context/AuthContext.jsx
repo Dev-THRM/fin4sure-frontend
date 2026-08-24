@@ -10,6 +10,7 @@ export function AuthProvider({ children }) {
     try {
       const res = await fetch("/api/auth/profile", {
         credentials: "include",
+        cache: "no-store",
       });
 
       if (res.ok) {
