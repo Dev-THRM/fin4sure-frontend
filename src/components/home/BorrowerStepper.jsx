@@ -59,8 +59,9 @@ export default function BorrowerStepper({ onBack }) {
 
   const [showOtp, setShowOtp] = useState(false);
   const [otpInput, setOtpInput] = useState('');
-  const [dummyOtp, setDummyOtp] = useState('');
   const [otpError, setOtpError] = useState('');
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
   
   useEffect(() => {
     const fetchData = async () => {
@@ -117,19 +118,39 @@ export default function BorrowerStepper({ onBack }) {
     return 'N/A';
   };
 
-  const handleSendOtp = () => {
-    const generated = Math.floor(100000 + Math.random() * 900000).toString();
-    setDummyOtp(generated);
-    console.log(`%c 🔑 DUMMY OTP FOR ${formData.mob_no}: ${generated}`, 'background: #222; color: #4ade80; font-size: 16px; padding: 4px; border-radius: 4px;');
-    setShowOtp(true);
+  const handleSendOtp = async () => {
+    if (otpSending) return;
+    setOtpSending(true);
+    setOtpError('');
+    try {
+      const res = await axios.post('/api/auth/send-email-otp', { email: formData.email });
+      if (res.data?.success) {
+        setShowOtp(true);
+      } else {
+        setOtpError(res.data?.message || 'Failed to send OTP. Please try again.');
+      }
+    } catch (err) {
+      setOtpError(err.response?.data?.message || 'Failed to send OTP. Please try again.');
+    } finally {
+      setOtpSending(false);
+    }
   };
 
-  const handleVerifyOtp = () => {
-    if (otpInput === dummyOtp || otpInput === '123456' || otpInput === '1234') {
-      setStep(4);
-      setOtpError('');
-    } else {
-      setOtpError("Invalid OTP! Try using 123456.");
+  const handleVerifyOtp = async () => {
+    if (otpVerifying) return;
+    setOtpVerifying(true);
+    setOtpError('');
+    try {
+      const res = await axios.post('/api/auth/verify-email-otp', { email: formData.email, otp: otpInput });
+      if (res.data?.success) {
+        setStep(4);
+      } else {
+        setOtpError(res.data?.message || 'Invalid OTP. Please try again.');
+      }
+    } catch (err) {
+      setOtpError(err.response?.data?.message || 'Invalid OTP. Please try again.');
+    } finally {
+      setOtpVerifying(false);
     }
   };
 
@@ -493,25 +514,33 @@ export default function BorrowerStepper({ onBack }) {
                 </div>
 
                 {!showOtp ? (
-                  <button 
-                    className="btn-primary" 
-                    onClick={handleSendOtp}
-                    disabled={!isBasicInfoValid}
-                    style={{ width: '100%', padding: '14px', borderRadius: '12px', marginTop: '12px', opacity: isBasicInfoValid ? 1 : 0.5, cursor: isBasicInfoValid ? 'pointer' : 'not-allowed' }}
-                  >
-                    Send OTP →
-                  </button>
+                  <>
+                    {otpError && (
+                      <div style={{ color: 'red', fontSize: '.76rem', fontWeight: 700, marginTop: '8px' }}>
+                        ⚠️ {otpError}
+                      </div>
+                    )}
+                    <button 
+                      className="btn-primary" 
+                      onClick={handleSendOtp}
+                      disabled={!isBasicInfoValid || otpSending}
+                      style={{ width: '100%', padding: '14px', borderRadius: '12px', marginTop: '12px', opacity: (isBasicInfoValid && !otpSending) ? 1 : 0.5, cursor: (isBasicInfoValid && !otpSending) ? 'pointer' : 'not-allowed' }}
+                    >
+                      {otpSending ? 'Sending OTP…' : 'Send OTP →'}
+                    </button>
+                  </>
                 ) : (
                   <div className="field" style={{marginTop: '20px', animation: 'fadeUp 0.3s ease'}}>
-                    <label>Enter OTP <span style={{color: 'red'}}>*</span></label>
+                    <label>Enter OTP sent to <strong>{formData.email}</strong> <span style={{color: 'red'}}>*</span></label>
                     <div className="input-wrap">
                       <span className="icon">🔑</span>
                       <input 
                         type="text" 
-                        placeholder="6-digit OTP (e.g. 123456)" 
-                        maxLength="6" 
+                        placeholder="4-digit OTP" 
+                        maxLength="4" 
                         value={otpInput} 
-                        onChange={e => setOtpInput(e.target.value)} 
+                        onChange={e => setOtpInput(e.target.value.replace(/\D/g, ''))} 
+                        autoFocus
                       />
                     </div>
                     {otpError && (
@@ -522,11 +551,21 @@ export default function BorrowerStepper({ onBack }) {
                     <button 
                       className="btn-primary" 
                       onClick={handleVerifyOtp}
-                      disabled={otpInput.length !== 6 && otpInput.length !== 4}
-                      style={{ width: '100%', padding: '14px', borderRadius: '12px', marginTop: '12px', opacity: (otpInput.length === 6 || otpInput.length === 4) ? 1 : 0.5 }}
+                      disabled={otpInput.length < 4 || otpVerifying}
+                      style={{ width: '100%', padding: '14px', borderRadius: '12px', marginTop: '12px', opacity: (otpInput.length >= 4 && !otpVerifying) ? 1 : 0.5 }}
                     >
-                      Verify & Continue →
+                      {otpVerifying ? 'Verifying…' : 'Verify & Continue →'}
                     </button>
+                    <div style={{ marginTop: '8px', textAlign: 'center', fontSize: '.76rem', color: '#64748b' }}>
+                      Didn't receive it?{' '}
+                      <button
+                        type="button"
+                        onClick={() => { setShowOtp(false); setOtpInput(''); setOtpError(''); }}
+                        style={{ background: 'none', border: 'none', color: 'var(--teal, #0f766e)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', fontSize: '.76rem' }}
+                      >
+                        Resend OTP
+                      </button>
+                    </div>
                   </div>
                 )}
                 
