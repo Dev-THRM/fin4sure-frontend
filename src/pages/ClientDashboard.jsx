@@ -58,7 +58,6 @@ export default function ClientDashboard() {
 
       if (res.ok) {
         const data = await res.json();
-        console.log("Profile API Response:", data);
         setUser(data);
         setName(data.name || "");
         setEmail(data.email || "");
@@ -67,22 +66,17 @@ export default function ClientDashboard() {
         setPincode(data.pincode || "");
         setState(data.state || "");
         setDistrict(data.district || "");
+      } else if (authUser) {
+        setUser(authUser);
+        setName(authUser.name || "");
+        setEmail(authUser.email || "");
+        setNumber(authUser.number || "");
+        setAddress(authUser.address || "");
+        setPincode(authUser.pincode || "");
       } else if (res.status === 401) {
-        console.error("Profile API returned 401 Unauthorized");
         navigate("/login");
-      } else {
-        console.error("Profile API failed with status:", res.status);
-        if (authUser) {
-          setUser(authUser);
-          setName(authUser.name || "");
-          setEmail(authUser.email || "");
-          setNumber(authUser.number || "");
-          setAddress(authUser.address || "");
-          setPincode(authUser.pincode || "");
-        }
       }
     } catch (e) {
-      console.error("Profile API network error:", e);
       if (authUser) {
         setUser(authUser);
         setName(authUser.name || "");
