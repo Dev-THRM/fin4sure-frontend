@@ -58,6 +58,7 @@ export default function ClientDashboard() {
 
       if (res.ok) {
         const data = await res.json();
+        console.log("Profile API Response:", data);
         setUser(data);
         setName(data.name || "");
         setEmail(data.email || "");
@@ -66,17 +67,22 @@ export default function ClientDashboard() {
         setPincode(data.pincode || "");
         setState(data.state || "");
         setDistrict(data.district || "");
-      } else if (authUser) {
-        setUser(authUser);
-        setName(authUser.name || "");
-        setEmail(authUser.email || "");
-        setNumber(authUser.number || "");
-        setAddress(authUser.address || "");
-        setPincode(authUser.pincode || "");
       } else if (res.status === 401) {
+        console.error("Profile API returned 401 Unauthorized");
         navigate("/login");
+      } else {
+        console.error("Profile API failed with status:", res.status);
+        if (authUser) {
+          setUser(authUser);
+          setName(authUser.name || "");
+          setEmail(authUser.email || "");
+          setNumber(authUser.number || "");
+          setAddress(authUser.address || "");
+          setPincode(authUser.pincode || "");
+        }
       }
     } catch (e) {
+      console.error("Profile API network error:", e);
       if (authUser) {
         setUser(authUser);
         setName(authUser.name || "");
@@ -246,7 +252,7 @@ export default function ClientDashboard() {
               {((user.name && user.name !== "Borrower Account") ? user.name : (authUser?.name || "Sahil")).split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)}
             </div>
             <div>
-              <div className="cdash-welcome">Welcome back 👋</div>
+              <div className="cdash-welcome">Welcome back </div>
               <div className="cdash-name">{(user.name && user.name !== "Borrower Account") ? user.name : (authUser?.name || "Sahil")}</div>
               <div className="cdash-meta">
                 <span className="cdash-badge">Borrower</span>
@@ -276,13 +282,13 @@ export default function ClientDashboard() {
             className={`cdash-tab ${activeTab === "loans" ? "active" : ""}`}
             onClick={() => setActiveTab("loans")}
           >
-            📊 My Dashboard
+            My Dashboard
           </button>
           <button
             className={`cdash-tab ${activeTab === "profile" ? "active" : ""}`}
             onClick={() => setActiveTab("profile")}
           >
-            👤 Profile & Security
+            Profile & Security
           </button>
         </div>
       </div>
