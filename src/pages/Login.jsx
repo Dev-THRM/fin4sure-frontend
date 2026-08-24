@@ -122,7 +122,7 @@ export default function Login() {
       const res = await fetch(`${API_BASE}/send-email-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: cleanEmail }),
+        body: JSON.stringify({ email: cleanEmail, purpose: 'login' }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to send OTP.");
@@ -203,7 +203,7 @@ export default function Login() {
       const res = await fetch(`${API_BASE}/send-email-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: otpEmail.trim().toLowerCase() }),
+        body: JSON.stringify({ email: otpEmail.trim().toLowerCase(), purpose: 'login' }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to resend OTP.");
