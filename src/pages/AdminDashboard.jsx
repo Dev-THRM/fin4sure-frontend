@@ -3245,7 +3245,16 @@ export default function AdminDashboard() {
 
                     {/* All 66+ network lenders */}
                     <optgroup label="🏦 All Network Lenders (Private, PSU, NBFC, SFB)">
-                      {LENDERS.slice().sort((a, b) => {
+                      {LENDERS.filter((l) => {
+                        if (!editingLead || !editingLead.product) return true;
+                        const prod = editingLead.product.toLowerCase();
+                        let key = 'home';
+                        if (prod.includes('personal')) key = 'personal';
+                        else if (prod.includes('business')) key = 'business';
+                        else if (prod.includes('vehicle') || prod.includes('auto') || prod.includes('car')) key = 'vehicle';
+                        else if (prod.includes('lap') || prod.includes('property')) key = 'lap';
+                        return !!(l.rates && l.rates[key]);
+                      }).slice().sort((a, b) => {
                         const pA = getLenderTypePriority(a.type);
                         const pB = getLenderTypePriority(b.type);
                         if (pA !== pB) return pA - pB;
