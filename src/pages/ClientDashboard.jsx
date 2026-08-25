@@ -53,36 +53,37 @@ export default function ClientDashboard() {
         method: "GET",
         headers: { "content-type": "application/json" },
         credentials: "include",
+        cache: "no-store",
       });
 
       if (res.ok) {
         const data = await res.json();
         setUser(data);
-        setName(data.name || "Sahil");
+        setName(data.name || "");
         setEmail(data.email || "");
         setNumber(data.number || "");
-        setAddress(data.address || "123 Green Avenue, Central Delhi");
-        setPincode(data.pincode || "110001");
-        setState(data.state || "Delhi");
-        setDistrict(data.district || "Central");
+        setAddress(data.address || "");
+        setPincode(data.pincode || "");
+        setState(data.state || "");
+        setDistrict(data.district || "");
       } else if (authUser) {
         setUser(authUser);
-        setName(authUser.name || "Sahil");
+        setName(authUser.name || "");
         setEmail(authUser.email || "");
-        setNumber(authUser.number || "8123123712");
-        setAddress(authUser.address || "123 Green Avenue, Central Delhi");
-        setPincode(authUser.pincode || "110001");
+        setNumber(authUser.number || "");
+        setAddress(authUser.address || "");
+        setPincode(authUser.pincode || "");
       } else if (res.status === 401) {
         navigate("/login");
       }
     } catch (e) {
       if (authUser) {
         setUser(authUser);
-        setName(authUser.name || "Sahil");
+        setName(authUser.name || "");
         setEmail(authUser.email || "");
-        setNumber(authUser.number || "8123123712");
-        setAddress(authUser.address || "123 Green Avenue, Central Delhi");
-        setPincode(authUser.pincode || "110001");
+        setNumber(authUser.number || "");
+        setAddress(authUser.address || "");
+        setPincode(authUser.pincode || "");
       }
     }
   };
@@ -245,7 +246,7 @@ export default function ClientDashboard() {
               {((user.name && user.name !== "Borrower Account") ? user.name : (authUser?.name || "Sahil")).split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)}
             </div>
             <div>
-              <div className="cdash-welcome">Welcome back 👋</div>
+              <div className="cdash-welcome">Welcome back </div>
               <div className="cdash-name">{(user.name && user.name !== "Borrower Account") ? user.name : (authUser?.name || "Sahil")}</div>
               <div className="cdash-meta">
                 <span className="cdash-badge">Borrower</span>
@@ -275,13 +276,13 @@ export default function ClientDashboard() {
             className={`cdash-tab ${activeTab === "loans" ? "active" : ""}`}
             onClick={() => setActiveTab("loans")}
           >
-            📊 My Dashboard
+            My Dashboard
           </button>
           <button
             className={`cdash-tab ${activeTab === "profile" ? "active" : ""}`}
             onClick={() => setActiveTab("profile")}
           >
-            👤 Profile & Security
+            Profile & Security
           </button>
         </div>
       </div>
