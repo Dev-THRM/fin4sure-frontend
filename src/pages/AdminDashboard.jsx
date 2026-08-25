@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { LENDERS } from "../utils/loanConstants";
 import "./styles/adminDashboard.css";
 
-function buildCategoryRates(catKey) {
+function buildCategoryRates(catKey, backendRates = []) {
   const mapKey = {
     'HL': 'home',
     'PL': 'personal',
@@ -13,24 +13,59 @@ function buildCategoryRates(catKey) {
     'LAP': 'lap'
   }[catKey] || 'home';
 
+  const backendMap = new Map();
+  if (Array.isArray(backendRates)) {
+    backendRates.forEach(br => {
+      if (br.name) backendMap.set(br.name.toLowerCase().trim(), br);
+      if (br.short) backendMap.set(br.short.toLowerCase().trim(), br);
+    });
+  }
+
   return LENDERS.map((l, idx) => {
     const rateObj = l.rates?.[mapKey];
-    const flow = rateObj ? rateObj.f : null;
-    const fix = rateObj ? rateObj.x : null;
+    const defaultFlow = rateObj ? rateObj.f : null;
+    const defaultFix = rateObj ? rateObj.x : null;
     const typeUpper = l.type ? (l.type.toUpperCase() === 'PSU' ? 'PSU' : l.type.toLowerCase().includes('nbfc') ? 'NBFC/HFC' : l.type.toLowerCase().includes('small') ? 'SFB' : 'Private') : 'Private';
 
+    // Find any backend override
+    const br = backendMap.get(l.name.toLowerCase().trim()) || (l.short ? backendMap.get(l.short.toLowerCase().trim()) : null);
+
+    let flowLow = (defaultFlow && Array.isArray(defaultFlow)) ? String(defaultFlow[0]) : "N/A";
+    let flowHigh = (defaultFlow && Array.isArray(defaultFlow)) ? String(defaultFlow[1]) : "N/A";
+    let fixLow = (defaultFix && Array.isArray(defaultFix)) ? String(defaultFix[0]) : "N/A";
+    let fixHigh = (defaultFix && Array.isArray(defaultFix)) ? String(defaultFix[1]) : "N/A";
+    let offer = l.offer || 'Special interest rate offer';
+    let visible = true;
+
+    if (br) {
+      if (br.flowLow !== undefined && br.flowLow !== null && br.flowLow !== "null" && br.flowLow !== "") {
+        flowLow = String(br.flowLow);
+      }
+      if (br.flowHigh !== undefined && br.flowHigh !== null && br.flowHigh !== "null" && br.flowHigh !== "") {
+        flowHigh = String(br.flowHigh);
+      }
+      if (br.fixLow !== undefined && br.fixLow !== null && br.fixLow !== "null" && br.fixLow !== "") {
+        fixLow = String(br.fixLow);
+      }
+      if (br.fixHigh !== undefined && br.fixHigh !== null && br.fixHigh !== "null" && br.fixHigh !== "") {
+        fixHigh = String(br.fixHigh);
+      }
+      if (br.offer) offer = br.offer;
+      if (br.visible !== undefined) visible = br.visible;
+    }
+
     return {
-      lenderId: idx + 1,
+      lenderId: br?.lenderId || (idx + 1),
       name: l.name,
       short: l.short,
       type: typeUpper,
       emoji: l.emoji || '🏦',
-      flowLow: (flow && Array.isArray(flow)) ? String(flow[0]) : "N/A",
-      flowHigh: (flow && Array.isArray(flow)) ? String(flow[1]) : "N/A",
-      fixLow: (fix && Array.isArray(fix)) ? String(fix[0]) : "N/A",
-      fixHigh: (fix && Array.isArray(fix)) ? String(fix[1]) : "N/A",
-      offer: l.offer || 'Special interest rate offer',
-      visible: true
+      flowLow,
+      flowHigh,
+      fixLow,
+      fixHigh,
+      offer,
+      visible
     };
   });
 }
@@ -269,7 +304,9 @@ export default function AdminDashboard() {
           if (Array.isArray(data.clients) && data.clients.length > 0) setBorrowers(data.clients);
           if (Array.isArray(data.timeline) && data.timeline.length > 0) setTimeline(data.timeline);
           if (Array.isArray(data.leads) && data.leads.length > 0) setLeads(data.leads);
-          if (Array.isArray(data.rates) && data.rates.length > 0) setRates(data.rates);
+          if (Array.isArray(data.rates) && data.rates.length > 0) {
+            setRates(buildCategoryRates(selectedLoanCategory, data.rates));
+          }
           return;
         }
       }
@@ -299,7 +336,7 @@ export default function AdminDashboard() {
     } catch (e) {
       console.error("loadAdminData error:", e);
     }
-  }, []);
+  }, [selectedLoanCategory]);
 
   useEffect(() => {
     loadAdminData();
@@ -318,7 +355,7 @@ export default function AdminDashboard() {
 
   const handleRateChange = (lenderId, field, val) => {
     setRates(prevRates =>
-      prevRates.map(r => (r.lenderId === lenderId || r.id === lenderId) ? { ...r, [field]: val } : r)
+      prevRates.map(r => (r.lenderId === lenderId || r.id === lenderId || r.name === lenderId) ? { ...r, [field]: val } : r)
     );
   };
 
@@ -394,11 +431,11 @@ export default function AdminDashboard() {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          setRates(data);
+          setRates(buildCategoryRates(selectedLoanCategory, data));
           return;
         }
       }
-      // Fallback to full 60+ banks directory if backend table has fewer items
+      // Fallback to full 60+ banks directory
       setRates(buildCategoryRates(selectedLoanCategory));
     } catch (e) {
       console.error("fetchLenderRates error:", e);
@@ -2593,7 +2630,7 @@ export default function AdminDashboard() {
                     fontSize: '0.75rem',
                     fontWeight: 700
                   }}>
-                    🏛️ {(Array.isArray(rates) && rates.length > 0) ? rates.length : LENDERS.length} Total Institutions
+                    🏛️ {LENDERS.length} Total Institutions
                   </span>
                 </div>
 
@@ -2773,9 +2810,7 @@ export default function AdminDashboard() {
                     </thead>
                     <tbody>
                       {(() => {
-                        const activeList = (Array.isArray(rates) && rates.length > 0)
-                          ? rates
-                          : buildCategoryRates(selectedLoanCategory);
+                        const activeList = buildCategoryRates(selectedLoanCategory, rates);
                         
                         const filteredRates = activeList.filter(r => {
                           if (!r) return false;
