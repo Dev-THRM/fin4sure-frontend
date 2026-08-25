@@ -95,7 +95,7 @@ export default function BrokerDashboard() {
       const data = await res.json();
       setUser(data);
       setProfName(data.name || "");
-      setProfCity(data.city || data.district || "");
+      setProfCity(data.city || data.district || data.address || "");
       setProfNumber(data.number || "");
       setProfEmail(data.email || "");
     } catch (e) {
@@ -435,7 +435,7 @@ export default function BrokerDashboard() {
               <div className="pdash-name">{user.name}</div>
               <div className="pdash-meta">
                 <span className="pdash-badge">Finn4sure Partner</span>
-                <span className="pdash-id">ID: {user.brokerId || user.id}</span>
+                <span className="pdash-id">ID: {user?.brokerId || user?.partner_id || user?.id || user?._id ? `F4S-P${String(user.brokerId || user.partner_id || user.id || user._id).padStart(3, '0')}` : 'F4S-P001'}</span>
               </div>
             </div>
           </div>

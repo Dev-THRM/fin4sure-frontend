@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "../../pages/styles/stepper.css";
 
-const CITIES = [
+const DEFAULT_CITIES = [
     "Mumbai", "Delhi", "Bengaluru", "Kolkata", "Chennai", "Hyderabad",
     "Pune", "Ahmedabad", "Surat", "Jaipur", "Lucknow", "Kanpur",
     "Nagpur", "Indore", "Thane", "Bhopal", "Visakhapatnam", "Patna",
@@ -12,7 +12,7 @@ const CITIES = [
     "Srinagar", "Aurangabad", "Dhanbad", "Amritsar", "Navi Mumbai",
     "Allahabad", "Ranchi", "Howrah", "Coimbatore", "Jabalpur",
     "Gwalior", "Vijayawada", "Jodhpur", "Madurai", "Raipur", "Kota"
-].sort();
+];
 
 export default function PartnerStepper({ onBack }) {
     const navigate = useNavigate();
@@ -26,8 +26,57 @@ export default function PartnerStepper({ onBack }) {
     // Form fields
     const [fullName, setFullName] = useState("");
     const [city, setCity] = useState("");
+    const [cityList, setCityList] = useState(DEFAULT_CITIES.slice().sort());
+    const [isCityOpen, setIsCityOpen] = useState(false);
+    const cityDropdownRef = useRef(null);
     const [email, setEmail] = useState("");
     const [mobileNumber, setMobileNumber] = useState("");
+
+    // Close city dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (cityDropdownRef.current && !cityDropdownRef.current.contains(e.target)) {
+                setIsCityOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    // Fetch dynamic cities from backend DB
+    useEffect(() => {
+        const fetchCities = async () => {
+            try {
+                const res = await fetch("/api/locations/all-cities");
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+                        const merged = Array.from(new Set([...DEFAULT_CITIES, ...json.data])).sort();
+                        setCityList(merged);
+                    }
+                }
+            } catch (err) {
+                console.warn("Cities fetch notice:", err.message);
+            }
+        };
+        fetchCities();
+    }, []);
+
+    // Save custom city to backend if not already existing
+    const saveNewCityIfCustom = async (cityName) => {
+        if (!cityName || !cityName.trim()) return;
+        const clean = cityName.trim();
+        try {
+            const res = await fetch("/api/locations/create-city", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: clean })
+            });
+            if (res.ok) {
+                setCityList(prev => Array.from(new Set([...prev, clean])).sort());
+            }
+        } catch (_) {}
+    };
 
     // --- Email OTP state ---
     const [otpSending, setOtpSending] = useState(false);
@@ -35,46 +84,15 @@ export default function PartnerStepper({ onBack }) {
     const [enteredOtp, setEnteredOtp] = useState("");
     const [otpVerified, setOtpVerified] = useState(false);
 
-    // --- OLD WhatsApp dummy OTP logic (commented out) ---
-    // const [otpSent, setOtpSent] = useState(false);
-    // const [dummyOtp, setDummyOtp] = useState("");
-    //
-    // // Send WhatsApp dummy OTP
-    // const handleSendOtp = () => {
-    //     if (mobileNumber.length !== 10) {
-    //         setError("Enter a valid 10-digit mobile number");
-    //         return;
-    //     }
-    //     setError("");
-    //     const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
-    //     setDummyOtp(randomOtp);
-    //     setOtpSent(true);
-    //     console.log(`🔑 [DEBUG] DUMMY OTP FOR ${mobileNumber}: ${randomOtp} 🔑`);
-    //     setStep(2);
-    // };
-    //
-    // // Verify WhatsApp dummy OTP
-    // const handleVerifyOtp = () => {
-    //     if (enteredOtp.length !== 4 && enteredOtp.length !== 6) {
-    //         setError("OTP must be 4 or 6 digits");
-    //         return;
-    //     }
-    //     if (enteredOtp === dummyOtp || enteredOtp === '123456' || enteredOtp === '1234') {
-    //         setOtpVerified(true);
-    //         setError("");
-    //         setTimeout(() => { setStep(3); }, 600);
-    //     } else {
-    //         setError("Invalid OTP code. Try using 123456.");
-    //     }
-    // };
-    // --- END old WhatsApp OTP logic ---
-
     // Send real Email OTP via backend
     const handleSendOtp = async () => {
         const cleanEmail = email.trim().toLowerCase();
         if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
             setError("Please enter a valid email address.");
             return;
+        }
+        if (city.trim()) {
+            saveNewCityIfCustom(city.trim());
         }
         setError("");
         setOtpSending(true);
@@ -255,7 +273,7 @@ export default function PartnerStepper({ onBack }) {
 
                         <div className="form-grid">
                             <div className="field">
-                                <label>Full Name</label>
+                                <label>Full Name <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap">
                                     <span className="icon">👤</span>
                                     <input
@@ -268,25 +286,197 @@ export default function PartnerStepper({ onBack }) {
                                 </div>
                             </div>
 
-                            <div className="field">
-                                <label>City</label>
-                                <div className="input-wrap" style={{ padding: "0 10px" }}>
-                                    <select
+                            <div className="field" ref={cityDropdownRef} style={{ position: "relative" }}>
+                                <label>City <span style={{ color: "#DC2626" }}>*</span></label>
+                                <div 
+                                    className="input-wrap" 
+                                    style={{ 
+                                        display: "flex", 
+                                        alignItems: "center", 
+                                        cursor: "pointer", 
+                                        position: "relative",
+                                        borderColor: isCityOpen ? "var(--teal, #0f766e)" : undefined,
+                                        boxShadow: isCityOpen ? "0 0 0 3px rgba(15, 118, 110, 0.12)" : undefined
+                                    }}
+                                    onClick={() => setIsCityOpen(true)}
+                                >
+                                    <span className="icon">🏙️</span>
+                                    <input
+                                        type="text"
+                                        placeholder="Select or type your city"
                                         value={city}
-                                        onChange={(e) => setCity(e.target.value)}
+                                        onChange={(e) => {
+                                            setCity(e.target.value);
+                                            setIsCityOpen(true);
+                                        }}
+                                        onFocus={() => setIsCityOpen(true)}
                                         required
-                                        style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".88rem", fontWeight: 600, color: "var(--navy)" }}
+                                        autoComplete="off"
+                                        style={{ 
+                                            border: "none", 
+                                            outline: "none", 
+                                            background: "transparent", 
+                                            width: "100%", 
+                                            fontSize: ".88rem", 
+                                            fontWeight: 600, 
+                                            color: "var(--navy)",
+                                            paddingRight: "28px"
+                                        }}
+                                    />
+                                    {city ? (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setCity("");
+                                                setIsCityOpen(true);
+                                            }}
+                                            style={{
+                                                position: "absolute",
+                                                right: "26px",
+                                                top: "50%",
+                                                transform: "translateY(-50%)",
+                                                background: "#E2E8F0",
+                                                border: "none",
+                                                borderRadius: "50%",
+                                                width: "18px",
+                                                height: "18px",
+                                                fontSize: "10px",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                cursor: "pointer",
+                                                color: "#64748B"
+                                            }}
+                                            title="Clear city"
+                                        >
+                                            ✕
+                                        </button>
+                                    ) : null}
+                                    <span 
+                                        style={{ 
+                                            position: "absolute", 
+                                            right: "10px", 
+                                            top: "50%", 
+                                            transform: `translateY(-50%) rotate(${isCityOpen ? "180deg" : "0deg"})`, 
+                                            transition: "transform 0.2s ease",
+                                            fontSize: "10px",
+                                            color: "#64748B",
+                                            pointerEvents: "none"
+                                        }}
                                     >
-                                        <option value="">Select City</option>
-                                        {CITIES.map((c) => (
-                                            <option key={c} value={c}>{c}</option>
-                                        ))}
-                                    </select>
+                                        ▼
+                                    </span>
                                 </div>
+
+                                {/* Custom Dropdown Menu */}
+                                {isCityOpen && (
+                                    <div 
+                                        style={{
+                                            position: "absolute",
+                                            top: "calc(100% + 4px)",
+                                            left: 0,
+                                            right: 0,
+                                            background: "#FFFFFF",
+                                            borderRadius: "12px",
+                                            border: "1px solid #E2E8F0",
+                                            boxShadow: "0 14px 34px -4px rgba(15, 23, 42, 0.16), 0 4px 12px -2px rgba(15, 23, 42, 0.08)",
+                                            zIndex: 9999,
+                                            maxHeight: "230px",
+                                            overflowY: "auto",
+                                            padding: "6px"
+                                        }}
+                                    >
+                                        {(() => {
+                                            const searchLower = (city || "").toLowerCase().trim();
+                                            const filtered = cityList.filter(c => c.toLowerCase().includes(searchLower));
+                                            const exactMatch = cityList.some(c => c.toLowerCase() === searchLower);
+
+                                            return (
+                                                <>
+                                                    {searchLower && !exactMatch && (
+                                                        <div
+                                                            onClick={() => {
+                                                                const customName = city.trim();
+                                                                saveNewCityIfCustom(customName);
+                                                                setIsCityOpen(false);
+                                                            }}
+                                                            style={{
+                                                                padding: "9px 12px",
+                                                                borderRadius: "8px",
+                                                                background: "#F0FDF4",
+                                                                border: "1px dashed #86EFAC",
+                                                                color: "#166534",
+                                                                fontSize: "0.82rem",
+                                                                fontWeight: 700,
+                                                                cursor: "pointer",
+                                                                marginBottom: "4px",
+                                                                display: "flex",
+                                                                alignItems: "center",
+                                                                gap: "8px",
+                                                                transition: "all 0.15s ease"
+                                                            }}
+                                                            onMouseEnter={(e) => e.currentTarget.style.background = "#DCFCE7"}
+                                                            onMouseLeave={(e) => e.currentTarget.style.background = "#F0FDF4"}
+                                                        >
+                                                            <span style={{ fontSize: "1rem" }}>✨</span>
+                                                            <span>Add custom city: <strong style={{ textDecoration: "underline" }}>"{city.trim()}"</strong></span>
+                                                        </div>
+                                                    )}
+
+                                                    {filtered.length === 0 && !searchLower && (
+                                                        <div style={{ padding: "12px", textAlign: "center", color: "#94A3B8", fontSize: "0.82rem" }}>
+                                                            Start typing to search cities...
+                                                        </div>
+                                                    )}
+
+                                                    {filtered.map((c) => {
+                                                        const isSelected = city.toLowerCase().trim() === c.toLowerCase();
+                                                        return (
+                                                            <div
+                                                                key={c}
+                                                                onClick={() => {
+                                                                    setCity(c);
+                                                                    saveNewCityIfCustom(c);
+                                                                    setIsCityOpen(false);
+                                                                }}
+                                                                style={{
+                                                                    padding: "8px 12px",
+                                                                    borderRadius: "8px",
+                                                                    fontSize: "0.84rem",
+                                                                    fontWeight: isSelected ? 700 : 500,
+                                                                    color: isSelected ? "#0F766E" : "#1E293B",
+                                                                    background: isSelected ? "#F0FDFA" : "transparent",
+                                                                    cursor: "pointer",
+                                                                    display: "flex",
+                                                                    alignItems: "center",
+                                                                    justifyContent: "space-between",
+                                                                    transition: "background 0.12s ease"
+                                                                }}
+                                                                onMouseEnter={(e) => {
+                                                                    if (!isSelected) e.currentTarget.style.background = "#F8FAFC";
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    if (!isSelected) e.currentTarget.style.background = "transparent";
+                                                                }}
+                                                            >
+                                                                <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                                                    <span style={{ color: "#94A3B8", fontSize: "0.76rem" }}>📍</span>
+                                                                    {c}
+                                                                </span>
+                                                                {isSelected && <span style={{ color: "#0F766E", fontWeight: 900, fontSize: "0.85rem" }}>✓</span>}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </>
+                                            );
+                                        })()}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="field">
-                                <label>Mobile Number</label>
+                                <label>Mobile Number <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap">
                                     <span className="icon">📱</span>
                                     <input
@@ -301,7 +491,7 @@ export default function PartnerStepper({ onBack }) {
                             </div>
 
                             <div className="field">
-                                <label>Email Address</label>
+                                <label>Email Address <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap">
                                     <span className="icon">📧</span>
                                     <input
@@ -338,7 +528,7 @@ export default function PartnerStepper({ onBack }) {
                             </div>
 
                             <div className="field">
-                                <label>Enter OTP</label>
+                                <label>Enter OTP <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap">
                                     <span className="icon">🔑</span>
                                     <input
@@ -387,7 +577,7 @@ export default function PartnerStepper({ onBack }) {
 
                         <div className="form-grid">
                             <div className="field">
-                                <label>Password</label>
+                                <label>Password <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap">
                                     <span className="icon">🔒</span>
                                     <input
@@ -429,7 +619,7 @@ export default function PartnerStepper({ onBack }) {
                             </div>
 
                             <div className="field">
-                                <label>Confirm Password</label>
+                                <label>Confirm Password <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap">
                                     <span className="icon">🔒</span>
                                     <input

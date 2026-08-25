@@ -6,6 +6,15 @@ export const LOAN_PARAMS = {
   vehicle: { amtMin: 100000, amtMax: 10000000, rateMin: 7.5, rateMax: 16, tenureMin: 12, tenureMax: 96, label: 'Vehicle Loan' }
 };
 
+export function getLenderTypePriority(type) {
+  const t = String(type || '').toLowerCase();
+  if (t.includes('private')) return 1;
+  if (t.includes('nbfc') || t.includes('hfc') || t.includes('housing finance')) return 2;
+  if (t.includes('sfb') || t.includes('small')) return 3;
+  if (t.includes('psu') || t.includes('public') || t.includes('govt')) return 4;
+  return 5;
+}
+
 export const LENDERS = [
   // --- 1. Top PSUs & Private Giants ---
   {

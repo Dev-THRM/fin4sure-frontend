@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { LENDERS } from "../utils/loanConstants";
+import { LENDERS, getLenderTypePriority } from "../utils/loanConstants";
 import "./styles/adminDashboard.css";
 
 function buildCategoryRates(catKey, backendRates = []) {
@@ -21,7 +21,7 @@ function buildCategoryRates(catKey, backendRates = []) {
     });
   }
 
-  return LENDERS.map((l, idx) => {
+  const list = LENDERS.map((l, idx) => {
     const rateObj = l.rates?.[mapKey];
     const defaultFlow = rateObj ? rateObj.f : null;
     const defaultFix = rateObj ? rateObj.x : null;
@@ -67,6 +67,14 @@ function buildCategoryRates(catKey, backendRates = []) {
       offer,
       visible
     };
+  });
+
+  // Priority order: 1. Private -> 2. NBFC -> 3. SFB -> 4. PSU
+  return list.sort((a, b) => {
+    const pA = getLenderTypePriority(a.type);
+    const pB = getLenderTypePriority(b.type);
+    if (pA !== pB) return pA - pB;
+    return a.name.localeCompare(b.name);
   });
 }
 
@@ -1760,8 +1768,30 @@ export default function AdminDashboard() {
                               <td style={{ fontWeight: 800, color: '#1E293B', fontSize: '0.85rem' }}>
                                 {l.loan_amount ? Number(l.loan_amount).toLocaleString('en-IN') : "-"}
                               </td>
-                              <td style={{ fontWeight: 600, color: '#0F2942', fontSize: '0.82rem' }}>
-                                {l.lender || l.client_preference || 'SBI'}
+                              <td style={{ fontWeight: 600, color: '#0F2942', fontSize: '0.82rem', maxWidth: '240px', lineHeight: '1.4' }}>
+                                {(() => {
+                                  let lendersList = [];
+                                  if (Array.isArray(l.lenders) && l.lenders.length > 0) {
+                                    lendersList = l.lenders;
+                                  } else if (l.lender && typeof l.lender === 'string') {
+                                    lendersList = l.lender.split(',').map(s => s.trim()).filter(Boolean);
+                                  } else if (l.client_preference && typeof l.client_preference === 'string' && !['direct_reach', 'partner_routing'].includes(l.client_preference)) {
+                                    lendersList = l.client_preference.split(',').map(s => s.trim()).filter(Boolean);
+                                  }
+                                  
+                                  if (lendersList.length === 0) {
+                                    const defaultBankMap = {
+                                      'Home Loan': ['SBI', 'HDFC Bank', 'ICICI Bank'],
+                                      'Personal Loan': ['HDFC Bank', 'Axis Bank', 'Bajaj Finserv'],
+                                      'Business Loan': ['ICICI Bank', 'Kotak Mahindra', 'Bajaj Finserv'],
+                                      'Vehicle Loan': ['SBI', 'HDFC Bank', 'Bank of Baroda'],
+                                      'Loan Against Property': ['ICICI Bank', 'Axis Bank', 'PNB Housing']
+                                    };
+                                    lendersList = defaultBankMap[l.product] || ['SBI', 'HDFC Bank'];
+                                  }
+
+                                  return lendersList.join(', ');
+                                })()}
                               </td>
                               <td>
                                 <button
