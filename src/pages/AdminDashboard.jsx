@@ -1009,11 +1009,17 @@ export default function AdminDashboard() {
     : (stats.disbursedCount ?? stats.completedCount ?? 0);
 
   const inProgressCount = leads.length > 0
-    ? leads.filter(l => (l.status || '').toLowerCase().trim() === 'in-progress').length
+    ? leads.filter(l => {
+        const s = (l.status || '').toLowerCase().trim();
+        return s === 'in-progress' || s === 'in progress';
+      }).length
     : (stats.inProgressCount ?? 0);
 
   const pendingCount = leads.length > 0
-    ? leads.filter(l => (l.status || '').toLowerCase().trim() === 'pending').length
+    ? leads.filter(l => {
+        const s = (l.status || '').toLowerCase().trim();
+        return s === 'pending' || s === 'applied';
+      }).length
     : (stats.pendingCount ?? 0);
 
   const rejectedCount = leads.length > 0
@@ -1354,13 +1360,16 @@ export default function AdminDashboard() {
                     {(() => {
                       const STAGE_PROGRESS_MAP = {
                         'applied': { pct: 14, status: 'pending', color: '#F59E0B', bg: '#FEF3C7', textColor: '#B45309' },
-                        'submitted': { pct: 28, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
-                        'docs': { pct: 43, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
-                        'documents': { pct: 43, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
-                        'credit': { pct: 57, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
-                        'legal': { pct: 71, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
-                        'sanction': { pct: 86, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
-                        'approved': { pct: 86, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'pending': { pct: 14, status: 'pending', color: '#F59E0B', bg: '#FEF3C7', textColor: '#B45309' },
+                        'in progress': { pct: 43, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'in-progress': { pct: 43, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'docs': { pct: 28, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'documents': { pct: 28, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'credit': { pct: 43, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'submitted': { pct: 57, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'sanction': { pct: 71, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'approved': { pct: 71, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'legal': { pct: 86, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
                         'disbursed': { pct: 100, status: 'disbursed', color: '#10B981', bg: '#DCFCE7', textColor: '#15803D' },
                         'completed': { pct: 100, status: 'disbursed', color: '#10B981', bg: '#DCFCE7', textColor: '#15803D' },
                         'rejected': { pct: 14, status: 'rejected', color: '#EF4444', bg: '#FEE2E2', textColor: '#991B1B' }
@@ -1368,14 +1377,14 @@ export default function AdminDashboard() {
 
                       const defaultTimelinePreset = [
                         { id: 2001, application_no: 'F4S-2001', name: 'Rajesh Kumar', product: 'Home Loan', lender: 'SBI', loan_amount: 5000000, stage: 'Disbursed', status: 'disbursed', createdAt: '2025-01-15T10:00:00Z', source: 'Direct' },
-                        { id: 2002, application_no: 'F4S-2002', name: 'Priya Sharma', product: 'Home Loan', lender: 'HDFC Bank', loan_amount: 7500000, stage: 'Submitted', status: 'in progress', createdAt: '2025-01-18T10:00:00Z', source: 'Direct' },
-                        { id: 2003, application_no: 'F4S-2003', name: 'Arun Mehta', product: 'Personal Loan', lender: 'ICICI Bank', loan_amount: 500000, stage: 'Credit', status: 'in progress', createdAt: '2025-01-22T10:00:00Z', source: 'Direct' },
+                        { id: 2002, application_no: 'F4S-2002', name: 'Priya Sharma', product: 'Home Loan', lender: 'HDFC Bank', loan_amount: 7500000, stage: 'Submitted', status: 'in-progress', createdAt: '2025-01-18T10:00:00Z', source: 'Direct' },
+                        { id: 2003, application_no: 'F4S-2003', name: 'Arun Mehta', product: 'Personal Loan', lender: 'ICICI Bank', loan_amount: 500000, stage: 'Credit', status: 'in-progress', createdAt: '2025-01-22T10:00:00Z', source: 'Direct' },
                         { id: 2004, application_no: 'F4S-2004', name: 'Sunita Patel', product: 'Business Loan', lender: 'Axis Bank', loan_amount: 2000000, stage: 'Applied', status: 'pending', createdAt: '2025-01-25T10:00:00Z', source: 'Direct' },
                         { id: 2005, application_no: 'F4S-2005', name: 'Vikram Singh', product: 'Home Loan', lender: 'SBI', loan_amount: 4200000, stage: 'Disbursed', status: 'disbursed', createdAt: '2025-02-02T10:00:00Z', source: 'Direct' },
-                        { id: 2006, application_no: 'F4S-2006', name: 'Deepa Nair', product: 'Vehicle Loan', lender: 'Bajaj Finserv', loan_amount: 800000, stage: 'Sanction', status: 'in progress', createdAt: '2025-02-05T10:00:00Z', source: 'Direct' },
-                        { id: 2007, application_no: 'F4S-2007', name: 'Arjun Reddy', product: 'Loan Against Property', lender: 'HDFC Bank', loan_amount: 10000000, stage: 'Legal', status: 'in progress', createdAt: '2025-02-08T10:00:00Z', source: 'Direct' },
+                        { id: 2006, application_no: 'F4S-2006', name: 'Deepa Nair', product: 'Vehicle Loan', lender: 'Bajaj Finserv', loan_amount: 800000, stage: 'Sanction', status: 'in-progress', createdAt: '2025-02-05T10:00:00Z', source: 'Direct' },
+                        { id: 2007, application_no: 'F4S-2007', name: 'Arjun Reddy', product: 'Loan Against Property', lender: 'HDFC Bank', loan_amount: 10000000, stage: 'Legal', status: 'in-progress', createdAt: '2025-02-08T10:00:00Z', source: 'Direct' },
                         { id: 2008, application_no: 'F4S-2008', name: 'Kavita Joshi', product: 'Personal Loan', lender: 'Kotak Mahindra', loan_amount: 900000, stage: 'Disbursed', status: 'disbursed', createdAt: '2025-02-10T10:00:00Z', source: 'Direct' },
-                        { id: 2009, application_no: 'F4S-2009', name: 'Amitabh Sen', product: 'Home Loan', lender: 'PNB Housing', loan_amount: 3500000, stage: 'Docs', status: 'pending', createdAt: '2025-02-12T10:00:00Z', source: 'Direct' },
+                        { id: 2009, application_no: 'F4S-2009', name: 'Amitabh Sen', product: 'Home Loan', lender: 'PNB Housing', loan_amount: 3500000, stage: 'Docs', status: 'in-progress', createdAt: '2025-02-12T10:00:00Z', source: 'Direct' },
                         { id: 2013, application_no: 'F4S-2013', name: 'Ramesh Chandra', product: 'Loan Against Property', lender: 'ICICI Bank', loan_amount: 80000000, stage: 'Applied', status: 'pending', createdAt: '2025-03-01T10:00:00Z', source: 'Direct' }
                       ];
 
@@ -1383,13 +1392,19 @@ export default function AdminDashboard() {
 
                       let filtered = sourceList;
                       if (activeKpiFilter === 'disbursed') {
-                        filtered = sourceList.filter(l => ['disbursed', 'completed'].includes((l.status || l.stage || '').toLowerCase().trim()));
+                        filtered = sourceList.filter(l => ['disbursed', 'completed'].includes((l.status || '').toLowerCase().trim()));
                       } else if (activeKpiFilter === 'in_progress') {
-                        filtered = sourceList.filter(l => ['in-progress', 'in progress', 'submitted', 'docs', 'documents', 'credit', 'legal', 'sanction', 'processing'].includes((l.status || l.stage || '').toLowerCase().trim()));
+                        filtered = sourceList.filter(l => {
+                          const s = (l.status || '').toLowerCase().trim();
+                          return s === 'in-progress' || s === 'in progress';
+                        });
                       } else if (activeKpiFilter === 'pending') {
-                        filtered = sourceList.filter(l => ['pending', 'applied'].includes((l.status || l.stage || '').toLowerCase().trim()) && (l.status || l.stage || '').toLowerCase().trim() !== 'rejected');
+                        filtered = sourceList.filter(l => {
+                          const s = (l.status || '').toLowerCase().trim();
+                          return s === 'pending' || s === 'applied';
+                        });
                       } else if (activeKpiFilter === 'rejected') {
-                        filtered = sourceList.filter(l => (l.status || l.stage || '').toLowerCase().trim() === 'rejected');
+                        filtered = sourceList.filter(l => (l.status || '').toLowerCase().trim() === 'rejected');
                       } else if (activeKpiFilter === 'loan_volume') {
                         filtered = [...sourceList].sort((a, b) => (parseFloat(b.loan_amount) || 0) - (parseFloat(a.loan_amount) || 0));
                       }
@@ -1419,8 +1434,14 @@ export default function AdminDashboard() {
                               </div>
                             ) : (
                               filtered.map(item => {
-                                const stageKey = (item.stage || item.status || 'Applied').toLowerCase().trim();
-                                const stageMeta = STAGE_PROGRESS_MAP[stageKey] || STAGE_PROGRESS_MAP['applied'];
+                                const itemStatus = (item.status || 'pending').toLowerCase().trim();
+                                const isItemDisbursed = ['disbursed', 'completed'].includes(itemStatus);
+                                const isItemRejected = itemStatus === 'rejected';
+                                const isItemInProgress = itemStatus === 'in-progress' || itemStatus === 'in progress';
+                                const isItemPending = !isItemDisbursed && !isItemRejected && !isItemInProgress;
+
+                                const stageKey = (item.stage || (isItemPending ? 'applied' : 'docs')).toLowerCase().trim();
+                                const stageMeta = STAGE_PROGRESS_MAP[stageKey] || (isItemPending ? STAGE_PROGRESS_MAP['applied'] : STAGE_PROGRESS_MAP['docs']);
                                 const appNo = item.application_no
                                   ? (String(item.application_no).startsWith('F4S') ? item.application_no : `F4S-${item.application_no}`)
                                   : `F4S-${2000 + item.id}`;
@@ -1459,22 +1480,22 @@ export default function AdminDashboard() {
                                             <div style={{ width: `${stageMeta.pct}%`, height: '100%', background: stageMeta.color }} />
                                           </div>
                                           <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#475569' }}>
-                                            {item.stage || 'Applied'} · {stageMeta.pct}%
+                                            {item.stage || (isItemPending ? 'Applied' : 'Docs')} · {stageMeta.pct}%
                                           </span>
                                           <span style={{
                                             padding: '2px 8px',
                                             borderRadius: '10px',
                                             fontSize: '0.72rem',
                                             fontWeight: 800,
-                                            background: stageMeta.bg,
-                                            color: stageMeta.textColor,
+                                            background: isItemDisbursed ? '#DCFCE7' : isItemRejected ? '#FEE2E2' : isItemInProgress ? '#DBEAFE' : '#FEF3C7',
+                                            color: isItemDisbursed ? '#15803D' : isItemRejected ? '#991B1B' : isItemInProgress ? '#1D4ED8' : '#B45309',
                                             textTransform: 'lowercase'
                                           }}>
-                                            {stageMeta.status}
+                                            {isItemDisbursed ? 'disbursed' : isItemRejected ? 'rejected' : isItemInProgress ? 'in progress' : 'pending'}
                                           </span>
                                         </div>
                                         <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: '2px' }}>
-                                          Last update: <strong style={{ color: '#475569' }}>{item.stage || 'Applied'}</strong> on {formattedDate}
+                                          Last update: <strong style={{ color: '#475569' }}>{item.stage || (isItemPending ? 'Applied' : 'Docs')}</strong> on {formattedDate}
                                         </div>
                                       </div>
                                     </div>
@@ -3199,15 +3220,20 @@ export default function AdminDashboard() {
                     onChange={(e) => setEditForm(f => ({ ...f, lender: e.target.value }))}
                     style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', background: '#FFFFFF', cursor: 'pointer', outline: 'none' }}
                   >
-                    <option value="HDFC Bank">🏦 HDFC Bank</option>
-                    <option value="SBI">🏦 SBI</option>
-                    <option value="ICICI Bank">🏦 ICICI Bank</option>
-                    <option value="Axis Bank">🏦 Axis Bank</option>
-                    <option value="Bajaj Finserv">🏦 Bajaj Finserv</option>
-                    <option value="PNB Housing">🏦 PNB Housing</option>
-                    <option value="Bank of Baroda">🏦 Bank of Baroda</option>
-                    <option value="Canara Bank">🏦 Canara Bank</option>
-                    <option value="Union Bank">🏦 Union Bank</option>
+                    {/* Include custom current lender if not in standard list */}
+                    {editForm.lender && !LENDERS.some(l => l.name.toLowerCase() === editForm.lender.toLowerCase() || (l.short && l.short.toLowerCase() === editForm.lender.toLowerCase())) && (
+                      <option value={editForm.lender}>🏦 {editForm.lender}</option>
+                    )}
+                    {LENDERS.slice().sort((a, b) => {
+                      const pA = getLenderTypePriority(a.type);
+                      const pB = getLenderTypePriority(b.type);
+                      if (pA !== pB) return pA - pB;
+                      return a.name.localeCompare(b.name);
+                    }).map((l) => (
+                      <option key={l.name} value={l.name}>
+                        {l.emoji || '🏦'} {l.name} {l.type ? `(${l.type.toUpperCase()})` : ''}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
