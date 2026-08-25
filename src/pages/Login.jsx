@@ -93,7 +93,7 @@ export default function Login() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: cleanEmail, password: cleanPassword }),
+        body: JSON.stringify({ email: cleanEmail, password: cleanPassword, role: activeTab }),
       });
       if (!res.ok) {
         if (res.status === 429) throw new Error("Too many login attempts. Please wait 1 minute and try again.");
@@ -187,7 +187,7 @@ export default function Login() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: otpEmail.trim().toLowerCase(), otp: otpCode }),
+        body: JSON.stringify({ email: otpEmail.trim().toLowerCase(), otp: otpCode, role: activeTab }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "OTP verification failed.");
