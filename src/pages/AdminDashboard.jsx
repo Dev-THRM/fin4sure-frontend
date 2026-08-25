@@ -14,9 +14,9 @@ function buildCategoryRates(catKey) {
   }[catKey] || 'home';
 
   return LENDERS.map((l, idx) => {
-    const rateObj = l.rates?.[mapKey] || {};
-    const flow = rateObj.f || [8.50, 11.00];
-    const fix = rateObj.x || [9.50, 12.00];
+    const rateObj = l.rates?.[mapKey];
+    const flow = rateObj ? rateObj.f : null;
+    const fix = rateObj ? rateObj.x : null;
     const typeUpper = l.type ? (l.type.toUpperCase() === 'PSU' ? 'PSU' : l.type.toLowerCase().includes('nbfc') ? 'NBFC/HFC' : l.type.toLowerCase().includes('small') ? 'SFB' : 'Private') : 'Private';
 
     return {
@@ -25,10 +25,10 @@ function buildCategoryRates(catKey) {
       short: l.short,
       type: typeUpper,
       emoji: l.emoji || '🏦',
-      flowLow: String(flow[0]),
-      flowHigh: String(flow[1]),
-      fixLow: String(fix[0]),
-      fixHigh: String(fix[1]),
+      flowLow: (flow && Array.isArray(flow)) ? String(flow[0]) : "N/A",
+      flowHigh: (flow && Array.isArray(flow)) ? String(flow[1]) : "N/A",
+      fixLow: (fix && Array.isArray(fix)) ? String(fix[0]) : "N/A",
+      fixHigh: (fix && Array.isArray(fix)) ? String(fix[1]) : "N/A",
       offer: l.offer || 'Special interest rate offer',
       visible: true
     };
@@ -2836,7 +2836,7 @@ export default function AdminDashboard() {
                                 <input
                                   type="text"
                                   className="table-edit-input"
-                                  value={rate.flowLow ?? '8.50'}
+                                  value={rate.flowLow ?? 'N/A'}
                                   onChange={(e) => handleRateChange(lKey, 'flowLow', e.target.value)}
                                 />
                               </td>
@@ -2844,7 +2844,7 @@ export default function AdminDashboard() {
                                 <input
                                   type="text"
                                   className="table-edit-input"
-                                  value={rate.flowHigh ?? '11.00'}
+                                  value={rate.flowHigh ?? 'N/A'}
                                   onChange={(e) => handleRateChange(lKey, 'flowHigh', e.target.value)}
                                 />
                               </td>
@@ -2852,7 +2852,7 @@ export default function AdminDashboard() {
                                 <input
                                   type="text"
                                   className="table-edit-input"
-                                  value={rate.fixLow ?? '9.50'}
+                                  value={rate.fixLow ?? 'N/A'}
                                   onChange={(e) => handleRateChange(lKey, 'fixLow', e.target.value)}
                                 />
                               </td>
@@ -2860,7 +2860,7 @@ export default function AdminDashboard() {
                                 <input
                                   type="text"
                                   className="table-edit-input"
-                                  value={rate.fixHigh ?? '12.00'}
+                                  value={rate.fixHigh ?? 'N/A'}
                                   onChange={(e) => handleRateChange(lKey, 'fixHigh', e.target.value)}
                                 />
                               </td>

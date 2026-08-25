@@ -639,7 +639,7 @@ export const LENDERS = [
   {
     name: 'Mahindra Finance', short: 'Mahindra', type: 'nbfc', emoji: '🏢', color: '#E53935', url: 'https://mahindrafinance.com',
     rates: {
-      home: { f: [9.50, 13.50], x: [10.50, 14.50] },
+      home: { f: null, x: null },
       lap: { f: [10.50, 15.00], x: [11.50, 16.00] },
       personal: { f: [15.00, 25.00], x: [16.00, 26.00] },
       business: { f: [13.50, 21.00], x: [14.00, 22.00] },
@@ -651,7 +651,7 @@ export const LENDERS = [
   {
     name: 'Muthoot Finance', short: 'Muthoot', type: 'nbfc', emoji: '🏢', color: '#F9A825', url: 'https://muthootfinance.com',
     rates: {
-      home: { f: [9.75, 13.50], x: [10.75, 14.50] },
+      home: { f: null, x: null },
       lap: { f: [10.00, 14.50], x: [11.00, 15.50] },
       personal: { f: [13.00, 23.00], x: [14.00, 24.00] },
       business: { f: [13.50, 21.00], x: [14.00, 22.00] },
@@ -748,10 +748,10 @@ export const LENDERS = [
     name: 'Navi Housing Finance', short: 'Navi', type: 'nbfc', emoji: '📱', color: '#00695C', url: 'https://navi.com',
     rates: {
       home: { f: [8.99, 14.00], x: [9.99, 15.00] },
-      lap: { f: [9.75, 14.50], x: [10.75, 15.50] },
+      lap: { f: null, x: null },
       personal: { f: [14.00, 44.00], x: [15.00, 45.00] },
       business: { f: [13.50, 25.00], x: [14.50, 26.00] },
-      vehicle: { f: [9.50, 13.50], x: [10.25, 14.25] }
+      vehicle: { f: null, x: null }
     },
     tc: 'Navi Technologies — digital-first lender with instant in-app approvals.',
     offer: '📱 100% digital — home loan approved in minutes.'
