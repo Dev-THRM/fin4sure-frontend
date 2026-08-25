@@ -5,6 +5,7 @@ import { useEmiCalculator } from "../hooks/useEmiCalculator";
 import { useSliderPaint } from "../hooks/useSliderPaint";
 import { fmtINR, fmtINRFull } from "../utils/formatters";
 import { calcEMI } from "../utils/emiCalculator";
+import { LENDERS } from "../utils/loanConstants";
 import "./styles/calculator.css";
 
 export default function Calculator() {
@@ -49,18 +50,27 @@ export default function Calculator() {
     location.state?.tenure
   );
 
-  // Fetch real lenders from DB endpoint `/api/lenders`
+  // Fetch real lenders and live admin overrides
   useEffect(() => {
     const fetchLenders = async () => {
       try {
         setLoadingLenders(true);
-        const res = await fetch("/api/lenders");
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-          setDbLenders(json.data);
+        const res = await fetch("/api/admin/lender-rates");
+        if (res.ok) {
+          const json = await res.json();
+          const ratesList = json.rates || json.data || (Array.isArray(json) ? json : []);
+          if (Array.isArray(ratesList) && ratesList.length > 0) {
+            setDbLenders(ratesList);
+            return;
+          }
+        }
+        const fallbackRes = await fetch("/api/lenders");
+        const fallbackJson = await fallbackRes.json();
+        if (fallbackJson.success && Array.isArray(fallbackJson.data)) {
+          setDbLenders(fallbackJson.data);
         }
       } catch (err) {
-        console.error("Error fetching live lenders from DB:", err);
+        console.error("Error fetching live rates:", err);
       } finally {
         setLoadingLenders(false);
       }
@@ -148,44 +158,80 @@ export default function Calculator() {
     }
   };
 
-  // Combine DB lenders or default fallback list with exact Floating vs Fixed rates
+  // Combine DB lenders or real master list based on loanType & rateType
   const mergedLendersList = useMemo(() => {
-    if (dbLenders.length > 0) {
-      return dbLenders.map((l) => {
-        let minR = rateType === 'floating' ? (l.flowLow || l.min_rate || 7.20) : (l.fixLow || l.min_rate || 8.80);
-        let maxR = rateType === 'floating' ? (l.flowHigh || l.max_rate || 9.80) : (l.fixHigh || l.max_rate || 11.50);
-        return {
-          id: l.id,
-          name: l.name,
-          type: l.type || "Private",
-          logo: l.logo || null,
-          rate: parseFloat(minR),
-          maxRate: parseFloat(maxR),
-          offer: l.offer || "Pre-approved offers available."
-        };
-      }).sort((a, b) => a.rate - b.rate);
+    const dbMap = new Map();
+    if (Array.isArray(dbLenders) && dbLenders.length > 0) {
+      dbLenders.forEach(dl => {
+        if (dl.name) dbMap.set(dl.name.toLowerCase().trim(), dl);
+        if (dl.short) dbMap.set(dl.short.toLowerCase().trim(), dl);
+      });
     }
 
-    const defaultLenders = rateType === "floating" ? [
-      { id: 1, name: "HDFC Bank", type: "Private", offer: "Pre-approved offers for existing HDFC customers.", rate: 7.20, maxRate: 9.80 },
-      { id: 2, name: "Bajaj Finserv", type: "NBFC/HFC", offer: "Pre-approved personal loans up to ₹40L for eligible customers.", rate: 7.25, maxRate: 10.50 },
-      { id: 3, name: "Axis Bank", type: "Private", offer: "Special concession on processing fee.", rate: 7.30, maxRate: 10.00 },
-      { id: 4, name: "Kotak Mahindra", type: "Private", offer: "Instant digital in-principle sanction.", rate: 7.40, maxRate: 9.75 },
-      { id: 5, name: "Yes Bank", type: "Private", offer: "Pre-approved digital offer.", rate: 7.45, maxRate: 10.10 },
-      { id: 6, name: "PNB Housing", type: "NBFC/HFC", offer: "Custom tenure & low EMI options.", rate: 7.50, maxRate: 13.45 },
-      { id: 7, name: "LIC Housing", type: "NBFC/HFC", offer: "Griha Lakshmi: Special rate concession for women borrowers.", rate: 7.50, maxRate: 10.35 }
-    ] : [
-      { id: 1, name: "HDFC Bank", type: "Private", offer: "Pre-approved offers for existing HDFC customers.", rate: 8.80, maxRate: 11.50 },
-      { id: 3, name: "Axis Bank", type: "Private", offer: "Special concession on processing fee.", rate: 9.00, maxRate: 11.70 },
-      { id: 4, name: "Kotak Mahindra", type: "Private", offer: "Instant digital in-principle sanction.", rate: 9.00, maxRate: 11.50 },
-      { id: 2, name: "Bajaj Finserv", type: "NBFC/HFC", offer: "Pre-approved personal loans up to ₹40L for eligible customers.", rate: 9.00, maxRate: 12.00 },
-      { id: 6, name: "PNB Housing", type: "NBFC/HFC", offer: "Custom tenure & low EMI options.", rate: 9.00, maxRate: 14.00 },
-      { id: 5, name: "Yes Bank", type: "Private", offer: "Pre-approved digital offer.", rate: 9.10, maxRate: 11.80 },
-      { id: 8, name: "IndusInd Bank", type: "Private", offer: "Special rates for premium banking customers.", rate: 9.15, maxRate: 11.90 }
-    ];
+    const currentCatKey = loanType || 'home';
+    const result = [];
 
-    return defaultLenders;
-  }, [dbLenders, rateType]);
+    LENDERS.forEach((l, idx) => {
+      const rateObj = l.rates?.[currentCatKey];
+      if (!rateObj) return;
+
+      const flowPair = rateObj.f;
+      const fixPair = rateObj.x;
+
+      // Skip lenders that do not offer this loan category (e.g. Mahindra on Home Loans)
+      if (!flowPair && !fixPair) return;
+
+      let minR = rateType === 'floating'
+        ? (flowPair ? flowPair[0] : fixPair?.[0])
+        : (fixPair ? fixPair[0] : flowPair?.[0]);
+
+      let maxR = rateType === 'floating'
+        ? (flowPair ? flowPair[1] : fixPair?.[1])
+        : (fixPair ? fixPair[1] : flowPair?.[1]);
+
+      if (minR === null || minR === undefined) return;
+
+      let offer = l.offer || "Special competitive rate offer";
+      const dbEntry = dbMap.get(l.name.toLowerCase().trim()) || (l.short ? dbMap.get(l.short.toLowerCase().trim()) : null);
+
+      if (dbEntry) {
+        if (rateType === 'floating') {
+          if (dbEntry.flowLow !== undefined && dbEntry.flowLow !== null && dbEntry.flowLow !== "N/A" && dbEntry.flowLow !== "") {
+            const parsed = parseFloat(dbEntry.flowLow);
+            if (!isNaN(parsed) && parsed > 0) minR = parsed;
+          }
+          if (dbEntry.flowHigh !== undefined && dbEntry.flowHigh !== null && dbEntry.flowHigh !== "N/A" && dbEntry.flowHigh !== "") {
+            const parsed = parseFloat(dbEntry.flowHigh);
+            if (!isNaN(parsed) && parsed > 0) maxR = parsed;
+          }
+        } else {
+          if (dbEntry.fixLow !== undefined && dbEntry.fixLow !== null && dbEntry.fixLow !== "N/A" && dbEntry.fixLow !== "") {
+            const parsed = parseFloat(dbEntry.fixLow);
+            if (!isNaN(parsed) && parsed > 0) minR = parsed;
+          }
+          if (dbEntry.fixHigh !== undefined && dbEntry.fixHigh !== null && dbEntry.fixHigh !== "N/A" && dbEntry.fixHigh !== "") {
+            const parsed = parseFloat(dbEntry.fixHigh);
+            if (!isNaN(parsed) && parsed > 0) maxR = parsed;
+          }
+        }
+        if (dbEntry.offer) offer = dbEntry.offer;
+      }
+
+      result.push({
+        id: dbEntry?.id || (idx + 1),
+        name: l.name,
+        short: l.short || l.name,
+        type: l.type ? l.type.toUpperCase() : "PRIVATE",
+        emoji: l.emoji || '🏛️',
+        logo: l.logo || null,
+        rate: parseFloat(minR),
+        maxRate: parseFloat(maxR || minR),
+        offer
+      });
+    });
+
+    return result.sort((a, b) => a.rate - b.rate);
+  }, [dbLenders, loanType, rateType]);
 
   // Format Lakhs/Crores for summary cards
   const fmtLakhCr = (val) => {
