@@ -925,6 +925,12 @@
   border: 1px solid #A5F3FC;
 }
 
+.rate-type-badge.sfb {
+  background-color: #FEF3C7;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+}
+
 /* Switch Toggle styles */
 .switch-toggle-container {
   position: relative;
