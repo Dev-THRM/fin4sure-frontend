@@ -1122,7 +1122,7 @@ export default function BrokerDashboard() {
                             cursor: "pointer",
                           }}
                         >
-                          {l.name} ({l.rate.toFixed(2)}%)
+                          {l.name} {l.rate != null ? `(${Number(l.rate).toFixed(2)}%)` : ''}
                         </span>
                       );
                     })}
