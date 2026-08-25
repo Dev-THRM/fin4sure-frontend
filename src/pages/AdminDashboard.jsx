@@ -965,16 +965,7 @@ export default function AdminDashboard() {
   // Loan Type Breakdown Aggregator
   const loanTypeCounts = useMemo(() => {
     const map = { 'Home': 0, 'Personal': 0, 'Business': 0, 'Vehicle': 0, 'LAP': 0 };
-    const defaultTimelinePreset = [
-      { id: 2001, application_no: 'F4S-2001', name: 'Rajesh Kumar', product: 'Home Loan', lender: 'SBI', loan_amount: 5000000, stage: 'Disbursed', status: 'disbursed', createdAt: '2025-01-15T10:00:00Z', source: 'Direct' },
-      { id: 2002, application_no: 'F4S-2002', name: 'Priya Sharma', product: 'Home Loan', lender: 'HDFC Bank', loan_amount: 7500000, stage: 'Submitted', status: 'in-progress', createdAt: '2025-01-18T10:00:00Z', source: 'Direct' },
-      { id: 2003, application_no: 'F4S-2003', name: 'Arun Mehta', product: 'Personal Loan', lender: 'ICICI Bank', loan_amount: 500000, stage: 'Credit', status: 'in-progress', createdAt: '2025-01-22T10:00:00Z', source: 'Direct' },
-      { id: 2004, application_no: 'F4S-2004', name: 'Sunita Patel', product: 'Business Loan', lender: 'Axis Bank', loan_amount: 2000000, stage: 'Applied', status: 'pending', createdAt: '2025-01-25T10:00:00Z', source: 'Direct' },
-      { id: 2005, application_no: 'F4S-2005', name: 'Vikram Singh', product: 'Home Loan', lender: 'SBI', loan_amount: 4200000, stage: 'Disbursed', status: 'disbursed', createdAt: '2025-02-02T10:00:00Z', source: 'Direct' },
-      { id: 2006, application_no: 'F4S-2006', name: 'Deepa Nair', product: 'Vehicle Loan', lender: 'Bajaj Finserv', loan_amount: 800000, stage: 'Sanction', status: 'in-progress', createdAt: '2025-02-05T10:00:00Z', source: 'Direct' },
-      { id: 2007, application_no: 'F4S-2007', name: 'Arjun Reddy', product: 'Loan Against Property', lender: 'HDFC Bank', loan_amount: 10000000, stage: 'Legal', status: 'in-progress', createdAt: '2025-02-08T10:00:00Z', source: 'Direct' }
-    ];
-    const sourceList = (Array.isArray(leads) && leads.length > 0) ? leads : defaultTimelinePreset;
+    const sourceList = (Array.isArray(leads) && leads.length > 0) ? leads : [];
 
     sourceList.forEach(l => {
       const prod = String(l.product || '').toLowerCase().trim();
@@ -1358,20 +1349,8 @@ export default function AdminDashboard() {
                         'rejected': { pct: 14, status: 'rejected', color: '#EF4444', bg: '#FEE2E2', textColor: '#991B1B' }
                       };
 
-                      const defaultTimelinePreset = [
-                        { id: 2001, application_no: 'F4S-2001', name: 'Rajesh Kumar', product: 'Home Loan', lender: 'SBI', loan_amount: 5000000, stage: 'Disbursed', status: 'disbursed', createdAt: '2025-01-15T10:00:00Z', source: 'Direct' },
-                        { id: 2002, application_no: 'F4S-2002', name: 'Priya Sharma', product: 'Home Loan', lender: 'HDFC Bank', loan_amount: 7500000, stage: 'Submitted', status: 'in progress', createdAt: '2025-01-18T10:00:00Z', source: 'Direct' },
-                        { id: 2003, application_no: 'F4S-2003', name: 'Arun Mehta', product: 'Personal Loan', lender: 'ICICI Bank', loan_amount: 500000, stage: 'Credit', status: 'in progress', createdAt: '2025-01-22T10:00:00Z', source: 'Direct' },
-                        { id: 2004, application_no: 'F4S-2004', name: 'Sunita Patel', product: 'Business Loan', lender: 'Axis Bank', loan_amount: 2000000, stage: 'Applied', status: 'pending', createdAt: '2025-01-25T10:00:00Z', source: 'Direct' },
-                        { id: 2005, application_no: 'F4S-2005', name: 'Vikram Singh', product: 'Home Loan', lender: 'SBI', loan_amount: 4200000, stage: 'Disbursed', status: 'disbursed', createdAt: '2025-02-02T10:00:00Z', source: 'Direct' },
-                        { id: 2006, application_no: 'F4S-2006', name: 'Deepa Nair', product: 'Vehicle Loan', lender: 'Bajaj Finserv', loan_amount: 800000, stage: 'Sanction', status: 'in progress', createdAt: '2025-02-05T10:00:00Z', source: 'Direct' },
-                        { id: 2007, application_no: 'F4S-2007', name: 'Arjun Reddy', product: 'Loan Against Property', lender: 'HDFC Bank', loan_amount: 10000000, stage: 'Legal', status: 'in progress', createdAt: '2025-02-08T10:00:00Z', source: 'Direct' },
-                        { id: 2008, application_no: 'F4S-2008', name: 'Kavita Joshi', product: 'Personal Loan', lender: 'Kotak Mahindra', loan_amount: 900000, stage: 'Disbursed', status: 'disbursed', createdAt: '2025-02-10T10:00:00Z', source: 'Direct' },
-                        { id: 2009, application_no: 'F4S-2009', name: 'Amitabh Sen', product: 'Home Loan', lender: 'PNB Housing', loan_amount: 3500000, stage: 'Docs', status: 'pending', createdAt: '2025-02-12T10:00:00Z', source: 'Direct' },
-                        { id: 2013, application_no: 'F4S-2013', name: 'Ramesh Chandra', product: 'Loan Against Property', lender: 'ICICI Bank', loan_amount: 80000000, stage: 'Applied', status: 'pending', createdAt: '2025-03-01T10:00:00Z', source: 'Direct' }
-                      ];
+                      const sourceList = (Array.isArray(leads) && leads.length > 0) ? leads : [];
 
-                      const sourceList = (Array.isArray(leads) && leads.length > 0) ? leads : defaultTimelinePreset;
 
                       let filtered = sourceList;
                       if (activeKpiFilter === 'disbursed') {
@@ -1496,15 +1475,7 @@ export default function AdminDashboard() {
                     <button className="adm-wcard-link" onClick={() => setActiveTab("leads")}>See all &rarr;</button>
                   </div>
                   <div className="adm-wcard-body" style={{ padding: 0 }}>
-                    {((Array.isArray(leads) && leads.length > 0) ? leads : [
-                      { id: 2001, application_no: 'F4S-2001', name: 'Rajesh Kumar', product: 'Home Loan', lender: 'SBI', loan_amount: 50000000, stage: 'Disbursed', status: 'disbursed', source: 'Direct' },
-                      { id: 2002, application_no: 'F4S-2002', name: 'Priya Sharma', product: 'Home Loan', lender: 'HDFC Bank', loan_amount: 75000000, stage: 'Submitted', status: 'in-progress', source: 'Direct' },
-                      { id: 2003, application_no: 'F4S-2003', name: 'Arun Mehta', product: 'Personal Loan', lender: 'ICICI Bank', loan_amount: 5000000, stage: 'Credit', status: 'in-progress', source: 'Direct' },
-                      { id: 2004, application_no: 'F4S-2004', name: 'Sunita Patel', product: 'Business Loan', lender: 'Axis Bank', loan_amount: 20000000, stage: 'Applied', status: 'pending', source: 'Direct' },
-                      { id: 2005, application_no: 'F4S-2005', name: 'Vikram Singh', product: 'Home Loan', lender: 'SBI', loan_amount: 42000000, stage: 'Disbursed', status: 'disbursed', source: 'Direct' },
-                      { id: 2006, application_no: 'F4S-2006', name: 'Deepa Nair', product: 'Vehicle Loan', lender: 'Bajaj Finserv', loan_amount: 8000000, stage: 'Sanction', status: 'in-progress', source: 'Direct' },
-                      { id: 2007, application_no: 'F4S-2007', name: 'Arjun Reddy', product: 'Loan Against Property', lender: 'HDFC Bank', loan_amount: 100000000, stage: 'Legal', status: 'in-progress', source: 'Direct' }
-                    ]).slice(0, 7).map((item) => {
+                    {((Array.isArray(leads) && leads.length > 0) ? leads : []).slice(0, 7).map((item) => {
                       const rawSt = (item.status || item.stage || 'pending').toLowerCase().trim();
                       const statusDisplay = ['disbursed', 'completed'].includes(rawSt)
                         ? 'disbursed'
