@@ -1032,17 +1032,23 @@ export default function AdminDashboard() {
     : (stats.disbursedCount ?? stats.completedCount ?? 0);
 
   const inProgressCount = leads.length > 0
-    ? leads.filter(l => (l.status || '').toLowerCase().trim() === 'in-progress').length
+    ? leads.filter(l => {
+        const s = (l.status || '').toLowerCase().trim();
+        return s === 'in-progress' || s === 'in progress';
+      }).length
     : (stats.inProgressCount ?? 0);
 
   const pendingCount = leads.length > 0
-    ? leads.filter(l => (l.status || '').toLowerCase().trim() === 'pending').length
+    ? leads.filter(l => {
+        const s = (l.status || '').toLowerCase().trim();
+        return s === 'pending' || s === 'applied';
+      }).length
     : (stats.pendingCount ?? 0);
 
   const rejectedCount = leads.length > 0
     ? leads.filter(l => (l.status || '').toLowerCase().trim() === 'rejected').length
     : (stats.rejectedCount ?? 0);
-  const activeLendersCount = stats.activeLenders ?? new Set(leads.map(l => l.lender).filter(Boolean)).size;
+  const activeLendersCount = stats.activeLenders ?? LENDERS.filter(l => !l._hidden).length;
   const totalLeadsCount = leads.length || 1;
   const disbursedPct = Math.round((disbursedCount / totalLeadsCount) * 100);
   const inProgressPct = Math.round((inProgressCount / totalLeadsCount) * 100);
@@ -1377,13 +1383,16 @@ export default function AdminDashboard() {
                     {(() => {
                       const STAGE_PROGRESS_MAP = {
                         'applied': { pct: 14, status: 'pending', color: '#F59E0B', bg: '#FEF3C7', textColor: '#B45309' },
-                        'submitted': { pct: 28, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
-                        'docs': { pct: 43, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
-                        'documents': { pct: 43, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
-                        'credit': { pct: 57, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
-                        'legal': { pct: 71, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
-                        'sanction': { pct: 86, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
-                        'approved': { pct: 86, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'pending': { pct: 14, status: 'pending', color: '#F59E0B', bg: '#FEF3C7', textColor: '#B45309' },
+                        'in progress': { pct: 43, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'in-progress': { pct: 43, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'docs': { pct: 28, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'documents': { pct: 28, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'credit': { pct: 43, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'submitted': { pct: 57, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'sanction': { pct: 71, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'approved': { pct: 71, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
+                        'legal': { pct: 86, status: 'in progress', color: '#2563EB', bg: '#DBEAFE', textColor: '#1D4ED8' },
                         'disbursed': { pct: 100, status: 'disbursed', color: '#10B981', bg: '#DCFCE7', textColor: '#15803D' },
                         'completed': { pct: 100, status: 'disbursed', color: '#10B981', bg: '#DCFCE7', textColor: '#15803D' },
                         'rejected': { pct: 14, status: 'rejected', color: '#EF4444', bg: '#FEE2E2', textColor: '#991B1B' }
@@ -1394,13 +1403,19 @@ export default function AdminDashboard() {
 
                       let filtered = sourceList;
                       if (activeKpiFilter === 'disbursed') {
-                        filtered = sourceList.filter(l => ['disbursed', 'completed'].includes((l.status || l.stage || '').toLowerCase().trim()));
+                        filtered = sourceList.filter(l => ['disbursed', 'completed'].includes((l.status || '').toLowerCase().trim()));
                       } else if (activeKpiFilter === 'in_progress') {
-                        filtered = sourceList.filter(l => ['in-progress', 'in progress', 'submitted', 'docs', 'documents', 'credit', 'legal', 'sanction', 'processing'].includes((l.status || l.stage || '').toLowerCase().trim()));
+                        filtered = sourceList.filter(l => {
+                          const s = (l.status || '').toLowerCase().trim();
+                          return s === 'in-progress' || s === 'in progress';
+                        });
                       } else if (activeKpiFilter === 'pending') {
-                        filtered = sourceList.filter(l => ['pending', 'applied'].includes((l.status || l.stage || '').toLowerCase().trim()) && (l.status || l.stage || '').toLowerCase().trim() !== 'rejected');
+                        filtered = sourceList.filter(l => {
+                          const s = (l.status || '').toLowerCase().trim();
+                          return s === 'pending' || s === 'applied';
+                        });
                       } else if (activeKpiFilter === 'rejected') {
-                        filtered = sourceList.filter(l => (l.status || l.stage || '').toLowerCase().trim() === 'rejected');
+                        filtered = sourceList.filter(l => (l.status || '').toLowerCase().trim() === 'rejected');
                       } else if (activeKpiFilter === 'loan_volume') {
                         filtered = [...sourceList].sort((a, b) => (parseFloat(b.loan_amount) || 0) - (parseFloat(a.loan_amount) || 0));
                       }
@@ -1430,8 +1445,14 @@ export default function AdminDashboard() {
                               </div>
                             ) : (
                               filtered.map(item => {
-                                const stageKey = (item.stage || item.status || 'Applied').toLowerCase().trim();
-                                const stageMeta = STAGE_PROGRESS_MAP[stageKey] || STAGE_PROGRESS_MAP['applied'];
+                                const itemStatus = (item.status || 'pending').toLowerCase().trim();
+                                const isItemDisbursed = ['disbursed', 'completed'].includes(itemStatus);
+                                const isItemRejected = itemStatus === 'rejected';
+                                const isItemInProgress = itemStatus === 'in-progress' || itemStatus === 'in progress';
+                                const isItemPending = !isItemDisbursed && !isItemRejected && !isItemInProgress;
+
+                                const stageKey = (item.stage || (isItemPending ? 'applied' : 'docs')).toLowerCase().trim();
+                                const stageMeta = STAGE_PROGRESS_MAP[stageKey] || (isItemPending ? STAGE_PROGRESS_MAP['applied'] : STAGE_PROGRESS_MAP['docs']);
                                 const appNo = item.application_no
                                   ? (String(item.application_no).startsWith('F4S') ? item.application_no : `F4S-${item.application_no}`)
                                   : `F4S-${2000 + item.id}`;
@@ -1470,22 +1491,22 @@ export default function AdminDashboard() {
                                             <div style={{ width: `${stageMeta.pct}%`, height: '100%', background: stageMeta.color }} />
                                           </div>
                                           <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#475569' }}>
-                                            {item.stage || 'Applied'} · {stageMeta.pct}%
+                                            {item.stage || (isItemPending ? 'Applied' : 'Docs')} · {stageMeta.pct}%
                                           </span>
                                           <span style={{
                                             padding: '2px 8px',
                                             borderRadius: '10px',
                                             fontSize: '0.72rem',
                                             fontWeight: 800,
-                                            background: stageMeta.bg,
-                                            color: stageMeta.textColor,
+                                            background: isItemDisbursed ? '#DCFCE7' : isItemRejected ? '#FEE2E2' : isItemInProgress ? '#DBEAFE' : '#FEF3C7',
+                                            color: isItemDisbursed ? '#15803D' : isItemRejected ? '#991B1B' : isItemInProgress ? '#1D4ED8' : '#B45309',
                                             textTransform: 'lowercase'
                                           }}>
-                                            {stageMeta.status}
+                                            {isItemDisbursed ? 'disbursed' : isItemRejected ? 'rejected' : isItemInProgress ? 'in progress' : 'pending'}
                                           </span>
                                         </div>
                                         <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: '2px' }}>
-                                          Last update: <strong style={{ color: '#475569' }}>{item.stage || 'Applied'}</strong> on {formattedDate}
+                                          Last update: <strong style={{ color: '#475569' }}>{item.stage || (isItemPending ? 'Applied' : 'Docs')}</strong> on {formattedDate}
                                         </div>
                                       </div>
                                     </div>
@@ -3202,15 +3223,20 @@ export default function AdminDashboard() {
                     onChange={(e) => setEditForm(f => ({ ...f, lender: e.target.value }))}
                     style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', background: '#FFFFFF', cursor: 'pointer', outline: 'none' }}
                   >
-                    <option value="HDFC Bank">🏦 HDFC Bank</option>
-                    <option value="SBI">🏦 SBI</option>
-                    <option value="ICICI Bank">🏦 ICICI Bank</option>
-                    <option value="Axis Bank">🏦 Axis Bank</option>
-                    <option value="Bajaj Finserv">🏦 Bajaj Finserv</option>
-                    <option value="PNB Housing">🏦 PNB Housing</option>
-                    <option value="Bank of Baroda">🏦 Bank of Baroda</option>
-                    <option value="Canara Bank">🏦 Canara Bank</option>
-                    <option value="Union Bank">🏦 Union Bank</option>
+                    {/* Include custom current lender if not in standard list */}
+                    {editForm.lender && !LENDERS.some(l => l.name.toLowerCase() === editForm.lender.toLowerCase() || (l.short && l.short.toLowerCase() === editForm.lender.toLowerCase())) && (
+                      <option value={editForm.lender}>🏦 {editForm.lender}</option>
+                    )}
+                    {LENDERS.slice().sort((a, b) => {
+                      const pA = getLenderTypePriority(a.type);
+                      const pB = getLenderTypePriority(b.type);
+                      if (pA !== pB) return pA - pB;
+                      return a.name.localeCompare(b.name);
+                    }).map((l) => (
+                      <option key={l.name} value={l.name}>
+                        {l.emoji || '🏦'} {l.name} {l.type ? `(${l.type.toUpperCase()})` : ''}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

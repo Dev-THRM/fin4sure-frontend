@@ -354,6 +354,8 @@ export default function BrokerDashboard() {
         loan_amount: parseFloat(acAmt),
         loan_purpose: acLoanPurpose || selectedLoanTypeName,
         preferred_lender_id: firstSelectedLender?.id || null,
+        selected_lenders: selectedLenders,
+        selectedLenders: selectedLenders,
         client_preference: acReachMode,
         address: acAddress,
         pincode: acPincode,
