@@ -1016,7 +1016,7 @@ export default function AdminDashboard() {
   const rejectedCount = leads.length > 0
     ? leads.filter(l => (l.status || '').toLowerCase().trim() === 'rejected').length
     : (stats.rejectedCount ?? 0);
-  const activeLendersCount = stats.activeLenders ?? new Set(leads.map(l => l.lender).filter(Boolean)).size;
+  const activeLendersCount = stats.activeLenders ?? LENDERS.filter(l => !l._hidden).length;
   const totalLeadsCount = leads.length || 1;
   const disbursedPct = Math.round((disbursedCount / totalLeadsCount) * 100);
   const inProgressPct = Math.round((inProgressCount / totalLeadsCount) * 100);
