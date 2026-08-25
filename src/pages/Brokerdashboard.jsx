@@ -40,6 +40,13 @@ export default function BrokerDashboard() {
   const [profOtp, setProfOtp] = useState("");
   const [profOtpVerified, setProfOtpVerified] = useState(false);
 
+  // Change Password States
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passLoading, setPassLoading] = useState(false);
+
   // Toast notification
   const [toast, setToast] = useState(null);
   const showToast = (type, message) => {
@@ -193,6 +200,40 @@ export default function BrokerDashboard() {
       showToast("error", err.message);
     } finally {
       setProfSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      showToast("error", "New passwords do not match");
+      return;
+    }
+    if (newPassword.length < 6) {
+      showToast("error", "Password must be at least 6 characters");
+      return;
+    }
+    setPassLoading(true);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ oldPassword, newPassword }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Failed to change password");
+      }
+      showToast("success", "Password changed successfully!");
+      setIsChangingPassword(false);
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      showToast("error", err.message);
+    } finally {
+      setPassLoading(false);
     }
   };
 
@@ -854,6 +895,55 @@ export default function BrokerDashboard() {
                   )}
                 </div>
               </form>
+
+              {/* Change Password Section */}
+              <div style={{ marginTop: "40px", paddingTop: "20px", borderTop: "1px solid #F1F5F9" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: "1.1rem", color: "var(--navy)" }}>Security</h3>
+                    <p style={{ margin: "4px 0 0", fontSize: ".82rem", color: "var(--text2)" }}>Update your account password</p>
+                  </div>
+                  {!isChangingPassword && (
+                    <button type="button" className="btn-secondary" onClick={() => setIsChangingPassword(true)} style={{ height: "36px", padding: "0 16px", fontSize: ".8rem" }}>
+                      Change Password
+                    </button>
+                  )}
+                </div>
+
+                {isChangingPassword && (
+                  <form onSubmit={handleChangePassword} style={{ display: "flex", flexDirection: "column", gap: "16px", background: "#F8FAFC", padding: "20px", borderRadius: "12px", border: "1px solid #E2E8F0" }}>
+                    <div>
+                      <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>Current Password</label>
+                      <div className="input-wrap">
+                        <span className="icon">🔑</span>
+                        <input type="password" placeholder="Current password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} required />
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>New Password</label>
+                      <div className="input-wrap">
+                        <span className="icon">🔒</span>
+                        <input type="password" placeholder="New password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>Confirm New Password</label>
+                      <div className="input-wrap">
+                        <span className="icon">🔒</span>
+                        <input type="password" placeholder="Confirm new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: "10px", marginTop: "4px" }}>
+                      <button type="submit" disabled={passLoading} className="btn-primary" style={{ height: "40px", padding: "0 24px" }}>
+                        {passLoading ? "Updating..." : "Update Password"}
+                      </button>
+                      <button type="button" onClick={() => { setIsChangingPassword(false); setOldPassword(""); setNewPassword(""); setConfirmPassword(""); }} className="btn-secondary" style={{ height: "40px", padding: "0 20px" }}>
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
             </div>
           </div>
         )}
