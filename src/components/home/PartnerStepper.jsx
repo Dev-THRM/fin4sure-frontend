@@ -255,7 +255,7 @@ export default function PartnerStepper({ onBack }) {
 
                         <div className="form-grid">
                             <div className="field">
-                                <label>Full Name</label>
+                                <label>Full Name <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap">
                                     <span className="icon">👤</span>
                                     <input
@@ -269,7 +269,7 @@ export default function PartnerStepper({ onBack }) {
                             </div>
 
                             <div className="field">
-                                <label>City</label>
+                                <label>City <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap" style={{ padding: "0 10px" }}>
                                     <select
                                         value={city}
@@ -286,7 +286,7 @@ export default function PartnerStepper({ onBack }) {
                             </div>
 
                             <div className="field">
-                                <label>Mobile Number</label>
+                                <label>Mobile Number <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap">
                                     <span className="icon">📱</span>
                                     <input
@@ -301,7 +301,7 @@ export default function PartnerStepper({ onBack }) {
                             </div>
 
                             <div className="field">
-                                <label>Email Address</label>
+                                <label>Email Address <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap">
                                     <span className="icon">📧</span>
                                     <input
@@ -338,7 +338,7 @@ export default function PartnerStepper({ onBack }) {
                             </div>
 
                             <div className="field">
-                                <label>Enter OTP</label>
+                                <label>Enter OTP <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap">
                                     <span className="icon">🔑</span>
                                     <input
@@ -387,7 +387,7 @@ export default function PartnerStepper({ onBack }) {
 
                         <div className="form-grid">
                             <div className="field">
-                                <label>Password</label>
+                                <label>Password <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap">
                                     <span className="icon">🔒</span>
                                     <input
@@ -429,7 +429,7 @@ export default function PartnerStepper({ onBack }) {
                             </div>
 
                             <div className="field">
-                                <label>Confirm Password</label>
+                                <label>Confirm Password <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap">
                                     <span className="icon">🔒</span>
                                     <input
