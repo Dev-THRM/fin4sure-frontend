@@ -1,9 +1,20 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { districtsByState, states } from "../components/Statedata";
 import { fmtINR } from "../utils/formatters";
 import "./styles/brokerDashboard.css";
+
+const DEFAULT_CITIES = [
+  "Mumbai", "Delhi", "Bengaluru", "Kolkata", "Chennai", "Hyderabad",
+  "Pune", "Ahmedabad", "Surat", "Jaipur", "Lucknow", "Kanpur",
+  "Nagpur", "Indore", "Thane", "Bhopal", "Visakhapatnam", "Patna",
+  "Vadodara", "Ghaziabad", "Ludhiana", "Agra", "Nashik", "Faridabad",
+  "Meerut", "Rajkot", "Kalyan-Dombivli", "Vasai-Virar", "Varanasi",
+  "Srinagar", "Aurangabad", "Dhanbad", "Amritsar", "Navi Mumbai",
+  "Allahabad", "Ranchi", "Howrah", "Coimbatore", "Jabalpur",
+  "Gwalior", "Vijayawada", "Jodhpur", "Madurai", "Raipur", "Kota"
+];
 
 export default function BrokerDashboard() {
   const { logout } = useAuth();
@@ -63,7 +74,56 @@ export default function BrokerDashboard() {
   const [acState, setAcState] = useState("");
   const [acDistrict, setAcDistrict] = useState("");
   const [acCity, setAcCity] = useState("");
+  const [cityList, setCityList] = useState(DEFAULT_CITIES.slice().sort());
+  const [isAcCityOpen, setIsAcCityOpen] = useState(false);
+  const acCityDropdownRef = useRef(null);
   const [selectedLenders, setSelectedLenders] = useState([]);
+
+  // Close city dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (acCityDropdownRef.current && !acCityDropdownRef.current.contains(e.target)) {
+        setIsAcCityOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Fetch dynamic cities from backend DB
+  useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        const res = await fetch("/api/locations/all-cities");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            const merged = Array.from(new Set([...DEFAULT_CITIES, ...json.data])).sort();
+            setCityList(merged);
+          }
+        }
+      } catch (err) {
+        console.warn("Cities fetch notice:", err.message);
+      }
+    };
+    fetchCities();
+  }, []);
+
+  // Save custom city to backend if not already existing
+  const saveNewCityIfCustom = async (cityName) => {
+    if (!cityName || !cityName.trim()) return;
+    const clean = cityName.trim();
+    try {
+      const res = await fetch("/api/locations/create-city", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: clean })
+      });
+      if (res.ok) {
+        setCityList(prev => Array.from(new Set([...prev, clean])).sort());
+      }
+    } catch (_) {}
+  };
 
   // DB-driven data
   const [loanTypes, setLoanTypes] = useState([]);
@@ -1017,18 +1077,171 @@ export default function BrokerDashboard() {
                 </div>
 
                 <div className="apply-form-row">
-                  <div className="apply-form-group">
+                  <div className="apply-form-group" style={{ position: "relative" }} ref={acCityDropdownRef}>
                     <label>City *</label>
-                    <div className="input-wrap">
+                    <div className="input-wrap" style={{ position: "relative" }}>
                       <span className="icon">🏙️</span>
                       <input
                         type="text"
-                        placeholder="City"
+                        placeholder="Search or enter city..."
                         value={acCity}
-                        onChange={(e) => setAcCity(e.target.value)}
+                        onChange={(e) => {
+                          setAcCity(e.target.value);
+                          setIsAcCityOpen(true);
+                        }}
+                        onFocus={() => setIsAcCityOpen(true)}
                         required
+                        style={{ paddingRight: acCity ? "45px" : "28px" }}
                       />
+                      {acCity ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setAcCity("");
+                            setIsAcCityOpen(true);
+                          }}
+                          style={{
+                            position: "absolute",
+                            right: "26px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            background: "#E2E8F0",
+                            border: "none",
+                            color: "#64748B",
+                            width: "18px",
+                            height: "18px",
+                            borderRadius: "50%",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "10px",
+                            fontWeight: 800,
+                            padding: 0
+                          }}
+                          title="Clear city"
+                        >
+                          ✕
+                        </button>
+                      ) : null}
+                      <span 
+                        style={{ 
+                          position: "absolute", 
+                          right: "10px", 
+                          top: "50%", 
+                          transform: `translateY(-50%) rotate(${isAcCityOpen ? "180deg" : "0deg"})`, 
+                          transition: "transform 0.2s ease",
+                          fontSize: "10px",
+                          color: "#64748B",
+                          pointerEvents: "none"
+                        }}
+                      >
+                        ▼
+                      </span>
                     </div>
+
+                    {/* Custom Dropdown Menu */}
+                    {isAcCityOpen && (
+                      <div 
+                        style={{
+                          position: "absolute",
+                          top: "calc(100% + 4px)",
+                          left: 0,
+                          right: 0,
+                          background: "#FFFFFF",
+                          borderRadius: "12px",
+                          border: "1px solid #E2E8F0",
+                          boxShadow: "0 14px 34px -4px rgba(15, 23, 42, 0.16), 0 4px 12px -2px rgba(15, 23, 42, 0.08)",
+                          zIndex: 9999,
+                          maxHeight: "220px",
+                          overflowY: "auto",
+                          padding: "6px"
+                        }}
+                      >
+                        {(() => {
+                          const searchLower = (acCity || "").toLowerCase().trim();
+                          const filtered = cityList.filter(c => c.toLowerCase().includes(searchLower));
+                          const exactMatch = cityList.some(c => c.toLowerCase() === searchLower);
+
+                          return (
+                            <>
+                              {searchLower && !exactMatch && (
+                                <div
+                                  onClick={() => {
+                                    const customName = acCity.trim();
+                                    saveNewCityIfCustom(customName);
+                                    setIsAcCityOpen(false);
+                                  }}
+                                  style={{
+                                    padding: "9px 12px",
+                                    borderRadius: "8px",
+                                    background: "#F0FDF4",
+                                    border: "1px dashed #86EFAC",
+                                    color: "#166534",
+                                    fontSize: "0.82rem",
+                                    fontWeight: 700,
+                                    cursor: "pointer",
+                                    marginBottom: "4px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "8px",
+                                    transition: "all 0.15s ease"
+                                  }}
+                                  onMouseEnter={(e) => e.currentTarget.style.background = "#DCFCE7"}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = "#F0FDF4"}
+                                >
+                                  <span style={{ fontSize: "1rem" }}>✨</span>
+                                  <span>Add custom city: <strong style={{ textDecoration: "underline" }}>"{acCity.trim()}"</strong></span>
+                                </div>
+                              )}
+
+                              {filtered.length === 0 && !searchLower && (
+                                <div style={{ padding: "12px", textAlign: "center", color: "#94A3B8", fontSize: "0.82rem" }}>
+                                  Start typing to search cities...
+                                </div>
+                              )}
+
+                              {filtered.map((c) => {
+                                const isSelected = acCity.toLowerCase().trim() === c.toLowerCase();
+                                return (
+                                  <div
+                                    key={c}
+                                    onClick={() => {
+                                      setAcCity(c);
+                                      saveNewCityIfCustom(c);
+                                      setIsAcCityOpen(false);
+                                    }}
+                                    style={{
+                                      padding: "8px 12px",
+                                      borderRadius: "6px",
+                                      background: isSelected ? "#0F766E" : "transparent",
+                                      color: isSelected ? "#FFFFFF" : "#1E293B",
+                                      fontSize: "0.84rem",
+                                      fontWeight: isSelected ? 700 : 500,
+                                      cursor: "pointer",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "space-between",
+                                      transition: "all 0.12s ease"
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      if (!isSelected) e.currentTarget.style.background = "#F1F5F9";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (!isSelected) e.currentTarget.style.background = "transparent";
+                                    }}
+                                  >
+                                    <span>🏙️ {c}</span>
+                                    {isSelected && <span style={{ fontSize: "0.75rem" }}>✓</span>}
+                                  </div>
+                                );
+                              })}
+                            </>
+                          );
+                        })()}
+                      </div>
+                    )}
                   </div>
 
                   <div className="apply-form-group">
