@@ -171,9 +171,12 @@ export default function Apply() {
   // Local state for Amount text inputs
   const [amtInputVal, setAmtInputVal] = useState("50");
   const [amtUnit, setAmtUnit] = useState(100000); // Lakhs vs Crores
+  const [isEditingAmount, setIsEditingAmount] = useState(false);
 
   // Synchronize numeric input formatting
   useEffect(() => {
+    if (isEditingAmount) return;
+
     if (amount >= 10000000) {
       setAmtUnit(10000000);
       setAmtInputVal((amount / 10000000).toFixed(2));
@@ -181,7 +184,7 @@ export default function Apply() {
       setAmtUnit(100000);
       setAmtInputVal((amount / 100000).toFixed(2));
     }
-  }, [amount]);
+  }, [amount, isEditingAmount]);
 
   // Hook refs to paint range slider backgrounds dynamically
   const amtRef = useSliderPaint(amount, params.amtMin, params.amtMax);
@@ -190,17 +193,35 @@ export default function Apply() {
 
   // Amount input handlers
   const handleAmtInputChange = (e) => {
-    const rawVal = e.target.value;
-    setAmtInputVal(rawVal);
-    const parsed = parseFloat(rawVal) || 0;
-    setAmount(parsed * amtUnit);
+    const value = e.target.value;
+    setAmtInputVal(value);
+    const numericValue = parseFloat(value);
+    if (!isNaN(numericValue)) {
+      setAmount(numericValue * amtUnit);
+    }
+  };
+
+  const handleAmtBlur = () => {
+    setIsEditingAmount(false);
+    const numericValue = parseFloat(amtInputVal);
+    if (isNaN(numericValue) || numericValue <= 0) {
+      setAmtInputVal((amount / amtUnit).toFixed(2));
+      return;
+    }
+    const newAmount = numericValue * Number(amtUnit);
+    const finalAmount = Math.max(
+      params.amtMin,
+      Math.min(params.amtMax, newAmount)
+    );
+    setAmount(finalAmount);
   };
 
   const handleUnitChange = (e) => {
-    const newUnit = parseInt(e.target.value);
+    const newUnit = Number(e.target.value);
+    const numericValue = parseFloat(amtInputVal) || 0;
     setAmtUnit(newUnit);
-    const parsed = parseFloat(amtInputVal) || 0;
-    setAmount(parsed * newUnit);
+    setAmtInputVal(numericValue.toString());
+    setAmount(numericValue * newUnit);
   };
 
   // Loan type cards for category row
@@ -465,8 +486,9 @@ export default function Apply() {
                           type="number"
                           className="rf-input"
                           value={amtInputVal}
+                          onFocus={() => setIsEditingAmount(true)}
                           onChange={handleAmtInputChange}
-                          onBlur={clampAmount}
+                          onBlur={handleAmtBlur}
                           step="0.01"
                           style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.9rem', color: '#0F2942', width: '70px', textAlign: 'right' }}
                         />

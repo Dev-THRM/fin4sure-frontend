@@ -26,9 +26,12 @@ export default function HomeEmiWidget() {
   // Local state for numeric text inputs to allow typing freely
   const [amtInputVal, setAmtInputVal] = useState("30");
   const [amtUnit, setAmtUnit] = useState(100000); // Default to Lakh (100,000)
+  const [isEditingAmount, setIsEditingAmount] = useState(false);
 
   // Sync range slider to input box when slider values change
   useEffect(() => {
+    if (isEditingAmount) return;
+
     if (amount >= 10000000) {
       setAmtUnit(10000000);
       setAmtInputVal((amount / 10000000).toFixed(2));
@@ -36,7 +39,7 @@ export default function HomeEmiWidget() {
       setAmtUnit(100000);
       setAmtInputVal((amount / 100000).toFixed(2));
     }
-  }, [amount]);
+  }, [amount, isEditingAmount]);
 
   // Paint range sliders
   const amtRef = useSliderPaint(amount, params.amtMin, params.amtMax);
@@ -45,21 +48,35 @@ export default function HomeEmiWidget() {
 
   // Input changes handlers
   const handleAmtInputChange = (e) => {
-    const rawVal = e.target.value;
-    setAmtInputVal(rawVal);
-    const parsed = parseFloat(rawVal) || 0;
-    setAmount(parsed * amtUnit);
-  };
-
-  const handleUnitChange = (e) => {
-    const newUnit = parseInt(e.target.value);
-    setAmtUnit(newUnit);
-    const parsed = parseFloat(amtInputVal) || 0;
-    setAmount(parsed * newUnit);
+    const value = e.target.value;
+    setAmtInputVal(value);
+    const numericValue = parseFloat(value);
+    if (!isNaN(numericValue)) {
+      setAmount(numericValue * amtUnit);
+    }
   };
 
   const handleAmtBlur = () => {
-    clampAmount();
+    setIsEditingAmount(false);
+    const numericValue = parseFloat(amtInputVal);
+    if (isNaN(numericValue) || numericValue <= 0) {
+      setAmtInputVal((amount / amtUnit).toFixed(2));
+      return;
+    }
+    const newAmount = numericValue * Number(amtUnit);
+    const finalAmount = Math.max(
+      params.amtMin,
+      Math.min(params.amtMax, newAmount)
+    );
+    setAmount(finalAmount);
+  };
+
+  const handleUnitChange = (e) => {
+    const newUnit = Number(e.target.value);
+    const numericValue = parseFloat(amtInputVal) || 0;
+    setAmtUnit(newUnit);
+    setAmtInputVal(numericValue.toString());
+    setAmount(numericValue * newUnit);
   };
 
   const handleRedirect = () => {
@@ -135,6 +152,7 @@ export default function HomeEmiWidget() {
                 type="number"
                 className="rf-input"
                 value={amtInputVal}
+                onFocus={() => setIsEditingAmount(true)}
                 onChange={handleAmtInputChange}
                 onBlur={handleAmtBlur}
                 step="0.01"
