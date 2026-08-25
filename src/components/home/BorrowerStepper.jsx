@@ -196,11 +196,7 @@ export default function BorrowerStepper({ onBack }) {
     }
   };
 
-  const handleCityChange = (e) => {
-    const cityId = e.target.value;
-    const selectedCity = citiesList.find(c => c.id === parseInt(cityId));
-    setFormData(prev => ({ ...prev, city: selectedCity ? selectedCity.name : '' }));
-  };
+
 
   const handleFinalSubmit = async () => {
     setSubmitError('');
@@ -653,15 +649,18 @@ export default function BorrowerStepper({ onBack }) {
                 <div className="field">
                   <label>City <span style={{color: 'red'}}>*</span></label>
                   <div className="input-wrap" style={{ padding: 0 }}>
-                    <select
-                      style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', color: formData.city ? '#0f172a' : '#94a3b8', outline: 'none', cursor: formData.district ? 'pointer' : 'not-allowed', opacity: formData.district ? 1 : 0.6 }}
-                      value={citiesList.find(c => c.name === formData.city)?.id || ''}
-                      onChange={handleCityChange}
+                    <input
+                      list="city-options"
+                      type="text"
+                      placeholder="Select or type City"
+                      style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', color: '#0f172a', outline: 'none', cursor: formData.district ? 'text' : 'not-allowed', opacity: formData.district ? 1 : 0.6 }}
+                      value={formData.city}
+                      onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
                       disabled={!formData.district}
-                    >
-                      <option value="">Select City</option>
-                      {citiesList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
+                    />
+                    <datalist id="city-options">
+                      {citiesList.map(c => <option key={c.id} value={c.name} />)}
+                    </datalist>
                   </div>
                 </div>
 
