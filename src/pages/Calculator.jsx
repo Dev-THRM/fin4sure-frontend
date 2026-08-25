@@ -5,7 +5,7 @@ import { useEmiCalculator } from "../hooks/useEmiCalculator";
 import { useSliderPaint } from "../hooks/useSliderPaint";
 import { fmtINR, fmtINRFull } from "../utils/formatters";
 import { calcEMI } from "../utils/emiCalculator";
-import { LENDERS } from "../utils/loanConstants";
+import { LENDERS, getLenderTypePriority } from "../utils/loanConstants";
 import "./styles/calculator.css";
 
 export default function Calculator() {
@@ -230,7 +230,12 @@ export default function Calculator() {
       });
     });
 
-    return result.sort((a, b) => a.rate - b.rate);
+    return result.sort((a, b) => {
+      const pA = getLenderTypePriority(a.type);
+      const pB = getLenderTypePriority(b.type);
+      if (pA !== pB) return pA - pB;
+      return a.rate - b.rate;
+    });
   }, [dbLenders, loanType, rateType]);
 
   // Format Lakhs/Crores for summary cards

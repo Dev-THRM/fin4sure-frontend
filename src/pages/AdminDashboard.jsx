@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { LENDERS } from "../utils/loanConstants";
+import { LENDERS, getLenderTypePriority } from "../utils/loanConstants";
 import "./styles/adminDashboard.css";
 
 function buildCategoryRates(catKey, backendRates = []) {
@@ -21,7 +21,7 @@ function buildCategoryRates(catKey, backendRates = []) {
     });
   }
 
-  return LENDERS.map((l, idx) => {
+  const list = LENDERS.map((l, idx) => {
     const rateObj = l.rates?.[mapKey];
     const defaultFlow = rateObj ? rateObj.f : null;
     const defaultFix = rateObj ? rateObj.x : null;
@@ -67,6 +67,14 @@ function buildCategoryRates(catKey, backendRates = []) {
       offer,
       visible
     };
+  });
+
+  // Priority order: 1. Private -> 2. NBFC -> 3. SFB -> 4. PSU
+  return list.sort((a, b) => {
+    const pA = getLenderTypePriority(a.type);
+    const pB = getLenderTypePriority(b.type);
+    if (pA !== pB) return pA - pB;
+    return a.name.localeCompare(b.name);
   });
 }
 
