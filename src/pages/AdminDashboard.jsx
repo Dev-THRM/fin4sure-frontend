@@ -2790,7 +2790,7 @@ export default function AdminDashboard() {
               </div>
 
               <div className="timeline-subtitle-legend" style={{ margin: '0 0 16px 0', background: '#F8FAFC', padding: '10px 16px', borderRadius: '10px', border: '1px solid #E2E8F0', color: '#475569', fontSize: '0.84rem' }}>
-                <span>📝 Edit rates directly in the table. Click "Save Rate Changes" to apply. Rates update EMI calculators and borrower loan matching in real time across all 60+ institutions.</span>
+                <span>Edit rates directly in the table. Click "Save Rate Changes" to apply. Rates update EMI calculators and borrower loan matching in real time across all 60+ institutions.</span>
               </div>
 
               <div className="adm-workspace-card">
