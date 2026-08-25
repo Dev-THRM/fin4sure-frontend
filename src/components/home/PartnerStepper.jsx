@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "../../pages/styles/stepper.css";
 
-const CITIES = [
+const DEFAULT_CITIES = [
     "Mumbai", "Delhi", "Bengaluru", "Kolkata", "Chennai", "Hyderabad",
     "Pune", "Ahmedabad", "Surat", "Jaipur", "Lucknow", "Kanpur",
     "Nagpur", "Indore", "Thane", "Bhopal", "Visakhapatnam", "Patna",
@@ -12,7 +12,7 @@ const CITIES = [
     "Srinagar", "Aurangabad", "Dhanbad", "Amritsar", "Navi Mumbai",
     "Allahabad", "Ranchi", "Howrah", "Coimbatore", "Jabalpur",
     "Gwalior", "Vijayawada", "Jodhpur", "Madurai", "Raipur", "Kota"
-].sort();
+];
 
 export default function PartnerStepper({ onBack }) {
     const navigate = useNavigate();
@@ -26,8 +26,44 @@ export default function PartnerStepper({ onBack }) {
     // Form fields
     const [fullName, setFullName] = useState("");
     const [city, setCity] = useState("");
+    const [cityList, setCityList] = useState(DEFAULT_CITIES.slice().sort());
     const [email, setEmail] = useState("");
     const [mobileNumber, setMobileNumber] = useState("");
+
+    // Fetch dynamic cities from backend DB
+    useEffect(() => {
+        const fetchCities = async () => {
+            try {
+                const res = await fetch("/api/locations/all-cities");
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+                        const merged = Array.from(new Set([...DEFAULT_CITIES, ...json.data])).sort();
+                        setCityList(merged);
+                    }
+                }
+            } catch (err) {
+                console.warn("Cities fetch notice:", err.message);
+            }
+        };
+        fetchCities();
+    }, []);
+
+    // Save custom city to backend if not already existing
+    const saveNewCityIfCustom = async (cityName) => {
+        if (!cityName || !cityName.trim()) return;
+        const clean = cityName.trim();
+        try {
+            const res = await fetch("/api/locations/create-city", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: clean })
+            });
+            if (res.ok) {
+                setCityList(prev => Array.from(new Set([...prev, clean])).sort());
+            }
+        } catch (_) {}
+    };
 
     // --- Email OTP state ---
     const [otpSending, setOtpSending] = useState(false);
@@ -35,46 +71,15 @@ export default function PartnerStepper({ onBack }) {
     const [enteredOtp, setEnteredOtp] = useState("");
     const [otpVerified, setOtpVerified] = useState(false);
 
-    // --- OLD WhatsApp dummy OTP logic (commented out) ---
-    // const [otpSent, setOtpSent] = useState(false);
-    // const [dummyOtp, setDummyOtp] = useState("");
-    //
-    // // Send WhatsApp dummy OTP
-    // const handleSendOtp = () => {
-    //     if (mobileNumber.length !== 10) {
-    //         setError("Enter a valid 10-digit mobile number");
-    //         return;
-    //     }
-    //     setError("");
-    //     const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
-    //     setDummyOtp(randomOtp);
-    //     setOtpSent(true);
-    //     console.log(`🔑 [DEBUG] DUMMY OTP FOR ${mobileNumber}: ${randomOtp} 🔑`);
-    //     setStep(2);
-    // };
-    //
-    // // Verify WhatsApp dummy OTP
-    // const handleVerifyOtp = () => {
-    //     if (enteredOtp.length !== 4 && enteredOtp.length !== 6) {
-    //         setError("OTP must be 4 or 6 digits");
-    //         return;
-    //     }
-    //     if (enteredOtp === dummyOtp || enteredOtp === '123456' || enteredOtp === '1234') {
-    //         setOtpVerified(true);
-    //         setError("");
-    //         setTimeout(() => { setStep(3); }, 600);
-    //     } else {
-    //         setError("Invalid OTP code. Try using 123456.");
-    //     }
-    // };
-    // --- END old WhatsApp OTP logic ---
-
     // Send real Email OTP via backend
     const handleSendOtp = async () => {
         const cleanEmail = email.trim().toLowerCase();
         if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
             setError("Please enter a valid email address.");
             return;
+        }
+        if (city.trim()) {
+            saveNewCityIfCustom(city.trim());
         }
         setError("");
         setOtpSending(true);
@@ -270,18 +275,27 @@ export default function PartnerStepper({ onBack }) {
 
                             <div className="field">
                                 <label>City <span style={{ color: "#DC2626" }}>*</span></label>
-                                <div className="input-wrap" style={{ padding: "0 10px" }}>
-                                    <select
+                                <div className="input-wrap">
+                                    <span className="icon">🏙️</span>
+                                    <input
+                                        type="text"
+                                        list="partner-city-options"
+                                        placeholder="Select or type your city"
                                         value={city}
                                         onChange={(e) => setCity(e.target.value)}
+                                        onBlur={(e) => {
+                                            if (e.target.value.trim()) {
+                                                saveNewCityIfCustom(e.target.value.trim());
+                                            }
+                                        }}
                                         required
-                                        style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".88rem", fontWeight: 600, color: "var(--navy)" }}
-                                    >
-                                        <option value="">Select City</option>
-                                        {CITIES.map((c) => (
-                                            <option key={c} value={c}>{c}</option>
+                                        autoComplete="off"
+                                    />
+                                    <datalist id="partner-city-options">
+                                        {cityList.map((c) => (
+                                            <option key={c} value={c} />
                                         ))}
-                                    </select>
+                                    </datalist>
                                 </div>
                             </div>
 
