@@ -113,7 +113,7 @@ export default function Apply() {
   // Applicant details state for Step 3
   const [applicantData, setApplicantData] = useState({
     name: user?.name || "",
-    mob_no: user?.number || "",
+    mob_no: user?.number || user?.mob_no || user?.phone || "",
     email: user?.email || "",
     dob: "1995-05-15",
     gender: "male",
@@ -122,18 +122,19 @@ export default function Apply() {
     state: "Delhi",
     district: "Central",
     city: "New Delhi",
-    loanPurpose: "Loan Application",
+    loanPurpose: "",
     password: "Pass@1234"
   });
 
   // Sync applicant fields when user loads
   useEffect(() => {
     if (user) {
+      const userPhone = user.number || user.mob_no || user.phone || "";
       setApplicantData((prev) => ({
         ...prev,
         name: user.name || prev.name,
         email: user.email || prev.email,
-        mob_no: user.number || prev.mob_no
+        mob_no: userPhone || prev.mob_no
       }));
     }
   }, [user]);
