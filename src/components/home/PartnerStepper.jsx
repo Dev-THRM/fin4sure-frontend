@@ -29,11 +29,97 @@ export default function PartnerStepper({ onBack }) {
     const [email, setEmail] = useState("");
     const [mobileNumber, setMobileNumber] = useState("");
 
-    // OTP logic
-    const [otpSent, setOtpSent] = useState(false);
-    const [dummyOtp, setDummyOtp] = useState("");
+    // --- Email OTP state ---
+    const [otpSending, setOtpSending] = useState(false);
+    const [otpVerifying, setOtpVerifying] = useState(false);
     const [enteredOtp, setEnteredOtp] = useState("");
     const [otpVerified, setOtpVerified] = useState(false);
+
+    // --- OLD WhatsApp dummy OTP logic (commented out) ---
+    // const [otpSent, setOtpSent] = useState(false);
+    // const [dummyOtp, setDummyOtp] = useState("");
+    //
+    // // Send WhatsApp dummy OTP
+    // const handleSendOtp = () => {
+    //     if (mobileNumber.length !== 10) {
+    //         setError("Enter a valid 10-digit mobile number");
+    //         return;
+    //     }
+    //     setError("");
+    //     const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
+    //     setDummyOtp(randomOtp);
+    //     setOtpSent(true);
+    //     console.log(`🔑 [DEBUG] DUMMY OTP FOR ${mobileNumber}: ${randomOtp} 🔑`);
+    //     setStep(2);
+    // };
+    //
+    // // Verify WhatsApp dummy OTP
+    // const handleVerifyOtp = () => {
+    //     if (enteredOtp.length !== 4 && enteredOtp.length !== 6) {
+    //         setError("OTP must be 4 or 6 digits");
+    //         return;
+    //     }
+    //     if (enteredOtp === dummyOtp || enteredOtp === '123456' || enteredOtp === '1234') {
+    //         setOtpVerified(true);
+    //         setError("");
+    //         setTimeout(() => { setStep(3); }, 600);
+    //     } else {
+    //         setError("Invalid OTP code. Try using 123456.");
+    //     }
+    // };
+    // --- END old WhatsApp OTP logic ---
+
+    // Send real Email OTP via backend
+    const handleSendOtp = async () => {
+        const cleanEmail = email.trim().toLowerCase();
+        if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+            setError("Please enter a valid email address.");
+            return;
+        }
+        setError("");
+        setOtpSending(true);
+        try {
+            const res = await fetch("/api/auth/send-email-otp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: cleanEmail }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "Failed to send OTP.");
+            setStep(2);
+            setEnteredOtp("");
+        } catch (err) {
+            setError(err.message || "Failed to send OTP. Please try again.");
+        } finally {
+            setOtpSending(false);
+        }
+    };
+
+    // Verify real Email OTP via backend
+    const handleVerifyOtp = async () => {
+        if (enteredOtp.length < 4) {
+            setError("Please enter the 4-digit OTP.");
+            return;
+        }
+        setError("");
+        setOtpVerifying(true);
+        try {
+            const res = await fetch("/api/auth/verify-email-otp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: email.trim().toLowerCase(), otp: enteredOtp }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "Invalid OTP.");
+            setOtpVerified(true);
+            setError("");
+            setTimeout(() => { setStep(3); }, 600);
+        } catch (err) {
+            setError(err.message || "OTP verification failed. Please try again.");
+        } finally {
+            setOtpVerifying(false);
+        }
+    };
 
     // Password logic
     const [password, setPassword] = useState("");
@@ -55,44 +141,6 @@ export default function PartnerStepper({ onBack }) {
         }));
 
     const isPasswordStrong = () => validatePassword(password).every((c) => c.valid);
-
-    // Send WhatsApp dummy OTP
-    const handleSendOtp = () => {
-        if (mobileNumber.length !== 10) {
-            setError("Enter a valid 10-digit mobile number");
-            return;
-        }
-        setError("");
-        const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
-        setDummyOtp(randomOtp);
-        setOtpSent(true);
-
-        // Log to console as requested
-        console.log(`\n==========================================`);
-        console.log(`🔑 [DEBUG] DUMMY OTP FOR ${mobileNumber}: ${randomOtp} 🔑`);
-        console.log(`==========================================\n`);
-
-        // Go to verify step
-        setStep(2);
-    };
-
-    // Verify WhatsApp dummy OTP
-    const handleVerifyOtp = () => {
-        if (enteredOtp.length !== 4 && enteredOtp.length !== 6) {
-            setError("OTP must be 4 or 6 digits");
-            return;
-        }
-        if (enteredOtp === dummyOtp || enteredOtp === '123456' || enteredOtp === '1234') {
-            setOtpVerified(true);
-            setError("");
-            // Advance to Password step
-            setTimeout(() => {
-                setStep(3);
-            }, 600);
-        } else {
-            setError("Invalid OTP code. Try using 123456.");
-        }
-    };
 
     // Register & Auto-login
     const handleRegister = async () => {
@@ -238,7 +286,7 @@ export default function PartnerStepper({ onBack }) {
                             </div>
 
                             <div className="field">
-                                <label>WhatsApp Number</label>
+                                <label>Mobile Number</label>
                                 <div className="input-wrap">
                                     <span className="icon">📱</span>
                                     <input
@@ -269,24 +317,24 @@ export default function PartnerStepper({ onBack }) {
 
                         <button
                             className="btn-primary"
-                            disabled={!fullName || !city || mobileNumber.length !== 10 || !email}
+                            disabled={!fullName || !city || mobileNumber.length !== 10 || !email || otpSending}
                             onClick={handleSendOtp}
-                            style={{ width: "100%", padding: "14px", borderRadius: "12px", marginTop: "8px" }}
+                            style={{ width: "100%", padding: "14px", borderRadius: "12px", marginTop: "8px", opacity: (!fullName || !city || mobileNumber.length !== 10 || !email || otpSending) ? 0.5 : 1 }}
                         >
-                            Send WhatsApp OTP →
+                            {otpSending ? "Sending OTP…" : "Send Email OTP →"}
                         </button>
                     </div>
                 )}
 
-                {/* Step 2: OTP Verification */}
+                {/* Step 2: Email OTP Verification */}
                 {step === 2 && (
                     <div>
-                        <div className="form-title">WhatsApp Verification</div>
-                        <div className="form-subtitle">Verify your WhatsApp mobile number {mobileNumber}</div>
+                        <div className="form-title">Email Verification</div>
+                        <div className="form-subtitle">A 4-digit OTP has been sent to <strong>{email}</strong></div>
 
-                        <div style={{ padding: "16px", background: "#F0FDF4", border: "1px solid #A7F3D0", borderRadius: "12px", marginBottom: "16px" }}>
-                            <div style={{ color: "#065F46", fontSize: ".76rem", fontWeight: 700, marginBottom: "8px" }}>
-                                🔑 Dummy OTP is printed in browser console!
+                        <div style={{ padding: "16px", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "12px", marginBottom: "16px", marginTop: "16px" }}>
+                            <div style={{ color: "#1E40AF", fontSize: ".76rem", fontWeight: 700, marginBottom: "12px" }}>
+                                ✉️ Check your inbox for the OTP
                             </div>
 
                             <div className="field">
@@ -295,11 +343,12 @@ export default function PartnerStepper({ onBack }) {
                                     <span className="icon">🔑</span>
                                     <input
                                         type="text"
-                                        placeholder="Enter OTP (e.g. 123456)"
-                                        maxLength={6}
+                                        placeholder="Enter 4-digit OTP"
+                                        maxLength={4}
                                         value={enteredOtp}
                                         disabled={otpVerified}
                                         onChange={(e) => setEnteredOtp(e.target.value.replace(/\D/g, ""))}
+                                        autoFocus
                                     />
                                 </div>
                             </div>
@@ -307,16 +356,24 @@ export default function PartnerStepper({ onBack }) {
                             <button
                                 className="btn-primary"
                                 onClick={handleVerifyOtp}
-                                disabled={otpVerified || (enteredOtp.length !== 4 && enteredOtp.length !== 6)}
-                                style={{ width: "100%", padding: "10px", borderRadius: "8px", background: otpVerified ? "#059669" : "var(--navy)", border: "none", color: "#fff", marginTop: "10px" }}
+                                disabled={otpVerified || enteredOtp.length < 4 || otpVerifying}
+                                style={{ width: "100%", padding: "10px", borderRadius: "8px", background: otpVerified ? "#059669" : "var(--navy)", border: "none", color: "#fff", marginTop: "10px", opacity: (otpVerified || enteredOtp.length < 4 || otpVerifying) ? 0.5 : 1 }}
                             >
-                                {otpVerified ? "✓ Verified" : "Verify OTP"}
+                                {otpVerified ? "✓ Verified" : otpVerifying ? "Verifying…" : "Verify OTP"}
                             </button>
                         </div>
 
                         {!otpVerified && (
-                            <div style={{ textAlign: "center" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                 <button className="btn-back" onClick={() => setStep(1)}>← Back</button>
+                                <button
+                                    type="button"
+                                    onClick={handleSendOtp}
+                                    disabled={otpSending}
+                                    style={{ background: "none", border: "none", color: "var(--teal, #0f766e)", fontWeight: 700, cursor: "pointer", textDecoration: "underline", fontSize: ".76rem" }}
+                                >
+                                    {otpSending ? "Sending…" : "Resend OTP"}
+                                </button>
                             </div>
                         )}
                     </div>
