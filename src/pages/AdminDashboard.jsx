@@ -285,7 +285,7 @@ export default function AdminDashboard() {
         const loans = await res.json();
         setBorrowerLoansModal({ name: borrower.name, loans });
       }
-    } catch (_) {}
+    } catch (_) { }
     setBorrowerLoansLoading(false);
   }
 
@@ -667,7 +667,7 @@ export default function AdminDashboard() {
         try {
           const errData = await res.json();
           if (errData?.message) errMsg = errData.message;
-        } catch (_) {}
+        } catch (_) { }
         setCustomAlert({ message: errMsg, type: "error" });
       }
     } catch (e) {
@@ -801,7 +801,7 @@ export default function AdminDashboard() {
         try {
           const err = JSON.parse(text);
           errMsg = err.message || errMsg;
-        } catch (_) {}
+        } catch (_) { }
         setCustomAlert({ message: errMsg, type: "error" });
       }
     } catch (e) {
@@ -1509,10 +1509,10 @@ export default function AdminDashboard() {
                       const statusDisplay = ['disbursed', 'completed'].includes(rawSt)
                         ? 'disbursed'
                         : rawSt === 'rejected'
-                        ? 'rejected'
-                        : ['pending', 'applied'].includes(rawSt)
-                        ? 'pending'
-                        : 'in progress';
+                          ? 'rejected'
+                          : ['pending', 'applied'].includes(rawSt)
+                            ? 'pending'
+                            : 'in progress';
 
                       const stBg = statusDisplay === 'disbursed' ? '#DCFCE7' : statusDisplay === 'rejected' ? '#FEE2E2' : statusDisplay === 'pending' ? '#FEF3C7' : '#DBEAFE';
                       const stColor = statusDisplay === 'disbursed' ? '#15803D' : statusDisplay === 'rejected' ? '#991B1B' : statusDisplay === 'pending' ? '#B45309' : '#1D4ED8';
@@ -1762,8 +1762,8 @@ export default function AdminDashboard() {
                           const statusDisplay = ['disbursed', 'completed'].includes(rawSt)
                             ? 'DISBURSED'
                             : rawSt === 'rejected'
-                            ? 'REJECTED'
-                            : 'IN-PROGRESS';
+                              ? 'REJECTED'
+                              : 'IN-PROGRESS';
                           const stBg = statusDisplay === 'DISBURSED' ? '#DCFCE7' : statusDisplay === 'REJECTED' ? '#FEE2E2' : '#DBEAFE';
                           const stColor = statusDisplay === 'DISBURSED' ? '#166534' : statusDisplay === 'REJECTED' ? '#991B1B' : '#1E40AF';
 
@@ -1831,73 +1831,73 @@ export default function AdminDashboard() {
                                   {statusDisplay}
                                 </span>
                               </td>
-                            <td>
-                              <div style={{ display: 'flex', gap: '6px' }}>
-                                <button
-                                  onClick={() => advanceLeadStage(l)}
-                                  title="Next Stage (+1)"
-                                  style={{
-                                    width: '32px',
-                                    height: '32px',
-                                    borderRadius: '6px',
-                                    border: '1px solid #CBD5E1',
-                                    background: '#FFFFFF',
-                                    color: '#1E293B',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: 'pointer',
-                                    fontSize: '0.7rem',
-                                    fontWeight: 700
-                                  }}
-                                >
-                                  ▶
-                                </button>
-                                <button
-                                  onClick={() => disburseLead(l)}
-                                  title="Direct Disburse"
-                                  style={{
-                                    width: '32px',
-                                    height: '32px',
-                                    borderRadius: '6px',
-                                    border: '1px solid #CBD5E1',
-                                    background: '#FFFFFF',
-                                    color: '#166534',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem',
-                                    fontWeight: 700
-                                  }}
-                                >
-                                  ✓
-                                </button>
-                                <button
-                                  onClick={() => openEditLead(l)}
-                                  title="Edit Application"
-                                  style={{
-                                    width: '32px',
-                                    height: '32px',
-                                    borderRadius: '6px',
-                                    border: '1px solid #CBD5E1',
-                                    background: '#FFFFFF',
-                                    color: '#EA580C',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: 'pointer',
-                                    fontSize: '0.8rem'
-                                  }}
-                                >
-                                  ✏️
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
+                              <td>
+                                <div style={{ display: 'flex', gap: '6px' }}>
+                                  <button
+                                    onClick={() => advanceLeadStage(l)}
+                                    title="Next Stage (+1)"
+                                    style={{
+                                      width: '32px',
+                                      height: '32px',
+                                      borderRadius: '6px',
+                                      border: '1px solid #CBD5E1',
+                                      background: '#FFFFFF',
+                                      color: '#1E293B',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      cursor: 'pointer',
+                                      fontSize: '0.7rem',
+                                      fontWeight: 700
+                                    }}
+                                  >
+                                    ▶
+                                  </button>
+                                  <button
+                                    onClick={() => disburseLead(l)}
+                                    title="Direct Disburse"
+                                    style={{
+                                      width: '32px',
+                                      height: '32px',
+                                      borderRadius: '6px',
+                                      border: '1px solid #CBD5E1',
+                                      background: '#FFFFFF',
+                                      color: '#166534',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      cursor: 'pointer',
+                                      fontSize: '0.85rem',
+                                      fontWeight: 700
+                                    }}
+                                  >
+                                    ✓
+                                  </button>
+                                  <button
+                                    onClick={() => openEditLead(l)}
+                                    title="Edit Application"
+                                    style={{
+                                      width: '32px',
+                                      height: '32px',
+                                      borderRadius: '6px',
+                                      border: '1px solid #CBD5E1',
+                                      background: '#FFFFFF',
+                                      color: '#EA580C',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      cursor: 'pointer',
+                                      fontSize: '0.8rem'
+                                    }}
+                                  >
+                                    ✏️
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
                     </tbody>
                   </table>
                   <Pagination total={filteredLeads.length} page={leadsPage} setPage={setLeadsPage} />
@@ -2186,7 +2186,7 @@ export default function AdminDashboard() {
                           const appliedDate = b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '15 Jan 2025';
                           const stage = b.bestStage || b.stage || 'Applied';
                           const status = (b.status || 'in progress').toLowerCase();
-                          
+
                           // Smart resolution for Phone number
                           const matchedLead = leads.find(l => (b.email && l.email && l.email.toLowerCase() === b.email.toLowerCase()) || (b.id && l.userId === b.id));
                           const rawPhone = b.number || b.mob_no || b.phone || (matchedLead ? (matchedLead.number || matchedLead.mob_no) : null);
@@ -2206,7 +2206,7 @@ export default function AdminDashboard() {
                           });
                           const lenderArray = Array.from(lenderSet);
                           const lenderDisplay = lenderArray.length > 0 ? lenderArray.join(', ') : '—';
-                          
+
                           let stageColor = '#D97706';
                           if (stage === 'Disbursed') stageColor = '#166534';
                           else if (['Submitted', 'Credit', 'Sanction'].includes(stage)) stageColor = '#2563EB';
@@ -2336,7 +2336,7 @@ export default function AdminDashboard() {
 
               {/* Subtitle Info Banner */}
               <div className="timeline-subtitle-legend" style={{ margin: '0 0 20px 0', background: '#F8FAFC', padding: '12px 18px', borderRadius: '12px', border: '1px solid #E2E8F0', color: '#475569', fontSize: '0.86rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>📅</span>
+                <span></span>
                 <span>
                   Date-wise loan activity grouped by month. Stage bar shows progress (colour: <strong style={{ color: '#059669' }}>🟢 Disbursed</strong> • <strong style={{ color: '#2563EB' }}>🔵 In Progress</strong> • <strong style={{ color: '#D97706' }}>🟡 Pending</strong>). Edit stage inline.
                 </span>
@@ -2367,7 +2367,7 @@ export default function AdminDashboard() {
                   { id: 2013, application_no: 'F4S-2013', name: 'Direct', product: 'Loan Against Property', lender: 'ICICI Bank', loan_amount: 80000000, stage: 'Applied', status: 'pending', createdAt: '2025-03-01T10:00:00Z' },
                   { id: 2014, application_no: 'F4S-2014', name: 'Direct', product: 'Personal Loan', lender: 'Axis Bank', loan_amount: 450000, stage: 'Disbursed', status: 'disbursed', createdAt: '2025-03-05T10:00:00Z' },
                   { id: 2015, application_no: 'F4S-2015', name: 'Direct', product: 'Home Loan', lender: 'Tata Capital', loan_amount: 4500000, stage: 'Sanction', status: 'in progress', createdAt: '2025-03-10T10:00:00Z' },
-                  
+
                   // Feb 2025
                   { id: 2005, application_no: 'F4S-2005', name: 'Direct', product: 'Home Loan', lender: 'SBI', loan_amount: 4200000, stage: 'Disbursed', status: 'disbursed', createdAt: '2025-02-02T10:00:00Z' },
                   { id: 2006, application_no: 'F4S-2006', name: 'Direct', product: 'Vehicle Loan', lender: 'Bajaj Finserv', loan_amount: 800000, stage: 'Sanction', status: 'in progress', createdAt: '2025-02-05T10:00:00Z' },
@@ -2703,7 +2703,7 @@ export default function AdminDashboard() {
               }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '1.1rem' }}>🤖</span>
+                    <span style={{ fontSize: '1.1rem' }}></span>
                     <span style={{ fontWeight: 800, fontSize: '0.95rem', letterSpacing: '0.3px' }}>
                       Automated Direct-from-Bank Scraper
                     </span>
@@ -2719,11 +2719,11 @@ export default function AdminDashboard() {
                   </div>
                   <div style={{ fontSize: '0.8rem', color: '#CBD5E1', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                     <span>
-                      📅 <strong>Schedule:</strong> Weekly on {scraperStatus?.dayOfWeek || 'Monday'} at 02:00 AM
+                      <strong>Schedule:</strong> Weekly on {scraperStatus?.dayOfWeek || 'Monday'} at 02:00 AM
                     </span>
                     <span>•</span>
                     <span>
-                      🕒 <strong>Last Run:</strong> {scraperStatus?.lastRunTime ? new Date(scraperStatus.lastRunTime).toLocaleString() : 'Recent baseline sync'}
+                      <strong>Last Run:</strong> {scraperStatus?.lastRunTime ? new Date(scraperStatus.lastRunTime).toLocaleString() : 'Recent baseline sync'}
                     </span>
                     {scraperStatus?.lastStatus && (
                       <>
@@ -2811,12 +2811,12 @@ export default function AdminDashboard() {
                     <tbody>
                       {(() => {
                         const activeList = buildCategoryRates(selectedLoanCategory, rates);
-                        
+
                         const filteredRates = activeList.filter(r => {
                           if (!r) return false;
                           const rawType = String(r.type || 'Private').toLowerCase();
                           const filterType = String(selectedRateType || 'all_types').toLowerCase();
-                          
+
                           let matchType = true;
                           if (filterType === "psu") {
                             matchType = rawType.includes("psu");
@@ -2846,13 +2846,13 @@ export default function AdminDashboard() {
                         return filteredRates.map((rate) => {
                           const lKey = rate.lenderId || rate.id || rate.name;
                           const typeLower = String(rate.type || 'Private').toLowerCase();
-                          const badgeClass = typeLower.includes('psu') 
-                            ? 'psu' 
-                            : (typeLower.includes('nbfc') || typeLower.includes('hfc')) 
-                            ? 'nbfc-hfc' 
-                            : (typeLower.includes('sfb') || typeLower.includes('small'))
-                            ? 'sfb'
-                            : 'private';
+                          const badgeClass = typeLower.includes('psu')
+                            ? 'psu'
+                            : (typeLower.includes('nbfc') || typeLower.includes('hfc'))
+                              ? 'nbfc-hfc'
+                              : (typeLower.includes('sfb') || typeLower.includes('small'))
+                                ? 'sfb'
+                                : 'private';
 
                           return (
                             <tr key={lKey}>
@@ -3578,8 +3578,8 @@ export default function AdminDashboard() {
                   <tbody>
                     {borrowerLoansModal.loans.map((loan, i) => {
                       const stLower = (loan.status || '').toLowerCase();
-                      const stBg = ['disbursed','completed'].includes(stLower) ? '#DCFCE7' : stLower === 'rejected' ? '#FEE2E2' : '#DBEAFE';
-                      const stColor = ['disbursed','completed'].includes(stLower) ? '#166534' : stLower === 'rejected' ? '#991B1B' : '#1E40AF';
+                      const stBg = ['disbursed', 'completed'].includes(stLower) ? '#DCFCE7' : stLower === 'rejected' ? '#FEE2E2' : '#DBEAFE';
+                      const stColor = ['disbursed', 'completed'].includes(stLower) ? '#166534' : stLower === 'rejected' ? '#991B1B' : '#1E40AF';
                       return (
                         <tr key={loan.id} style={{ borderBottom: '1px solid #F1F5F9', background: i % 2 === 0 ? '#FFFFFF' : '#FAFBFC' }}>
                           <td style={{ padding: '12px 16px', fontWeight: 700, color: '#0F2942' }}>{loan.application_no}</td>
