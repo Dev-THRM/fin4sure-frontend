@@ -781,9 +781,11 @@ export default function AdminDashboard() {
 
   function openEditLead(lead) {
     setEditingLead(lead);
+    const candidateBanks = lead.all_selected_lenders || (lead.lender ? lead.lender.split(',').map(s => s.trim()).filter(Boolean) : []);
+    const initialLender = lead.active_lender || (candidateBanks.length > 0 ? candidateBanks[0] : (lead.lender ? lead.lender.split(',')[0].trim() : "SBI"));
     setEditForm({
       name: lead.name || "",
-      lender: lead.lender || lead.client_preference || "SBI",
+      lender: initialLender,
       loan_amount: lead.loan_amount || "",
       status: lead.status || "in progress",
       stage: lead.stage || "Applied",
@@ -3217,27 +3219,47 @@ export default function AdminDashboard() {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>Assigned Lender</label>
+                  <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                    <span>Assigned Lender *</span>
+                    {editingLead && editingLead.all_selected_lenders && editingLead.all_selected_lenders.length > 1 && (
+                      <span style={{ fontSize: '0.72rem', color: '#0F766E', background: '#F0FDFA', border: '1px solid #99F6E4', padding: '1px 8px', borderRadius: '12px', fontWeight: 600 }}>
+                        {editingLead.all_selected_lenders.length} candidate banks selected
+                      </span>
+                    )}
+                  </label>
                   <select
                     value={editForm.lender || 'SBI'}
                     onChange={(e) => setEditForm(f => ({ ...f, lender: e.target.value }))}
                     style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', background: '#FFFFFF', cursor: 'pointer', outline: 'none' }}
                   >
-                    {/* Include custom current lender if not in standard list */}
-                    {editForm.lender && !LENDERS.some(l => l.name.toLowerCase() === editForm.lender.toLowerCase() || (l.short && l.short.toLowerCase() === editForm.lender.toLowerCase())) && (
-                      <option value={editForm.lender}>🏦 {editForm.lender}</option>
+                    {/* Preferred candidate banks selected by borrower / partner */}
+                    {editingLead && Array.isArray(editingLead.all_selected_lenders) && editingLead.all_selected_lenders.length > 0 && (
+                      <optgroup label="🌟 Client / Partner Preferred Banks">
+                        {editingLead.all_selected_lenders.map((bName) => (
+                          <option key={`cand-${bName}`} value={bName}>
+                            ⭐ {bName} (Preferred Choice)
+                          </option>
+                        ))}
+                      </optgroup>
                     )}
-                    {LENDERS.slice().sort((a, b) => {
-                      const pA = getLenderTypePriority(a.type);
-                      const pB = getLenderTypePriority(b.type);
-                      if (pA !== pB) return pA - pB;
-                      return a.name.localeCompare(b.name);
-                    }).map((l) => (
-                      <option key={l.name} value={l.name}>
-                        {l.emoji || '🏦'} {l.name} {l.type ? `(${l.type.toUpperCase()})` : ''}
-                      </option>
-                    ))}
+
+                    {/* All 66+ network lenders */}
+                    <optgroup label="🏦 All Network Lenders (Private, PSU, NBFC, SFB)">
+                      {LENDERS.slice().sort((a, b) => {
+                        const pA = getLenderTypePriority(a.type);
+                        const pB = getLenderTypePriority(b.type);
+                        if (pA !== pB) return pA - pB;
+                        return a.name.localeCompare(b.name);
+                      }).map((l) => (
+                        <option key={l.name} value={l.name}>
+                          {l.emoji || '🏦'} {l.name} {l.type ? `(${l.type.toUpperCase()})` : ''}
+                        </option>
+                      ))}
+                    </optgroup>
                   </select>
+                  <p style={{ margin: '5px 0 0', fontSize: '0.74rem', color: '#64748B' }}>
+                    💡 Selecting a bank will mark it as <strong>Active</strong> and set all other options to <strong>Inactive</strong>.
+                  </p>
                 </div>
 
                 <div>
