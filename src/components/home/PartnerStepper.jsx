@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "../../pages/styles/stepper.css";
@@ -27,8 +27,21 @@ export default function PartnerStepper({ onBack }) {
     const [fullName, setFullName] = useState("");
     const [city, setCity] = useState("");
     const [cityList, setCityList] = useState(DEFAULT_CITIES.slice().sort());
+    const [isCityOpen, setIsCityOpen] = useState(false);
+    const cityDropdownRef = useRef(null);
     const [email, setEmail] = useState("");
     const [mobileNumber, setMobileNumber] = useState("");
+
+    // Close city dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (cityDropdownRef.current && !cityDropdownRef.current.contains(e.target)) {
+                setIsCityOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     // Fetch dynamic cities from backend DB
     useEffect(() => {
@@ -273,30 +286,193 @@ export default function PartnerStepper({ onBack }) {
                                 </div>
                             </div>
 
-                            <div className="field">
+                            <div className="field" ref={cityDropdownRef} style={{ position: "relative" }}>
                                 <label>City <span style={{ color: "#DC2626" }}>*</span></label>
-                                <div className="input-wrap">
+                                <div 
+                                    className="input-wrap" 
+                                    style={{ 
+                                        display: "flex", 
+                                        alignItems: "center", 
+                                        cursor: "pointer", 
+                                        position: "relative",
+                                        borderColor: isCityOpen ? "var(--teal, #0f766e)" : undefined,
+                                        boxShadow: isCityOpen ? "0 0 0 3px rgba(15, 118, 110, 0.12)" : undefined
+                                    }}
+                                    onClick={() => setIsCityOpen(true)}
+                                >
                                     <span className="icon">🏙️</span>
                                     <input
                                         type="text"
-                                        list="partner-city-options"
                                         placeholder="Select or type your city"
                                         value={city}
-                                        onChange={(e) => setCity(e.target.value)}
-                                        onBlur={(e) => {
-                                            if (e.target.value.trim()) {
-                                                saveNewCityIfCustom(e.target.value.trim());
-                                            }
+                                        onChange={(e) => {
+                                            setCity(e.target.value);
+                                            setIsCityOpen(true);
                                         }}
+                                        onFocus={() => setIsCityOpen(true)}
                                         required
                                         autoComplete="off"
+                                        style={{ 
+                                            border: "none", 
+                                            outline: "none", 
+                                            background: "transparent", 
+                                            width: "100%", 
+                                            fontSize: ".88rem", 
+                                            fontWeight: 600, 
+                                            color: "var(--navy)",
+                                            paddingRight: "28px"
+                                        }}
                                     />
-                                    <datalist id="partner-city-options">
-                                        {cityList.map((c) => (
-                                            <option key={c} value={c} />
-                                        ))}
-                                    </datalist>
+                                    {city ? (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setCity("");
+                                                setIsCityOpen(true);
+                                            }}
+                                            style={{
+                                                position: "absolute",
+                                                right: "26px",
+                                                top: "50%",
+                                                transform: "translateY(-50%)",
+                                                background: "#E2E8F0",
+                                                border: "none",
+                                                borderRadius: "50%",
+                                                width: "18px",
+                                                height: "18px",
+                                                fontSize: "10px",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                cursor: "pointer",
+                                                color: "#64748B"
+                                            }}
+                                            title="Clear city"
+                                        >
+                                            ✕
+                                        </button>
+                                    ) : null}
+                                    <span 
+                                        style={{ 
+                                            position: "absolute", 
+                                            right: "10px", 
+                                            top: "50%", 
+                                            transform: `translateY(-50%) rotate(${isCityOpen ? "180deg" : "0deg"})`, 
+                                            transition: "transform 0.2s ease",
+                                            fontSize: "10px",
+                                            color: "#64748B",
+                                            pointerEvents: "none"
+                                        }}
+                                    >
+                                        ▼
+                                    </span>
                                 </div>
+
+                                {/* Custom Dropdown Menu */}
+                                {isCityOpen && (
+                                    <div 
+                                        style={{
+                                            position: "absolute",
+                                            top: "calc(100% + 4px)",
+                                            left: 0,
+                                            right: 0,
+                                            background: "#FFFFFF",
+                                            borderRadius: "12px",
+                                            border: "1px solid #E2E8F0",
+                                            boxShadow: "0 14px 34px -4px rgba(15, 23, 42, 0.16), 0 4px 12px -2px rgba(15, 23, 42, 0.08)",
+                                            zIndex: 9999,
+                                            maxHeight: "230px",
+                                            overflowY: "auto",
+                                            padding: "6px"
+                                        }}
+                                    >
+                                        {(() => {
+                                            const searchLower = (city || "").toLowerCase().trim();
+                                            const filtered = cityList.filter(c => c.toLowerCase().includes(searchLower));
+                                            const exactMatch = cityList.some(c => c.toLowerCase() === searchLower);
+
+                                            return (
+                                                <>
+                                                    {searchLower && !exactMatch && (
+                                                        <div
+                                                            onClick={() => {
+                                                                const customName = city.trim();
+                                                                saveNewCityIfCustom(customName);
+                                                                setIsCityOpen(false);
+                                                            }}
+                                                            style={{
+                                                                padding: "9px 12px",
+                                                                borderRadius: "8px",
+                                                                background: "#F0FDF4",
+                                                                border: "1px dashed #86EFAC",
+                                                                color: "#166534",
+                                                                fontSize: "0.82rem",
+                                                                fontWeight: 700,
+                                                                cursor: "pointer",
+                                                                marginBottom: "4px",
+                                                                display: "flex",
+                                                                alignItems: "center",
+                                                                gap: "8px",
+                                                                transition: "all 0.15s ease"
+                                                            }}
+                                                            onMouseEnter={(e) => e.currentTarget.style.background = "#DCFCE7"}
+                                                            onMouseLeave={(e) => e.currentTarget.style.background = "#F0FDF4"}
+                                                        >
+                                                            <span style={{ fontSize: "1rem" }}>✨</span>
+                                                            <span>Add custom city: <strong style={{ textDecoration: "underline" }}>"{city.trim()}"</strong></span>
+                                                        </div>
+                                                    )}
+
+                                                    {filtered.length === 0 && !searchLower && (
+                                                        <div style={{ padding: "12px", textAlign: "center", color: "#94A3B8", fontSize: "0.82rem" }}>
+                                                            Start typing to search cities...
+                                                        </div>
+                                                    )}
+
+                                                    {filtered.map((c) => {
+                                                        const isSelected = city.toLowerCase().trim() === c.toLowerCase();
+                                                        return (
+                                                            <div
+                                                                key={c}
+                                                                onClick={() => {
+                                                                    setCity(c);
+                                                                    saveNewCityIfCustom(c);
+                                                                    setIsCityOpen(false);
+                                                                }}
+                                                                style={{
+                                                                    padding: "8px 12px",
+                                                                    borderRadius: "8px",
+                                                                    fontSize: "0.84rem",
+                                                                    fontWeight: isSelected ? 700 : 500,
+                                                                    color: isSelected ? "#0F766E" : "#1E293B",
+                                                                    background: isSelected ? "#F0FDFA" : "transparent",
+                                                                    cursor: "pointer",
+                                                                    display: "flex",
+                                                                    alignItems: "center",
+                                                                    justifyContent: "space-between",
+                                                                    transition: "background 0.12s ease"
+                                                                }}
+                                                                onMouseEnter={(e) => {
+                                                                    if (!isSelected) e.currentTarget.style.background = "#F8FAFC";
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    if (!isSelected) e.currentTarget.style.background = "transparent";
+                                                                }}
+                                                            >
+                                                                <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                                                    <span style={{ color: "#94A3B8", fontSize: "0.76rem" }}>📍</span>
+                                                                    {c}
+                                                                </span>
+                                                                {isSelected && <span style={{ color: "#0F766E", fontWeight: 900, fontSize: "0.85rem" }}>✓</span>}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </>
+                                            );
+                                        })()}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="field">
