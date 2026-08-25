@@ -712,6 +712,17 @@ export default function AdminDashboard() {
     const nextStage = currIdx >= 0 && currIdx < STAGE_SEQUENCE.length - 1 ? STAGE_SEQUENCE[currIdx + 1] : 'Disbursed';
     const nextStatus = nextStage === 'Disbursed' ? 'disbursed' : 'in progress';
 
+    if (nextStage === 'Disbursed') {
+      const lenders = (lead.lender || "").split(",").map(s => s.trim()).filter(Boolean);
+      if (lenders.length !== 1) {
+        setCustomAlert({ 
+          message: "Cannot advance to Disbursed! Please click 'Edit' and specify exactly ONE approving bank.", 
+          type: "warning" 
+        });
+        return;
+      }
+    }
+
     try {
       const res = await fetch("/api/admin/update-application", {
         method: "POST",
@@ -736,6 +747,15 @@ export default function AdminDashboard() {
   }
 
   async function disburseLead(lead) {
+    const lenders = (lead.lender || "").split(",").map(s => s.trim()).filter(Boolean);
+    if (lenders.length !== 1) {
+      setCustomAlert({ 
+        message: "Cannot mark as Disbursed! Please click 'Edit' and specify exactly ONE approving bank.", 
+        type: "warning" 
+      });
+      return;
+    }
+
     try {
       const res = await fetch("/api/admin/update-application", {
         method: "POST",
@@ -779,6 +799,18 @@ export default function AdminDashboard() {
         payload.stage = 'Rejected';
       } else if (editForm.status === 'disbursed') {
         payload.stage = 'Disbursed';
+      }
+
+      // Validation: Disbursed loans must have exactly ONE approving bank specified
+      if (payload.status === 'disbursed' || payload.stage === 'Disbursed') {
+        const lenders = (payload.lender || "").split(",").map(s => s.trim()).filter(Boolean);
+        if (lenders.length !== 1) {
+          setCustomAlert({ 
+            message: "You must specify exactly ONE approving bank in the Lender field before marking this loan as disbursed.", 
+            type: "warning" 
+          });
+          return;
+        }
       }
 
       const res = await fetch("/api/admin/update-application", {
