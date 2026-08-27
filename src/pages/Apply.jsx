@@ -140,15 +140,16 @@ export default function Apply() {
     }
   }, [user, stepperStep]);
 
-  // Fetch real lenders and live admin overrides
+  // Fetch real lenders and live admin overrides matching selected loanType
   useEffect(() => {
     const fetchLenders = async () => {
       try {
         setLoadingLenders(true);
-        const res = await fetch("/api/admin/lender-rates");
+        const catKey = loanType || 'home';
+        const res = await fetch(`/api/lenders/rates?loanTypeShortId=${catKey}`);
         if (res.ok) {
           const json = await res.json();
-          const ratesList = json.rates || json.data || (Array.isArray(json) ? json : []);
+          const ratesList = json.data || (Array.isArray(json) ? json : []);
           if (Array.isArray(ratesList) && ratesList.length > 0) {
             setDbLenders(ratesList);
             return;
@@ -166,7 +167,7 @@ export default function Apply() {
       }
     };
     fetchLenders();
-  }, []);
+  }, [loanType]);
 
   // Title map for alert banner
   const typeTitleMap = {
@@ -352,10 +353,8 @@ export default function Apply() {
     });
 
     return result.sort((a, b) => {
-      const pA = getLenderTypePriority(a.type);
-      const pB = getLenderTypePriority(b.type);
-      if (pA !== pB) return pA - pB;
-      return a.rate - b.rate;
+      if (a.rate !== b.rate) return a.rate - b.rate;
+      return a.name.localeCompare(b.name);
     });
   }, [dbLenders, loanType, rateType]);
 
