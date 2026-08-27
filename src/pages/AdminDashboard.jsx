@@ -10,14 +10,19 @@ function buildCategoryRates(catKey, backendRates = []) {
     'PL': 'personal',
     'BL': 'business',
     'VL': 'vehicle',
-    'LAP': 'lap'
+    'LAP': 'lap',
+    'home': 'home',
+    'personal': 'personal',
+    'business': 'business',
+    'vehicle': 'vehicle',
+    'lap': 'lap'
   }[catKey] || 'home';
 
   const backendMap = new Map();
   if (Array.isArray(backendRates)) {
     backendRates.forEach(br => {
-      if (br.name) backendMap.set(br.name.toLowerCase().trim(), br);
-      if (br.short) backendMap.set(br.short.toLowerCase().trim(), br);
+      if (br && br.name) backendMap.set(br.name.toLowerCase().trim(), br);
+      if (br && br.short) backendMap.set(br.short.toLowerCase().trim(), br);
     });
   }
 
@@ -25,7 +30,12 @@ function buildCategoryRates(catKey, backendRates = []) {
     const rateObj = l.rates?.[mapKey];
     const defaultFlow = rateObj ? rateObj.f : null;
     const defaultFix = rateObj ? rateObj.x : null;
-    const typeUpper = l.type ? (l.type.toUpperCase() === 'PSU' ? 'PSU' : l.type.toLowerCase().includes('nbfc') ? 'NBFC/HFC' : l.type.toLowerCase().includes('small') ? 'SFB' : 'Private') : 'Private';
+    const typeUpper = l.type ? (
+      l.type.toUpperCase() === 'PSU' ? 'PSU' :
+      (l.type.toLowerCase().includes('nbfc') || l.type.toLowerCase().includes('hfc')) ? 'NBFC/HFC' :
+      (l.type.toLowerCase().includes('small') || l.type.toLowerCase().includes('sfb')) ? 'SFB' :
+      'Private'
+    ) : 'Private';
 
     // Find any backend override
     const br = backendMap.get(l.name.toLowerCase().trim()) || (l.short ? backendMap.get(l.short.toLowerCase().trim()) : null);
@@ -38,16 +48,16 @@ function buildCategoryRates(catKey, backendRates = []) {
     let visible = true;
 
     if (br) {
-      if (br.flowLow !== undefined && br.flowLow !== null && br.flowLow !== "null" && br.flowLow !== "") {
+      if (br.flowLow !== undefined && br.flowLow !== null && br.flowLow !== "null" && br.flowLow !== "" && br.flowLow !== "N/A") {
         flowLow = String(br.flowLow);
       }
-      if (br.flowHigh !== undefined && br.flowHigh !== null && br.flowHigh !== "null" && br.flowHigh !== "") {
+      if (br.flowHigh !== undefined && br.flowHigh !== null && br.flowHigh !== "null" && br.flowHigh !== "" && br.flowHigh !== "N/A") {
         flowHigh = String(br.flowHigh);
       }
-      if (br.fixLow !== undefined && br.fixLow !== null && br.fixLow !== "null" && br.fixLow !== "") {
+      if (br.fixLow !== undefined && br.fixLow !== null && br.fixLow !== "null" && br.fixLow !== "" && br.fixLow !== "N/A") {
         fixLow = String(br.fixLow);
       }
-      if (br.fixHigh !== undefined && br.fixHigh !== null && br.fixHigh !== "null" && br.fixHigh !== "") {
+      if (br.fixHigh !== undefined && br.fixHigh !== null && br.fixHigh !== "null" && br.fixHigh !== "" && br.fixHigh !== "N/A") {
         fixHigh = String(br.fixHigh);
       }
       if (br.offer) offer = br.offer;
@@ -430,24 +440,23 @@ export default function AdminDashboard() {
     }
   }
 
-  async function fetchLenderRates() {
+  async function fetchLenderRates(cat = selectedLoanCategory) {
     try {
-      const res = await fetch(`/api/admin/lender-rates?loanTypeShortId=${selectedLoanCategory}`, {
+      const res = await fetch(`/api/admin/lender-rates?loanTypeShortId=${cat}`, {
         credentials: "include",
         headers: getAuthHeaders()
       });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          setRates(buildCategoryRates(selectedLoanCategory, data));
+          setRates(buildCategoryRates(cat, data));
           return;
         }
       }
-      // Fallback to full 60+ banks directory
-      setRates(buildCategoryRates(selectedLoanCategory));
+      setRates(buildCategoryRates(cat));
     } catch (e) {
       console.error("fetchLenderRates error:", e);
-      setRates(buildCategoryRates(selectedLoanCategory));
+      setRates(buildCategoryRates(cat));
     }
   }
 
@@ -3037,7 +3046,12 @@ export default function AdminDashboard() {
                   <select
                     className="adm-filter-dropdown"
                     value={selectedLoanCategory}
-                    onChange={(e) => setSelectedLoanCategory(e.target.value)}
+                    onChange={(e) => {
+                      const newCat = e.target.value;
+                      setSelectedLoanCategory(newCat);
+                      setRates(buildCategoryRates(newCat));
+                      fetchLenderRates(newCat);
+                    }}
                     style={{ padding: '9px 14px', borderRadius: '10px', border: '1px solid #CBD5E1', background: '#FFFFFF', fontWeight: 600, fontSize: '0.85rem', color: '#1E293B', cursor: 'pointer', outline: 'none' }}
                   >
                     <option value="HL">🏠 Home Loan</option>
@@ -3194,7 +3208,7 @@ export default function AdminDashboard() {
                     </thead>
                     <tbody>
                       {(() => {
-                        const activeList = buildCategoryRates(selectedLoanCategory, rates);
+                        const activeList = Array.isArray(rates) && rates.length > 0 ? rates : buildCategoryRates(selectedLoanCategory);
 
                         const filteredRates = activeList.filter(r => {
                           if (!r) return false;
@@ -3213,7 +3227,9 @@ export default function AdminDashboard() {
                           }
 
                           const term = String(searchTerm || '').toLowerCase().trim();
-                          const matchSearch = !term || String(r.name || '').toLowerCase().includes(term);
+                          const matchSearch = !term ||
+                            String(r.name || '').toLowerCase().includes(term) ||
+                            String(r.short || '').toLowerCase().includes(term);
                           return matchType && matchSearch;
                         });
 
