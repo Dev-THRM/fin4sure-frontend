@@ -293,7 +293,6 @@ export default function ClientDashboard() {
                 <span className="cdash-badge">Borrower</span>
                 <span>📱 {user.number || authUser?.number || "8123123712"}</span>
               </div>
-              )}
             </div>
           </div>
 
