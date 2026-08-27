@@ -22,6 +22,21 @@ export default function UploadDocs() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  
+  const [existingDocs, setExistingDocs] = useState([]);
+  const [loadingExisting, setLoadingExisting] = useState(true);
+
+  React.useEffect(() => {
+    fetch(`/api/client/application-documents/${applicationId}`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setExistingDocs(data);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoadingExisting(false));
+  }, [applicationId]);
 
   const docConfig = [
     { key: "aadhar", title: "Aadhaar Card", icon: "🪪", desc: "Front & back scanned copy in single PDF/Image", type: "aadhar" },
@@ -46,7 +61,11 @@ export default function UploadDocs() {
     handleFileChange(key, file);
   };
 
-  const isFormValid = docs.aadhar && docs.pan && docs.salarySlip && docs.bankStatement;
+  const isFormValid = docConfig.every(config => {
+    const existing = existingDocs.find(d => d.document_type === config.type);
+    if (existing && existing.status !== 'rejected') return true;
+    return !!docs[config.key];
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -56,18 +75,15 @@ export default function UploadDocs() {
     setErrorMsg("");
 
     try {
-      // Mocking document upload with filenames
-      const filesPayload = [
-        { type: "aadhar", name: docs.aadhar.name },
-        { type: "pan", name: docs.pan.name },
-        { type: "salary slip", name: docs.salarySlip.name },
-        { type: "bank statement", name: docs.bankStatement.name },
-      ];
+      const formData = new FormData();
+      if (docs.aadhar) { formData.append('files', docs.aadhar); formData.append('types', 'aadhar'); }
+      if (docs.pan) { formData.append('files', docs.pan); formData.append('types', 'pan'); }
+      if (docs.salarySlip) { formData.append('files', docs.salarySlip); formData.append('types', 'salary slip'); }
+      if (docs.bankStatement) { formData.append('files', docs.bankStatement); formData.append('types', 'bank statement'); }
 
       const res = await fetch(`/api/client/upload-docs/${applicationId}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ files: filesPayload }),
+        body: formData,
         // Include credentials for session cookie authentication
         credentials: "include",
       });
@@ -101,18 +117,27 @@ export default function UploadDocs() {
 
         <form onSubmit={handleSubmit} className="upd-form">
           <div className="upd-grid">
-            {docConfig.map((item) => (
+            {docConfig.map((item) => {
+              const existing = existingDocs.find(d => d.document_type === item.type);
+              const isRejected = existing?.status === 'rejected';
+              const isUploaded = existing && !isRejected;
+              
+              return (
               <div 
                 key={item.key} 
-                className={`upd-card ${docs[item.key] ? "has-file" : ""}`}
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, item.key)}
+                className={`upd-card ${docs[item.key] || isUploaded ? "has-file" : ""}`}
+                onDragOver={isUploaded ? undefined : handleDragOver}
+                onDrop={isUploaded ? undefined : (e) => handleDrop(e, item.key)}
               >
                 <div className="upd-card-icon">{item.icon}</div>
                 <h4>{item.title}</h4>
                 <p className="upd-card-desc">{item.desc}</p>
 
-                {docs[item.key] ? (
+                {isUploaded ? (
+                  <div style={{ marginTop: '16px', padding: '10px', background: '#D1FAE5', color: '#065F46', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                    ✅ {existing.status === 'verified' ? 'Verified' : 'Uploaded'}
+                  </div>
+                ) : docs[item.key] ? (
                   <div className="upd-file-info">
                     <span className="upd-file-name">📄 {docs[item.key].name}</span>
                     <button 
@@ -125,6 +150,11 @@ export default function UploadDocs() {
                   </div>
                 ) : (
                   <div className="upd-upload-area">
+                    {isRejected && (
+                      <div style={{ marginBottom: '10px', padding: '6px', background: '#FEE2E2', color: '#B91C1C', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>
+                        ❌ Rejected, please re-upload
+                      </div>
+                    )}
                     <label htmlFor={`file-${item.key}`} className="upd-select-lbl">
                       Choose File
                     </label>
@@ -139,7 +169,7 @@ export default function UploadDocs() {
                   </div>
                 )}
               </div>
-            ))}
+            )})}
           </div>
 
           <div className="upd-footer-actions">
@@ -154,11 +184,10 @@ export default function UploadDocs() {
             </button>
             <button 
               type="submit" 
-              className="btn-primary" 
+              className={`upd-submit-btn ${!isFormValid || loading ? 'disabled' : ''}`}
               disabled={!isFormValid || loading}
-              style={{ padding: "12px 32px", opacity: isFormValid ? 1 : 0.6 }}
             >
-              {loading ? "Uploading..." : "Submit Documents →"}
+              {loading ? "Uploading..." : existingDocs.length > 0 ? "Upload Missing Documents" : "Submit Documents"}
             </button>
           </div>
         </form>

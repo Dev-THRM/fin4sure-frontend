@@ -151,6 +151,8 @@ export default function AdminDashboard() {
   const [selectedBroker, setSelectedBroker] = useState(null);
   const [selectedBorrower, setSelectedBorrower] = useState(null);
   const [editingLead, setEditingLead] = useState(null); // lead being edited
+  const [editLeadDocs, setEditLeadDocs] = useState([]);
+  const [fetchingDocs, setFetchingDocs] = useState(false);
   const [editForm, setEditForm] = useState({});
 
   const [editingBroker, setEditingBroker] = useState(null); // broker being edited
@@ -781,6 +783,16 @@ export default function AdminDashboard() {
 
   function openEditLead(lead) {
     setEditingLead(lead);
+    setEditLeadDocs([]);
+    setFetchingDocs(true);
+    fetch(`/api/admin/application-documents/${lead.id}`, { credentials: 'include', headers: getAuthHeaders() })
+      .then(res => res.json())
+      .then(data => {
+        setEditLeadDocs(Array.isArray(data) ? data : []);
+      })
+      .catch(e => console.error(e))
+      .finally(() => setFetchingDocs(false));
+
     const candidateBanks = lead.all_selected_lenders || (lead.lender ? lead.lender.split(',').map(s => s.trim()).filter(Boolean) : []);
     const initialLender = lead.active_lender || (candidateBanks.length > 0 ? candidateBanks[0] : (lead.lender ? lead.lender.split(',')[0].trim() : "SBI"));
     setEditForm({
@@ -3204,6 +3216,62 @@ export default function AdminDashboard() {
               <div style={{ background: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '12px', padding: '14px 18px', marginBottom: '20px', fontSize: '0.85rem', color: '#0369A1' }}>
                 <div><strong>Borrower:</strong> {editingLead.name} &nbsp;&nbsp;&nbsp; <strong>Mobile:</strong> {editingLead.number || '-'} &nbsp;&nbsp;&nbsp; <strong>Type:</strong> {editingLead.product || 'Home Loan'}</div>
                 <div style={{ marginTop: '6px' }}><strong>Applied:</strong> {editingLead.createdAt ? new Date(editingLead.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '18 Jan 2025'}</div>
+              </div>
+
+              {/* Documents Section */}
+              <div style={{ marginBottom: '20px', padding: '14px 18px', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#334155', display: 'flex', alignItems: 'center', gap: '6px' }}>📄 Uploaded Documents</h4>
+                {fetchingDocs ? (
+                  <div style={{ fontSize: '0.85rem', color: '#64748B' }}>Loading documents...</div>
+                ) : editLeadDocs.length === 0 ? (
+                  <div style={{ fontSize: '0.85rem', color: '#64748B' }}>No documents uploaded yet.</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {editLeadDocs.map(doc => (
+                      <div key={doc.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#FFFFFF', padding: '8px 12px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.85rem' }}>
+                        <div>
+                          <strong style={{ color: '#0F172A', textTransform: 'capitalize' }}>{doc.document_type}</strong>
+                          <div style={{ color: '#64748B', fontSize: '0.75rem', marginTop: '2px' }}>
+                            Status: <span style={{ 
+                              color: doc.status === 'verified' ? '#059669' : doc.status === 'rejected' ? '#DC2626' : '#D97706', 
+                              fontWeight: 600, textTransform: 'capitalize' 
+                            }}>{doc.status}</span>
+                            <br/>{doc.file_name}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <a href={doc.file_path} target="_blank" rel="noopener noreferrer" style={{ padding: '6px 12px', background: '#0284C7', color: '#FFFFFF', textDecoration: 'none', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>View</a>
+                          
+                          {doc.status !== 'verified' && (
+                            <button onClick={async () => {
+                              if (!window.confirm("Verify this document?")) return;
+                              try {
+                                const res = await fetch(`/api/admin/application-documents/${doc.id}/status`, { 
+                                  method: 'PUT', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'verified' }), credentials: 'include' 
+                                });
+                                if (res.ok) setEditLeadDocs(prev => prev.map(d => d.id === doc.id ? { ...d, status: 'verified' } : d));
+                                else alert("Failed to verify document");
+                              } catch (e) { console.error(e); alert("Error verifying document"); }
+                            }} style={{ padding: '6px 12px', background: '#10B981', color: '#FFFFFF', border: 'none', cursor: 'pointer', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>Verify</button>
+                          )}
+
+                          {doc.status !== 'rejected' && (
+                            <button onClick={async () => {
+                              if (!window.confirm("Reject this document? The file will be deleted and the customer will be prompted to re-upload.")) return;
+                              try {
+                                const res = await fetch(`/api/admin/application-documents/${doc.id}/status`, { 
+                                  method: 'PUT', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'rejected' }), credentials: 'include' 
+                                });
+                                if (res.ok) setEditLeadDocs(prev => prev.map(d => d.id === doc.id ? { ...d, status: 'rejected' } : d));
+                                else alert("Failed to reject document");
+                              } catch (e) { console.error(e); alert("Error rejecting document"); }
+                            }} style={{ padding: '6px 12px', background: '#EF4444', color: '#FFFFFF', border: 'none', cursor: 'pointer', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>Reject</button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Form Fields */}

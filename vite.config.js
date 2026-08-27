@@ -11,7 +11,13 @@ export default defineConfig({
         target: 'https://palevioletred-ape-449755.hostingersite.com',
         changeOrigin: true,
         secure: false,
+      },
+      '/uploads': {
+        target: 'https://palevioletred-ape-449755.hostingersite.com',
+        changeOrigin: true,
+        secure: false,
       }
     }
   }
 });
+
