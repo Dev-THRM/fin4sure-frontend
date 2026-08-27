@@ -614,6 +614,9 @@ export default function AdminDashboard() {
       });
       if (res.ok) {
         setCustomAlert({ message: "Relationship Manager details saved successfully!", type: "success" });
+        if (typeof window !== "undefined" && rmMob) {
+          window.dispatchEvent(new CustomEvent("rm_phone_updated", { detail: rmMob }));
+        }
         fetchSettings();
       } else {
         setCustomAlert({ message: "Failed to save Relationship Manager details.", type: "error" });

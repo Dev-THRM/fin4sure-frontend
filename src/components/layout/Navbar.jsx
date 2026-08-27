@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Info, Home, Calculator, Banknote, Users, User, Key } from "lucide-react";
 import logo from "../../assets/images/logo.jpeg";
 import { useAuth } from "../../context/AuthContext";
@@ -11,7 +11,27 @@ export default function Navbar() {
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [adminPassword, setAdminPassword] = useState("");
   const [adminError, setAdminError] = useState("");
+  const [supportPhone, setSupportPhone] = useState("1800-123-4567");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetch("/api/location/public-settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && (data.support_phone || data.rm_details?.mob)) {
+          setSupportPhone(data.support_phone || data.rm_details.mob);
+        }
+      })
+      .catch(() => {});
+
+    const handlePhoneUpdate = (e) => {
+      if (e.detail) {
+        setSupportPhone(e.detail);
+      }
+    };
+    window.addEventListener("rm_phone_updated", handlePhoneUpdate);
+    return () => window.removeEventListener("rm_phone_updated", handlePhoneUpdate);
+  }, []);
 
   const handleAdminSubmit = async (e) => {
     e.preventDefault();
@@ -63,11 +83,11 @@ export default function Navbar() {
           </div>
         </Link>
         <div className="nav-top-right">
-          <a className="nav-phone" href="tel:18001234567">
+          <a className="nav-phone" href={`tel:${(supportPhone || '').replace(/\D/g, '')}`}>
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 3.08 4.18 2 2 0 0 1 5.07 2h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L9.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.58 2.81.7A2 2 0 0 1 22 16.92z"/>
             </svg>
-            1800-123-4567
+            {supportPhone || "1800-123-4567"}
           </a>
           {isAuthenticated ? (
             <button className="nav-cta" onClick={handleLogout}>Sign Out</button>
