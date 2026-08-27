@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/api/:path*", "destination": "https://palevioletred-ape-449755.hostingersite.com/api/:path*" },
-    { "source": "/((?!api/).*)", "destination": "/" }
+    { "source": "/uploads/:path*", "destination": "https://palevioletred-ape-449755.hostingersite.com/uploads/:path*" },
+    { "source": "/((?!api/|uploads/).*)", "destination": "/" }
   ]
 }

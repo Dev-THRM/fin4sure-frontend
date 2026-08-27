@@ -3746,7 +3746,7 @@ export default function AdminDashboard() {
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <a href={doc.file_path} target="_blank" rel="noopener noreferrer" style={{ padding: '6px 12px', background: '#0284C7', color: '#FFFFFF', textDecoration: 'none', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>View</a>
+                          <a href={doc.file_path.startsWith('http') ? doc.file_path : `https://palevioletred-ape-449755.hostingersite.com${doc.file_path}`} target="_blank" rel="noopener noreferrer" style={{ padding: '6px 12px', background: '#0284C7', color: '#FFFFFF', textDecoration: 'none', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>View</a>
                           
                           {doc.status !== 'verified' && (
                             <button onClick={async () => {
