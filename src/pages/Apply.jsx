@@ -488,14 +488,6 @@ export default function Apply() {
 
         {stepperStep === 1 ? (
           <>
-            {/* Alert banner showing pre-selected loan type */}
-            <div className="preselected-alert-banner">
-              <span className="pab-sparkle">✨</span>
-              <span className="pab-text">
-                <strong>{currentTitle} selected</strong> pre-selected based on your choice — change below if needed
-              </span>
-            </div>
-
             {/* Loan Type Category Selector */}
             <div className="calc-category-section">
               <h2 className="calc-section-title">Choose your loan type</h2>
