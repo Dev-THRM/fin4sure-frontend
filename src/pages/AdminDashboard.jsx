@@ -852,40 +852,345 @@ export default function AdminDashboard() {
     }
   }
 
-  // Export helpers
-  function getDateRange() {
-    const now = new Date();
-    let from = new Date(Date.now() - 365 * 86400000).toISOString();
-    let to = new Date().toISOString();
+  // ── CSV & XLS Export Utilities for Filtered Data ──
+  const downloadCSV = (filename, columns, data) => {
+    const headers = columns.map(c => `"${String(c.header).replace(/"/g, '""')}"`).join(",");
+    const rows = data.map(item =>
+      columns.map(c => {
+        const val = typeof c.accessor === 'function' ? c.accessor(item) : item[c.key];
+        const str = val === null || val === undefined ? "" : String(val);
+        return `"${str.replace(/"/g, '""')}"`;
+      }).join(",")
+    );
+    const csvContent = "\uFEFF" + [headers, ...rows].join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${filename}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
-    if (exportFilter === "today") {
-      from = new Date(now.setHours(0, 0, 0, 0)).toISOString();
-      to = new Date().toISOString();
-    } else if (exportFilter === "7days") {
-      from = new Date(Date.now() - 7 * 86400000).toISOString();
-      to = new Date().toISOString();
-    } else if (exportFilter === "1month") {
-      from = new Date(Date.now() - 30 * 86400000).toISOString();
-      to = new Date().toISOString();
-    } else if (exportFilter === "3months") {
-      from = new Date(Date.now() - 90 * 86400000).toISOString();
-      to = new Date().toISOString();
-    } else if (exportFilter === "custom") {
-      from = customFrom ? new Date(customFrom).toISOString() : from;
-      to = customTo ? new Date(customTo).toISOString() : to;
-    }
+  const downloadXLS = (filename, sheetName, columns, data) => {
+    const enc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    
+    const headerRow = '<Row>' + columns.map(c => 
+      `<Cell ss:StyleID="headerStyle"><Data ss:Type="String">${enc(c.header)}</Data></Cell>`
+    ).join('') + '</Row>';
 
-    return { from, to };
-  }
+    const dataRows = data.map(item => {
+      const cells = columns.map(c => {
+        const val = typeof c.accessor === 'function' ? c.accessor(item) : item[c.key];
+        const isNum = typeof val === 'number' && !isNaN(val);
+        const str = val === null || val === undefined ? "" : String(val);
+        return `<Cell><Data ss:Type="${isNum ? 'Number' : 'String'}">${enc(str)}</Data></Cell>`;
+      }).join('');
+      return `<Row>${cells}</Row>`;
+    }).join('');
 
-  function exportData(type, format = "xlsx") {
-    const { from, to } = getDateRange();
-    if (!from || !to) {
-      setCustomAlert({ message: "Please select a valid date range", type: "warning" });
+    const xml = `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Center"/>
+   <Borders/>
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#000000"/>
+   <Interior/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+  <Style ss:ID="headerStyle">
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#FFFFFF" ss:Bold="1"/>
+   <Interior ss:Color="#0F2942" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="${enc(sheetName.slice(0, 31))}">
+  <Table>
+   ${headerRow}
+   ${dataRows}
+  </Table>
+ </Worksheet>
+</Workbook>`;
+
+    const blob = new Blob([xml], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${filename}.xls`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportFilteredData = (type, format = "csv") => {
+    const isXls = format === "xlsx" || format === "xls";
+
+    if (type === "leads" || type === "clients") {
+      if (!filteredLeads || filteredLeads.length === 0) {
+        setCustomAlert({ message: "No matching applications to export for the applied filters.", type: "warning" });
+        return;
+      }
+
+      const columns = [
+        {
+          header: "App ID",
+          accessor: (l) => l.application_no ?? (String(l.id).startsWith('F4S') ? l.id : `F4S-${2000 + l.id}`)
+        },
+        {
+          header: "Borrower Name",
+          accessor: (l) => l.name || "Unknown"
+        },
+        {
+          header: "Email",
+          accessor: (l) => l.email || "-"
+        },
+        {
+          header: "Phone",
+          accessor: (l) => l.number || l.mob_no || l.phone || "-"
+        },
+        {
+          header: "Loan Type",
+          accessor: (l) => l.product || "Home Loan"
+        },
+        {
+          header: "Loan Amount (₹)",
+          accessor: (l) => l.loan_amount ? Number(l.loan_amount) : 0
+        },
+        {
+          header: "Lender",
+          accessor: (l) => {
+            let lendersList = [];
+            if (Array.isArray(l.lenders) && l.lenders.length > 0) {
+              lendersList = l.lenders;
+            } else if (l.lender && typeof l.lender === 'string') {
+              lendersList = l.lender.split(',').map(s => s.trim()).filter(Boolean);
+            } else if (l.client_preference && typeof l.client_preference === 'string' && !['direct_reach', 'partner_routing'].includes(l.client_preference)) {
+              lendersList = l.client_preference.split(',').map(s => s.trim()).filter(Boolean);
+            }
+            if (lendersList.length === 0) {
+              const defaultBankMap = {
+                'Home Loan': ['SBI', 'HDFC Bank', 'ICICI Bank'],
+                'Personal Loan': ['HDFC Bank', 'Axis Bank', 'Bajaj Finserv'],
+                'Business Loan': ['ICICI Bank', 'Kotak Mahindra', 'Bajaj Finserv'],
+                'Vehicle Loan': ['SBI', 'HDFC Bank', 'Bank of Baroda'],
+                'Loan Against Property': ['ICICI Bank', 'Axis Bank', 'PNB Housing']
+              };
+              lendersList = defaultBankMap[l.product] || ['SBI', 'HDFC Bank'];
+            }
+            return lendersList.join(', ');
+          }
+        },
+        {
+          header: "Stage",
+          accessor: (l) => (l.stage || l.status || "Applied").toUpperCase()
+        },
+        {
+          header: "Status",
+          accessor: (l) => {
+            const rawSt = (l.status || '').toLowerCase().trim();
+            return ['disbursed', 'completed'].includes(rawSt)
+              ? 'DISBURSED'
+              : rawSt === 'rejected'
+                ? 'REJECTED'
+                : 'IN-PROGRESS';
+          }
+        },
+        {
+          header: "Source",
+          accessor: (l) => l.partner_name || (l.source && l.source !== 'Direct') ? 'Partner' : 'Direct'
+        },
+        {
+          header: "Partner Name",
+          accessor: (l) => l.partner_name || (l.source && l.source !== 'Direct' ? l.source : '-')
+        },
+        {
+          header: "Applied Date",
+          accessor: (l) => l.createdAt ? new Date(l.createdAt).toLocaleDateString('en-IN') : '-'
+        },
+        {
+          header: "Remarks / Purpose",
+          accessor: (l) => l.loan_purpose || l.remark || '-'
+        }
+      ];
+
+      const filename = `finn4sure-applications-${new Date().toISOString().slice(0, 10)}`;
+      if (isXls) {
+        downloadXLS(filename, "Applications", columns, filteredLeads);
+      } else {
+        downloadCSV(filename, columns, filteredLeads);
+      }
+      setCustomAlert({ message: `Exported ${filteredLeads.length} filtered application(s) as ${isXls ? 'XLS' : 'CSV'}!`, type: "success" });
       return;
     }
-    const url = `/api/admin/export?type=${type}&from=${from}&to=${to}&format=${format}`;
-    window.open(url, "_blank");
+
+    if (type === "brokers" || type === "partners") {
+      if (!filteredBrokers || filteredBrokers.length === 0) {
+        setCustomAlert({ message: "No matching partners to export for the applied filters.", type: "warning" });
+        return;
+      }
+
+      const columns = [
+        {
+          header: "Partner ID",
+          accessor: (b) => b.brokerId ? (String(b.brokerId).startsWith('P4S') || String(b.brokerId).startsWith('F4S') ? b.brokerId : `F4S-${String(b.brokerId).padStart(5, '0')}`) : `F4S-${String(b.id).padStart(5, '0')}`
+        },
+        {
+          header: "Partner Name",
+          accessor: (b) => b.name || "—"
+        },
+        {
+          header: "Email",
+          accessor: (b) => b.email || "—"
+        },
+        {
+          header: "Phone",
+          accessor: (b) => b.number || b.mob_no || "—"
+        },
+        {
+          header: "Status",
+          accessor: (b) => (b.status || "inactive").toUpperCase()
+        },
+        {
+          header: "City / Location",
+          accessor: (b) => b.city || b.district || b.address || "Mumbai"
+        },
+        {
+          header: "State",
+          accessor: (b) => b.state || "—"
+        },
+        {
+          header: "Clients Count",
+          accessor: (b) => b.clientCount !== undefined ? b.clientCount : (b.clients ? b.clients.length : 0)
+        },
+        {
+          header: "Disbursed Count",
+          accessor: (b) => {
+            const leadsList = b.leads || [];
+            return b.disbursed !== undefined ? b.disbursed : leadsList.filter(l => ['disbursed', 'completed'].includes((l.status || l.stage || '').toLowerCase())).length;
+          }
+        },
+        {
+          header: "In Progress Count",
+          accessor: (b) => {
+            const leadsList = b.leads || [];
+            return b.inProgress !== undefined ? b.inProgress : leadsList.filter(l => ['in-progress', 'applied', 'submitted', 'docs', 'credit', 'legal', 'sanction', 'processing'].includes((l.status || l.stage || '').toLowerCase())).length;
+          }
+        },
+        {
+          header: "Pending Count",
+          accessor: (b) => {
+            const leadsList = b.leads || [];
+            return b.pending !== undefined ? b.pending : leadsList.filter(l => ['pending', 'rejected'].includes((l.status || l.stage || '').toLowerCase())).length;
+          }
+        },
+        {
+          header: "Total Volume (₹)",
+          accessor: (b) => {
+            const leadsList = b.leads || [];
+            return b.volume !== undefined ? b.volume : leadsList.reduce((acc, l) => acc + (parseFloat(l.loan_amount) || 0), 0);
+          }
+        },
+        {
+          header: "Registered Date",
+          accessor: (b) => b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-IN') : '—'
+        }
+      ];
+
+      const filename = `finn4sure-partners-${new Date().toISOString().slice(0, 10)}`;
+      if (isXls) {
+        downloadXLS(filename, "Partners", columns, filteredBrokers);
+      } else {
+        downloadCSV(filename, columns, filteredBrokers);
+      }
+      setCustomAlert({ message: `Exported ${filteredBrokers.length} filtered partner(s) as ${isXls ? 'XLS' : 'CSV'}!`, type: "success" });
+      return;
+    }
+
+    if (type === "borrowers") {
+      if (!filteredBorrowers || filteredBorrowers.length === 0) {
+        setCustomAlert({ message: "No matching borrowers to export for the applied filters.", type: "warning" });
+        return;
+      }
+
+      const columns = [
+        {
+          header: "Borrower Name",
+          accessor: (b) => b.name || "—"
+        },
+        {
+          header: "Email",
+          accessor: (b) => b.email || "—"
+        },
+        {
+          header: "Mobile",
+          accessor: (b) => {
+            const matchedLead = leads.find(l => (b.email && l.email && l.email.toLowerCase() === b.email.toLowerCase()) || (b.id && l.userId === b.id));
+            const rawPhone = b.number || b.mob_no || b.phone || (matchedLead ? (matchedLead.number || matchedLead.mob_no) : null);
+            return (rawPhone && rawPhone !== '-' && rawPhone !== 'null') ? rawPhone : '—';
+          }
+        },
+        {
+          header: "Total Loans",
+          accessor: (b) => {
+            const matched = leads.filter(l => (b.email && l.email && l.email.toLowerCase() === b.email.toLowerCase()) || (b.id && l.userId === b.id));
+            return matched.length || 1;
+          }
+        },
+        {
+          header: "Applied Lenders",
+          accessor: (b) => {
+            const matchedLeads = leads.filter(l => (b.email && l.email && l.email.toLowerCase() === b.email.toLowerCase()) || (b.id && l.userId === b.id));
+            const lenderSet = new Set();
+            if (b.appliedLender && b.appliedLender !== '-' && b.appliedLender !== 'null') {
+              b.appliedLender.split(',').forEach(s => { const t = s.trim(); if (t && t !== '-') lenderSet.add(t); });
+            }
+            if (b.lender && b.lender !== '-' && b.lender !== 'null') {
+              b.lender.split(',').forEach(s => { const t = s.trim(); if (t && t !== '-') lenderSet.add(t); });
+            }
+            matchedLeads.forEach(l => {
+              if (l.lender) l.lender.split(',').forEach(s => { const t = s.trim(); if (t && t !== '-') lenderSet.add(t); });
+            });
+            return Array.from(lenderSet).join(', ') || 'SBI, HDFC Bank';
+          }
+        },
+        {
+          header: "Best Stage",
+          accessor: (b) => (b.bestStage || b.stage || "Applied").toUpperCase()
+        },
+        {
+          header: "Status",
+          accessor: (b) => (b.status || "in progress").toUpperCase()
+        },
+        {
+          header: "Registered Date",
+          accessor: (b) => b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-IN') : '—'
+        }
+      ];
+
+      const filename = `finn4sure-borrowers-${new Date().toISOString().slice(0, 10)}`;
+      if (isXls) {
+        downloadXLS(filename, "Borrowers", columns, filteredBorrowers);
+      } else {
+        downloadCSV(filename, columns, filteredBorrowers);
+      }
+      setCustomAlert({ message: `Exported ${filteredBorrowers.length} filtered borrower(s) as ${isXls ? 'XLS' : 'CSV'}!`, type: "success" });
+      return;
+    }
+  };
+
+  // Backwards compatible exportData function
+  function exportData(type, format = "xlsx") {
+    exportFilteredData(type, format);
   }
 
   const handleSignOut = async () => {
@@ -1755,14 +2060,14 @@ export default function AdminDashboard() {
                   <option value="vehicle">VEHICLE LOAN</option>
                 </select>
 
-                <button className="adm-ctrl-btn btn-csv" onClick={() => exportData("clients", "csv")}>
+                <button className="adm-ctrl-btn btn-csv" onClick={() => exportFilteredData("leads", "csv")}>
                   <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                   CSV
                 </button>
 
-                <button className="adm-ctrl-btn btn-xls" onClick={() => exportData("clients", "xlsx")}>
+                <button className="adm-ctrl-btn btn-xls" onClick={() => exportFilteredData("leads", "xls")}>
                   <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
@@ -1991,23 +2296,23 @@ export default function AdminDashboard() {
                 </div>
 
                 <button
-                  onClick={() => exportData("brokers")}
-                  style={{
-                    background: '#0F2942',
-                    color: '#FFFFFF',
-                    padding: '10px 20px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    fontWeight: 700,
-                    fontSize: '0.88rem',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    boxShadow: '0 2px 6px rgba(15,41,66,0.15)'
-                  }}
+                  className="adm-ctrl-btn btn-csv"
+                  onClick={() => exportFilteredData("brokers", "csv")}
                 >
-                  <span>↓</span> Export CSV
+                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  CSV
+                </button>
+
+                <button
+                  className="adm-ctrl-btn btn-xls"
+                  onClick={() => exportFilteredData("brokers", "xls")}
+                >
+                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  XLS
                 </button>
               </div>
 
@@ -2195,25 +2500,48 @@ export default function AdminDashboard() {
           {/* 4. BORROWERS MANAGEMENT VIEW */}
           {activeTab === "borrowers" && (
             <div className="adm-subtab-container animate-fade-up">
-              <div style={{ marginBottom: '16px' }}>
-                <button
-                  onClick={() => exportData("clients")}
-                  style={{
-                    background: '#0F2942',
-                    color: '#FFFFFF',
-                    padding: '10px 18px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    fontWeight: 700,
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    boxShadow: '0 2px 4px rgba(15,41,66,0.15)'
-                  }}
+              <div className="adm-controls-row" style={{ marginBottom: '16px', display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <select
+                  className="adm-filter-dropdown"
+                  value={borrowerStatusFilter}
+                  onChange={(e) => setBorrowerStatusFilter(e.target.value)}
+                  style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #CBD5E1', background: '#FFFFFF', fontWeight: 500, fontSize: '0.88rem', color: '#1E293B', cursor: 'pointer', outline: 'none' }}
                 >
-                  <span>↓</span> Export Borrowers CSV
+                  <option value="all_statuses">ALL STATUSES</option>
+                  <option value="active">ACTIVE</option>
+                  <option value="inactive">INACTIVE</option>
+                </select>
+
+                <div className="adm-inner-search-box" style={{ flex: 1, minWidth: '240px', background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '8px', display: 'flex', alignItems: 'center', padding: '0 12px' }}>
+                  <span style={{ fontSize: '1rem', color: '#00B4D8', marginRight: '8px' }}>🔍</span>
+                  <input
+                    type="text"
+                    placeholder="Search borrower by name, email, phone..."
+                    className="adm-inner-search-input"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{ border: 'none', outline: 'none', width: '100%', padding: '10px 0', fontSize: '0.88rem', color: '#1E293B' }}
+                  />
+                </div>
+
+                <button
+                  className="adm-ctrl-btn btn-csv"
+                  onClick={() => exportFilteredData("borrowers", "csv")}
+                >
+                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  CSV
+                </button>
+
+                <button
+                  className="adm-ctrl-btn btn-xls"
+                  onClick={() => exportFilteredData("borrowers", "xls")}
+                >
+                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  XLS
                 </button>
               </div>
 
