@@ -1042,8 +1042,8 @@ export default function AdminDashboard() {
 
   const pendingCount = leads.length > 0
     ? leads.filter(l => {
-        const s = (l.status || '').toLowerCase().trim();
-        return s === 'pending' || s === 'applied';
+        const st = (l.stage || '').toLowerCase().trim();
+        return st === 'pending' || st === 'applied';
       }).length
     : (stats.pendingCount ?? 0);
 
@@ -1413,8 +1413,8 @@ export default function AdminDashboard() {
                         });
                       } else if (activeKpiFilter === 'pending') {
                         filtered = sourceList.filter(l => {
-                          const s = (l.status || '').toLowerCase().trim();
-                          return s === 'pending' || s === 'applied';
+                          const st = (l.stage || '').toLowerCase().trim();
+                          return st === 'pending' || st === 'applied';
                         });
                       } else if (activeKpiFilter === 'rejected') {
                         filtered = sourceList.filter(l => (l.status || '').toLowerCase().trim() === 'rejected');
