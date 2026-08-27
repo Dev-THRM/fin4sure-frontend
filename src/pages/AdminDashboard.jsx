@@ -323,14 +323,14 @@ export default function AdminDashboard() {
           if (Array.isArray(data.timeline) && data.timeline.length > 0) setTimeline(data.timeline);
           if (Array.isArray(data.leads) && data.leads.length > 0) setLeads(data.leads);
           if (Array.isArray(data.rates) && data.rates.length > 0) {
-            setRates(buildCategoryRates(selectedLoanCategory, data.rates));
+            setRates(buildCategoryRates('HL', data.rates));
           }
           return;
         }
       }
 
       // Fallback if bundle is empty or unavailable
-      fetchLenderRates();
+      fetchLenderRates('HL');
       const [resLeads, resBrokers, resStats] = await Promise.allSettled([
         fetch("/api/admin/leads", { credentials: "include", headers: getAuthHeaders() }),
         fetch("/api/admin/brokers", { credentials: "include", headers: getAuthHeaders() }),
@@ -354,7 +354,7 @@ export default function AdminDashboard() {
     } catch (e) {
       console.error("loadAdminData error:", e);
     }
-  }, [selectedLoanCategory]);
+  }, []);
 
   useEffect(() => {
     loadAdminData();
@@ -363,13 +363,13 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (activeTab === "rates") {
-      fetchLenderRates();
+      fetchLenderRates(selectedLoanCategory);
       fetchScraperStatus();
     }
     if (activeTab === "exports") {
       fetchSettings();
     }
-  }, [activeTab, selectedLoanCategory]);
+  }, [activeTab]);
 
   const handleRateChange = (lenderId, field, val) => {
     setRates(prevRates =>
