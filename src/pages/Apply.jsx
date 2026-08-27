@@ -551,7 +551,7 @@ export default function Apply() {
                   <div className="range-field" style={{ marginBottom: '20px' }}>
                     <div className="rf-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                       <label style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0F2942' }}>Loan Amount</label>
-                      <div className="rf-input-wrap" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '4px 8px' }}>
+                      <div className="rf-input-wrap" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '4px 8px', minWidth: '160px' }}>
                         <span className="rf-prefix" style={{ fontWeight: 700, color: '#0F2942', fontSize: '0.85rem' }}>₹</span>
                         <input
                           type="number"
@@ -561,13 +561,13 @@ export default function Apply() {
                           onChange={handleAmtInputChange}
                           onBlur={handleAmtBlur}
                           step="0.01"
-                          style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.9rem', color: '#0F2942', width: '70px', textAlign: 'right' }}
+                          style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.9rem', color: '#0F2942', flex: 1, textAlign: 'right', minWidth: '50px' }}
                         />
                         <select
                           className="rf-unit"
                           value={amtUnit}
                           onChange={handleUnitChange}
-                          style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 700, fontSize: '0.8rem', color: '#475569', cursor: 'pointer' }}
+                          style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 700, fontSize: '0.8rem', color: '#475569', cursor: 'pointer', appearance: 'none', width: 'auto', paddingLeft: '4px' }}
                         >
                           <option value={100000}>Lakh ▾</option>
                           <option value={10000000}>Crore ▾</option>
@@ -912,8 +912,12 @@ export default function Apply() {
                   <input
                     type="text"
                     value={applicantData.mob_no}
-                    onChange={(e) => setApplicantData({ ...applicantData, mob_no: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setApplicantData({ ...applicantData, mob_no: val });
+                    }}
                     placeholder="10-digit mobile"
+                    maxLength={10}
                   />
                 </div>
 
