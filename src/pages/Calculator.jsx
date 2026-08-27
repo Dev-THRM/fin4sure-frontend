@@ -1054,57 +1054,77 @@ export default function Calculator() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredAndSortedLenders.map((lender) => {
-                    const lEmi = calcEMI(amount, lender.rate, tenure);
-                    return (
-                      <tr key={lender.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                        <td style={{ padding: '10px 14px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <div style={{ width: '30px', height: '30px', borderRadius: '6px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.95rem' }}>
-                              🏛️
-                            </div>
-                            <div>
-                              <div style={{ fontWeight: 800, color: '#0F2942' }}>{lender.name}</div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '1px' }}>
-                                <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', background: '#F1F5F9', padding: '1px 4px', borderRadius: '4px' }}>
-                                  {lender.type || 'PRIVATE'}
-                                </span>
+                  {filteredAndSortedLenders.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" style={{ padding: '30px 14px', textAlign: 'center', color: '#64748B', fontWeight: 600 }}>
+                        No matching lenders found for {lenderFilter}.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredAndSortedLenders.map((lender) => {
+                      const lEmi = calcEMI(amount, lender.rate, tenure);
+                      const rowKey = `calc-lender-${lender.name}-${lender.type}-${lenderFilter}-${rateType}-${loanType}`;
+                      const isPsu = lender.type === 'PSU';
+                      const isNbfc = lender.type === 'NBFC/HFC';
+                      const isSfb = lender.type === 'SFB';
+
+                      return (
+                        <tr key={rowKey} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '10px 14px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div style={{ width: '30px', height: '30px', borderRadius: '6px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.95rem' }}>
+                                🏛️
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 800, color: '#0F2942' }}>{lender.name}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '1px' }}>
+                                  <span style={{
+                                    fontSize: '0.65rem',
+                                    fontWeight: 700,
+                                    color: isPsu ? '#1E40AF' : isNbfc ? '#92400E' : isSfb ? '#15803D' : '#475569',
+                                    background: isPsu ? '#DBEAFE' : isNbfc ? '#FEF3C7' : isSfb ? '#DCFCE7' : '#F1F5F9',
+                                    padding: '1px 6px',
+                                    borderRadius: '4px'
+                                  }}>
+                                    {lender.type || 'PRIVATE'}
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </td>
+                          </td>
 
-                        <td style={{ padding: '10px 14px' }}>
-                          <div style={{ fontWeight: 800, color: '#0F2942', fontSize: '0.88rem' }}>{lender.rate.toFixed(2)}%</div>
-                          <div style={{ fontSize: '0.68rem', color: '#64748B' }}>{lender.rate.toFixed(2)}–{lender.maxRate.toFixed(2)}</div>
-                        </td>
+                          <td style={{ padding: '10px 14px' }}>
+                            <div style={{ fontWeight: 800, color: '#0F2942', fontSize: '0.88rem' }}>{lender.rate.toFixed(2)}%</div>
+                            <div style={{ fontSize: '0.68rem', color: '#64748B' }}>{lender.rate.toFixed(2)}–{lender.maxRate.toFixed(2)}%</div>
+                          </td>
 
-                        <td style={{ padding: '10px 14px' }}>
-                          <div style={{ fontWeight: 800, color: '#0284C7', fontSize: '0.88rem' }}>{fmtINRFull(lEmi)}<span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#64748B' }}>/mo</span></div>
-                        </td>
+                          <td style={{ padding: '10px 14px' }}>
+                            <div style={{ fontWeight: 800, color: '#0284C7', fontSize: '0.88rem' }}>{fmtINRFull(lEmi)}<span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#64748B' }}>/mo</span></div>
+                          </td>
 
-                        <td style={{ padding: '10px 14px', textAlign: 'right' }}>
-                          <button
-                            type="button"
-                            onClick={() => handleApplyToLender(lender.id)}
-                            style={{
-                              padding: '6px 14px',
-                              borderRadius: '6px',
-                              background: '#0F2942',
-                              color: '#FFFFFF',
-                              border: 'none',
-                              fontWeight: 800,
-                              fontSize: '0.78rem',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s ease'
-                            }}
-                          >
-                            Apply →
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                          <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                            <button
+                              type="button"
+                              onClick={() => handleApplyToLender(lender.id)}
+                              style={{
+                                padding: '6px 14px',
+                                borderRadius: '6px',
+                                background: '#0F2942',
+                                color: '#FFFFFF',
+                                border: 'none',
+                                fontWeight: 800,
+                                fontSize: '0.78rem',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                              }}
+                            >
+                              Apply →
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
