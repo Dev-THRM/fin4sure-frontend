@@ -1204,22 +1204,28 @@ export default function AdminDashboard() {
 
   // Search and status filter
   const filteredBrokers = useMemo(() => {
-    return brokers.filter((b) => {
-      const term = searchTerm.toLowerCase();
-      const matchesSearch = !term ||
-        b.name?.toLowerCase().includes(term) ||
-        b.email?.toLowerCase().includes(term) ||
-        b.brokerId?.toLowerCase().includes(term);
+    return brokers
+      .filter((b) => {
+        const term = searchTerm.toLowerCase();
+        const matchesSearch = !term ||
+          b.name?.toLowerCase().includes(term) ||
+          b.email?.toLowerCase().includes(term) ||
+          b.brokerId?.toLowerCase().includes(term);
 
-      const stLower = (b.status || 'active').toLowerCase().trim();
-      const matchesStatus =
-        brokerStatusFilter === "all_partners" ||
-        brokerStatusFilter === "all_statuses" ||
-        (brokerStatusFilter === "active" && (stLower === "active" || stLower === "approved")) ||
-        (brokerStatusFilter === "inactive" && stLower !== "active" && stLower !== "approved");
+        const stLower = (b.status || 'active').toLowerCase().trim();
+        const matchesStatus =
+          brokerStatusFilter === "all_partners" ||
+          brokerStatusFilter === "all_statuses" ||
+          (brokerStatusFilter === "active" && (stLower === "active" || stLower === "approved")) ||
+          (brokerStatusFilter === "inactive" && stLower !== "active" && stLower !== "approved");
 
-      return matchesSearch && matchesStatus;
-    });
+        return matchesSearch && matchesStatus;
+      })
+      .sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : (a.id ? Number(a.id) : 0);
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : (b.id ? Number(b.id) : 0);
+        return dateB - dateA;
+      });
   }, [brokers, searchTerm, brokerStatusFilter]);
 
   const filteredLeads = useMemo(() => {
