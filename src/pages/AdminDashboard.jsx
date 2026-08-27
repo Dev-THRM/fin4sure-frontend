@@ -663,7 +663,7 @@ export default function AdminDashboard() {
       const res = await fetch("/api/admin/broker-status", {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(true),
         body: JSON.stringify({ brokerId, status }),
       });
       if (res.status === 429) {
@@ -2488,7 +2488,7 @@ export default function AdminDashboard() {
                           </button>
 
                           <button
-                            onClick={() => updateBrokerStatus(b.brokerId || b.id, isLive ? 'inactive' : 'active')}
+                            onClick={() => updateBrokerStatus(b.id || b.brokerId, isLive ? 'inactive' : 'active')}
                             style={{
                               padding: '7px 16px',
                               borderRadius: '8px',
