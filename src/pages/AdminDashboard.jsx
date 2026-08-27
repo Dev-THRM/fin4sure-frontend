@@ -1291,25 +1291,26 @@ export default function AdminDashboard() {
 
     return activeList.filter(r => {
       if (!r) return false;
-      const rawType = String(r.type || 'Private').toLowerCase();
-      const filterType = String(selectedRateType || 'all_types').toLowerCase();
+      const rawType = String(r.type || 'Private').toLowerCase().trim();
+      const filterType = String(selectedRateType || 'all_types').toLowerCase().trim();
 
       let matchType = true;
       if (filterType === "psu") {
-        matchType = rawType.includes("psu");
+        matchType = rawType === "psu" || rawType.includes("psu") || rawType.includes("public") || rawType.includes("govt");
       } else if (filterType === "private") {
-        matchType = rawType.includes("private");
-      } else if (filterType === "nbfc_hfc") {
-        matchType = rawType.includes("nbfc") || rawType.includes("hfc");
+        matchType = rawType === "private";
+      } else if (filterType === "nbfc_hfc" || filterType === "nbfc") {
+        matchType = rawType.includes("nbfc") || rawType.includes("hfc") || rawType.includes("housing finance");
       } else if (filterType === "sfb") {
         matchType = rawType.includes("sfb") || rawType.includes("small");
       }
 
+      if (!matchType) return false;
+
       const term = String(searchTerm || '').toLowerCase().trim();
-      const matchSearch = !term ||
+      return !term ||
         String(r.name || '').toLowerCase().includes(term) ||
         String(r.short || '').toLowerCase().includes(term);
-      return matchType && matchSearch;
     });
   }, [rates, selectedLoanCategory, selectedRateType, searchTerm]);
 
@@ -3242,6 +3243,7 @@ export default function AdminDashboard() {
                         </tr>
                       ) : (
                         filteredRates.map((rate) => {
+                          const rowKey = `rate-row-${rate.name || rate.short}-${rate.type}-${selectedLoanCategory}-${selectedRateType}`;
                           const lKey = rate.lenderId || rate.id || rate.name;
                           const typeLower = String(rate.type || 'Private').toLowerCase();
                           const badgeClass = typeLower.includes('psu')
@@ -3253,7 +3255,7 @@ export default function AdminDashboard() {
                                 : 'private';
 
                           return (
-                            <tr key={lKey}>
+                            <tr key={rowKey}>
                               <td>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, color: '#0F2942', fontSize: '0.88rem' }}>
                                   <span>{rate.emoji || (badgeClass === 'psu' ? '🏛️' : badgeClass === 'sfb' ? '🏦' : badgeClass === 'nbfc-hfc' ? '🏢' : '🏦')}</span>
