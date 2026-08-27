@@ -217,11 +217,18 @@ export default function Calculator() {
         if (dbEntry.offer) offer = dbEntry.offer;
       }
 
+      const typeUpper = l.type ? (
+        l.type.toUpperCase() === 'PSU' ? 'PSU' :
+        (l.type.toLowerCase().includes('nbfc') || l.type.toLowerCase().includes('hfc')) ? 'NBFC/HFC' :
+        (l.type.toLowerCase().includes('small') || l.type.toLowerCase().includes('sfb')) ? 'SFB' :
+        'PRIVATE'
+      ) : 'PRIVATE';
+
       result.push({
         id: dbEntry?.id || (idx + 1),
         name: l.name,
         short: l.short || l.name,
-        type: l.type ? l.type.toUpperCase() : "PRIVATE",
+        type: typeUpper,
         emoji: l.emoji || '🏛️',
         logo: l.logo || null,
         rate: parseFloat(minR),
@@ -296,7 +303,22 @@ export default function Calculator() {
 
     if (lenderFilter !== "All") {
       const fl = lenderFilter.toLowerCase();
-      list = list.filter(l => (l.type || '').toLowerCase().includes(fl));
+      list = list.filter(l => {
+        const rawType = String(l.type || 'PRIVATE').toLowerCase();
+        if (fl === "psu") {
+          return rawType === "psu" || rawType.includes("psu") || rawType.includes("public") || rawType.includes("govt");
+        }
+        if (fl === "private") {
+          return rawType === "private";
+        }
+        if (fl === "nbfc/hfc" || fl === "nbfc" || fl === "hfc") {
+          return rawType.includes("nbfc") || rawType.includes("hfc");
+        }
+        if (fl === "sfb" || fl === "small") {
+          return rawType.includes("sfb") || rawType.includes("small");
+        }
+        return true;
+      });
     }
 
     // Type priority order: Private → NBFC/HFC → SFB → PSU
@@ -310,7 +332,6 @@ export default function Calculator() {
     };
 
     if (lenderSort === "rate_asc") {
-      // Sort by rate first, then by type order for ties
       list.sort((a, b) => {
         if (a.rate !== b.rate) return a.rate - b.rate;
         return getTypeOrder(a.type) - getTypeOrder(b.type);
@@ -327,8 +348,12 @@ export default function Calculator() {
         return getTypeOrder(a.type) - getTypeOrder(b.type);
       });
     } else {
-      // Default: sort purely by type order
-      list.sort((a, b) => getTypeOrder(a.type) - getTypeOrder(b.type));
+      list.sort((a, b) => {
+        const pA = getTypeOrder(a.type);
+        const pB = getTypeOrder(b.type);
+        if (pA !== pB) return pA - pB;
+        return a.rate - b.rate;
+      });
     }
 
     return list;
@@ -609,14 +634,15 @@ export default function Calculator() {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: "6px",
+                      gap: "4px",
                       background: "#F8FAFC",
                       border: "1px solid #CBD5E1",
                       borderRadius: "8px",
-                      padding: "2px 10px",
-                      width: "230px",
+                      padding: "2px 8px",
+                      width: "auto",
+                      minWidth: "150px",
                       boxSizing: "border-box",
-                      flexShrink: 0
+                      overflow: "visible"
                     }}
                   >
                     <span
@@ -624,7 +650,7 @@ export default function Calculator() {
                       style={{
                         fontWeight: 700,
                         color: "#0F2942",
-                        fontSize: "0.8rem",
+                        fontSize: "0.85rem",
                         flexShrink: 0
                       }}
                     >
@@ -646,10 +672,9 @@ export default function Calculator() {
                         fontWeight: 800,
                         fontSize: "0.85rem",
                         color: "#0F2942",
-                        width: "65px",
-                        minWidth: 0,
-                        flexShrink: 0,
-                        textAlign: "right"
+                        width: "55px",
+                        textAlign: "right",
+                        padding: "2px 0"
                       }}
                     />
 
@@ -662,11 +687,10 @@ export default function Calculator() {
                         background: "transparent",
                         outline: "none",
                         fontWeight: 700,
-                        fontSize: "0.78rem",
-                        color: "#475569",
+                        fontSize: "0.8rem",
+                        color: "#0F2942",
                         cursor: "pointer",
-                        width: "75px",
-                        minWidth: "75px",
+                        padding: "2px 2px",
                         flexShrink: 0
                       }}
                     >
@@ -728,7 +752,8 @@ export default function Calculator() {
                       border: "1px solid #CBD5E1",
                       borderRadius: "8px",
                       padding: "2px 10px",
-                      minWidth: "230px",
+                      width: "auto",
+                      minWidth: "90px",
                       overflow: "visible"
                     }}
                   >
@@ -739,7 +764,7 @@ export default function Calculator() {
                       onChange={(e) => setRate(e.target.value)}
                       onBlur={clampRate}
                       step="0.05"
-                      style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.85rem', color: '#0F2942', width: '70px', textAlign: 'right' }}
+                      style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.85rem', color: '#0F2942', width: '50px', textAlign: 'right' }}
                     />
                     <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569' }}>%</span>
                   </div>
