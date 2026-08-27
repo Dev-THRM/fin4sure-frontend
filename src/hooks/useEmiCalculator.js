@@ -32,10 +32,7 @@ export function useEmiCalculator(initialLoanType = "home", initialAmount, initia
     return Math.max(params.tenureMin, Math.min(240, params.tenureMax));
   });
 
-  const [rateType, setRateTypeState] = useState(() => {
-    // If floating is supported, default to floating. Else default to fixed.
-    return loanType === "home" || loanType === "lap" ? "floating" : "fixed";
-  });
+  const [rateType, setRateTypeState] = useState("floating");
 
   // Automatically adjust bounds when loan type changes
   const changeLoanType = (newType) => {
@@ -60,11 +57,6 @@ export function useEmiCalculator(initialLoanType = "home", initialAmount, initia
     // Clamping tenure
     setTenureState((prev) => {
       return Math.min(Math.max(prev, newParams.tenureMin), newParams.tenureMax);
-    });
-
-    // Adjust rate type if new type doesn't support floating
-    setRateTypeState(() => {
-      return newType === "home" || newType === "lap" ? "floating" : "fixed";
     });
   };
 

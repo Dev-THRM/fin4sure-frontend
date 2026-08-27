@@ -10,14 +10,19 @@ function buildCategoryRates(catKey, backendRates = []) {
     'PL': 'personal',
     'BL': 'business',
     'VL': 'vehicle',
-    'LAP': 'lap'
+    'LAP': 'lap',
+    'home': 'home',
+    'personal': 'personal',
+    'business': 'business',
+    'vehicle': 'vehicle',
+    'lap': 'lap'
   }[catKey] || 'home';
 
   const backendMap = new Map();
   if (Array.isArray(backendRates)) {
     backendRates.forEach(br => {
-      if (br.name) backendMap.set(br.name.toLowerCase().trim(), br);
-      if (br.short) backendMap.set(br.short.toLowerCase().trim(), br);
+      if (br && br.name) backendMap.set(br.name.toLowerCase().trim(), br);
+      if (br && br.short) backendMap.set(br.short.toLowerCase().trim(), br);
     });
   }
 
@@ -25,7 +30,12 @@ function buildCategoryRates(catKey, backendRates = []) {
     const rateObj = l.rates?.[mapKey];
     const defaultFlow = rateObj ? rateObj.f : null;
     const defaultFix = rateObj ? rateObj.x : null;
-    const typeUpper = l.type ? (l.type.toUpperCase() === 'PSU' ? 'PSU' : l.type.toLowerCase().includes('nbfc') ? 'NBFC/HFC' : l.type.toLowerCase().includes('small') ? 'SFB' : 'Private') : 'Private';
+    const typeUpper = l.type ? (
+      l.type.toUpperCase() === 'PSU' ? 'PSU' :
+      (l.type.toLowerCase().includes('nbfc') || l.type.toLowerCase().includes('hfc')) ? 'NBFC/HFC' :
+      (l.type.toLowerCase().includes('small') || l.type.toLowerCase().includes('sfb')) ? 'SFB' :
+      'Private'
+    ) : 'Private';
 
     // Find any backend override
     const br = backendMap.get(l.name.toLowerCase().trim()) || (l.short ? backendMap.get(l.short.toLowerCase().trim()) : null);
@@ -38,16 +48,16 @@ function buildCategoryRates(catKey, backendRates = []) {
     let visible = true;
 
     if (br) {
-      if (br.flowLow !== undefined && br.flowLow !== null && br.flowLow !== "null" && br.flowLow !== "") {
+      if (br.flowLow !== undefined && br.flowLow !== null && br.flowLow !== "null" && br.flowLow !== "" && br.flowLow !== "N/A") {
         flowLow = String(br.flowLow);
       }
-      if (br.flowHigh !== undefined && br.flowHigh !== null && br.flowHigh !== "null" && br.flowHigh !== "") {
+      if (br.flowHigh !== undefined && br.flowHigh !== null && br.flowHigh !== "null" && br.flowHigh !== "" && br.flowHigh !== "N/A") {
         flowHigh = String(br.flowHigh);
       }
-      if (br.fixLow !== undefined && br.fixLow !== null && br.fixLow !== "null" && br.fixLow !== "") {
+      if (br.fixLow !== undefined && br.fixLow !== null && br.fixLow !== "null" && br.fixLow !== "" && br.fixLow !== "N/A") {
         fixLow = String(br.fixLow);
       }
-      if (br.fixHigh !== undefined && br.fixHigh !== null && br.fixHigh !== "null" && br.fixHigh !== "") {
+      if (br.fixHigh !== undefined && br.fixHigh !== null && br.fixHigh !== "null" && br.fixHigh !== "" && br.fixHigh !== "N/A") {
         fixHigh = String(br.fixHigh);
       }
       if (br.offer) offer = br.offer;
@@ -172,16 +182,23 @@ export default function AdminDashboard() {
 
   async function saveEditBroker() {
     if (!editingBroker) return;
+    if (editBrokerForm.mobile) {
+      const cleanMobile = String(editBrokerForm.mobile).replace(/\D/g, '');
+      if (cleanMobile.length !== 10 || !/^[6-9]\d{9}$/.test(cleanMobile)) {
+        setCustomAlert({ type: 'error', message: 'Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.' });
+        return;
+      }
+    }
     try {
       const res = await fetch('/api/admin/update-broker', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(true),
         credentials: 'include',
         body: JSON.stringify({
-          id: editingBroker.brokerId || editingBroker.id,
+          id: editingBroker.id || editingBroker.brokerId,
           name: editBrokerForm.name,
           city: editBrokerForm.city,
-          mobile: editBrokerForm.mobile,
+          mobile: editBrokerForm.mobile ? editBrokerForm.mobile.replace(/\D/g, '') : '',
           status: editBrokerForm.status.toLowerCase()
         })
       });
@@ -215,13 +232,20 @@ export default function AdminDashboard() {
     setEditBorrowerForm({
       name: borrower.name || '',
       email: borrower.email || '',
-      mobile: borrower.number || borrower.mob_no || '',
+      mobile: (borrower.number || borrower.mob_no || '').replace(/\D/g, '').slice(0, 10),
       status: borrower.status || 'active'
     });
   }
 
   async function saveEditBorrower() {
     if (!editingBorrower) return;
+    if (editBorrowerForm.mobile) {
+      const cleanMobile = String(editBorrowerForm.mobile).replace(/\D/g, '');
+      if (cleanMobile.length !== 10 || !/^[6-9]\d{9}$/.test(cleanMobile)) {
+        setCustomAlert({ type: 'error', message: 'Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.' });
+        return;
+      }
+    }
     try {
       const res = await fetch('/api/admin/update-borrower', {
         method: 'POST',
@@ -230,7 +254,7 @@ export default function AdminDashboard() {
           id: editingBorrower.id,
           name: editBorrowerForm.name,
           email: editBorrowerForm.email,
-          mobile: editBorrowerForm.mobile,
+          mobile: editBorrowerForm.mobile ? editBorrowerForm.mobile.replace(/\D/g, '') : '',
           status: editBorrowerForm.status
         })
       });
@@ -315,14 +339,14 @@ export default function AdminDashboard() {
           if (Array.isArray(data.timeline) && data.timeline.length > 0) setTimeline(data.timeline);
           if (Array.isArray(data.leads) && data.leads.length > 0) setLeads(data.leads);
           if (Array.isArray(data.rates) && data.rates.length > 0) {
-            setRates(buildCategoryRates(selectedLoanCategory, data.rates));
+            setRates(buildCategoryRates('HL', data.rates));
           }
           return;
         }
       }
 
       // Fallback if bundle is empty or unavailable
-      fetchLenderRates();
+      fetchLenderRates('HL');
       const [resLeads, resBrokers, resStats] = await Promise.allSettled([
         fetch("/api/admin/leads", { credentials: "include", headers: getAuthHeaders() }),
         fetch("/api/admin/brokers", { credentials: "include", headers: getAuthHeaders() }),
@@ -346,7 +370,7 @@ export default function AdminDashboard() {
     } catch (e) {
       console.error("loadAdminData error:", e);
     }
-  }, [selectedLoanCategory]);
+  }, []);
 
   useEffect(() => {
     loadAdminData();
@@ -355,13 +379,13 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (activeTab === "rates") {
-      fetchLenderRates();
+      fetchLenderRates(selectedLoanCategory);
       fetchScraperStatus();
     }
     if (activeTab === "exports") {
       fetchSettings();
     }
-  }, [activeTab, selectedLoanCategory]);
+  }, [activeTab]);
 
   const handleRateChange = (lenderId, field, val) => {
     setRates(prevRates =>
@@ -432,24 +456,23 @@ export default function AdminDashboard() {
     }
   }
 
-  async function fetchLenderRates() {
+  async function fetchLenderRates(cat = selectedLoanCategory) {
     try {
-      const res = await fetch(`/api/admin/lender-rates?loanTypeShortId=${selectedLoanCategory}`, {
+      const res = await fetch(`/api/admin/lender-rates?loanTypeShortId=${cat}`, {
         credentials: "include",
         headers: getAuthHeaders()
       });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          setRates(buildCategoryRates(selectedLoanCategory, data));
+          setRates(buildCategoryRates(cat, data));
           return;
         }
       }
-      // Fallback to full 60+ banks directory
-      setRates(buildCategoryRates(selectedLoanCategory));
+      setRates(buildCategoryRates(cat));
     } catch (e) {
       console.error("fetchLenderRates error:", e);
-      setRates(buildCategoryRates(selectedLoanCategory));
+      setRates(buildCategoryRates(cat));
     }
   }
 
@@ -578,6 +601,13 @@ export default function AdminDashboard() {
   }
 
   async function handleSaveRM() {
+    if (rmMob) {
+      const cleanDigits = String(rmMob).replace(/\D/g, '');
+      if (cleanDigits.length < 10 || cleanDigits.length > 11) {
+        setCustomAlert({ message: "Please enter a valid 10 or 11-digit mobile or toll-free number (hyphens allowed, e.g. 1800-123-4567).", type: "error" });
+        return;
+      }
+    }
     try {
       const res = await fetch("/api/admin/relationship-manager", {
         method: "POST",
@@ -593,6 +623,9 @@ export default function AdminDashboard() {
       });
       if (res.ok) {
         setCustomAlert({ message: "Relationship Manager details saved successfully!", type: "success" });
+        if (typeof window !== "undefined" && rmMob) {
+          window.dispatchEvent(new CustomEvent("rm_phone_updated", { detail: rmMob }));
+        }
         fetchSettings();
       } else {
         setCustomAlert({ message: "Failed to save Relationship Manager details.", type: "error" });
@@ -656,7 +689,7 @@ export default function AdminDashboard() {
       const res = await fetch("/api/admin/broker-status", {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(true),
         body: JSON.stringify({ brokerId, status }),
       });
       if (res.status === 429) {
@@ -864,40 +897,345 @@ export default function AdminDashboard() {
     }
   }
 
-  // Export helpers
-  function getDateRange() {
-    const now = new Date();
-    let from = new Date(Date.now() - 365 * 86400000).toISOString();
-    let to = new Date().toISOString();
+  // ── CSV & XLS Export Utilities for Filtered Data ──
+  const downloadCSV = (filename, columns, data) => {
+    const headers = columns.map(c => `"${String(c.header).replace(/"/g, '""')}"`).join(",");
+    const rows = data.map(item =>
+      columns.map(c => {
+        const val = typeof c.accessor === 'function' ? c.accessor(item) : item[c.key];
+        const str = val === null || val === undefined ? "" : String(val);
+        return `"${str.replace(/"/g, '""')}"`;
+      }).join(",")
+    );
+    const csvContent = "\uFEFF" + [headers, ...rows].join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${filename}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
-    if (exportFilter === "today") {
-      from = new Date(now.setHours(0, 0, 0, 0)).toISOString();
-      to = new Date().toISOString();
-    } else if (exportFilter === "7days") {
-      from = new Date(Date.now() - 7 * 86400000).toISOString();
-      to = new Date().toISOString();
-    } else if (exportFilter === "1month") {
-      from = new Date(Date.now() - 30 * 86400000).toISOString();
-      to = new Date().toISOString();
-    } else if (exportFilter === "3months") {
-      from = new Date(Date.now() - 90 * 86400000).toISOString();
-      to = new Date().toISOString();
-    } else if (exportFilter === "custom") {
-      from = customFrom ? new Date(customFrom).toISOString() : from;
-      to = customTo ? new Date(customTo).toISOString() : to;
-    }
+  const downloadXLS = (filename, sheetName, columns, data) => {
+    const enc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    
+    const headerRow = '<Row>' + columns.map(c => 
+      `<Cell ss:StyleID="headerStyle"><Data ss:Type="String">${enc(c.header)}</Data></Cell>`
+    ).join('') + '</Row>';
 
-    return { from, to };
-  }
+    const dataRows = data.map(item => {
+      const cells = columns.map(c => {
+        const val = typeof c.accessor === 'function' ? c.accessor(item) : item[c.key];
+        const isNum = typeof val === 'number' && !isNaN(val);
+        const str = val === null || val === undefined ? "" : String(val);
+        return `<Cell><Data ss:Type="${isNum ? 'Number' : 'String'}">${enc(str)}</Data></Cell>`;
+      }).join('');
+      return `<Row>${cells}</Row>`;
+    }).join('');
 
-  function exportData(type, format = "xlsx") {
-    const { from, to } = getDateRange();
-    if (!from || !to) {
-      setCustomAlert({ message: "Please select a valid date range", type: "warning" });
+    const xml = `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Center"/>
+   <Borders/>
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#000000"/>
+   <Interior/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+  <Style ss:ID="headerStyle">
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#FFFFFF" ss:Bold="1"/>
+   <Interior ss:Color="#0F2942" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="${enc(sheetName.slice(0, 31))}">
+  <Table>
+   ${headerRow}
+   ${dataRows}
+  </Table>
+ </Worksheet>
+</Workbook>`;
+
+    const blob = new Blob([xml], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${filename}.xls`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportFilteredData = (type, format = "csv") => {
+    const isXls = format === "xlsx" || format === "xls";
+
+    if (type === "leads" || type === "clients") {
+      if (!filteredLeads || filteredLeads.length === 0) {
+        setCustomAlert({ message: "No matching applications to export for the applied filters.", type: "warning" });
+        return;
+      }
+
+      const columns = [
+        {
+          header: "App ID",
+          accessor: (l) => l.application_no ?? (String(l.id).startsWith('F4S') ? l.id : `F4S-${2000 + l.id}`)
+        },
+        {
+          header: "Borrower Name",
+          accessor: (l) => l.name || "Unknown"
+        },
+        {
+          header: "Email",
+          accessor: (l) => l.email || "-"
+        },
+        {
+          header: "Phone",
+          accessor: (l) => l.number || l.mob_no || l.phone || "-"
+        },
+        {
+          header: "Loan Type",
+          accessor: (l) => l.product || "Home Loan"
+        },
+        {
+          header: "Loan Amount (₹)",
+          accessor: (l) => l.loan_amount ? Number(l.loan_amount) : 0
+        },
+        {
+          header: "Lender",
+          accessor: (l) => {
+            let lendersList = [];
+            if (Array.isArray(l.lenders) && l.lenders.length > 0) {
+              lendersList = l.lenders;
+            } else if (l.lender && typeof l.lender === 'string') {
+              lendersList = l.lender.split(',').map(s => s.trim()).filter(Boolean);
+            } else if (l.client_preference && typeof l.client_preference === 'string' && !['direct_reach', 'partner_routing'].includes(l.client_preference)) {
+              lendersList = l.client_preference.split(',').map(s => s.trim()).filter(Boolean);
+            }
+            if (lendersList.length === 0) {
+              const defaultBankMap = {
+                'Home Loan': ['SBI', 'HDFC Bank', 'ICICI Bank'],
+                'Personal Loan': ['HDFC Bank', 'Axis Bank', 'Bajaj Finserv'],
+                'Business Loan': ['ICICI Bank', 'Kotak Mahindra', 'Bajaj Finserv'],
+                'Vehicle Loan': ['SBI', 'HDFC Bank', 'Bank of Baroda'],
+                'Loan Against Property': ['ICICI Bank', 'Axis Bank', 'PNB Housing']
+              };
+              lendersList = defaultBankMap[l.product] || ['SBI', 'HDFC Bank'];
+            }
+            return lendersList.join(', ');
+          }
+        },
+        {
+          header: "Stage",
+          accessor: (l) => (l.stage || l.status || "Applied").toUpperCase()
+        },
+        {
+          header: "Status",
+          accessor: (l) => {
+            const rawSt = (l.status || '').toLowerCase().trim();
+            return ['disbursed', 'completed'].includes(rawSt)
+              ? 'DISBURSED'
+              : rawSt === 'rejected'
+                ? 'REJECTED'
+                : 'IN-PROGRESS';
+          }
+        },
+        {
+          header: "Source",
+          accessor: (l) => l.partner_name || (l.source && l.source !== 'Direct') ? 'Partner' : 'Direct'
+        },
+        {
+          header: "Partner Name",
+          accessor: (l) => l.partner_name || (l.source && l.source !== 'Direct' ? l.source : '-')
+        },
+        {
+          header: "Applied Date",
+          accessor: (l) => l.createdAt ? new Date(l.createdAt).toLocaleDateString('en-IN') : '-'
+        },
+        {
+          header: "Remarks / Purpose",
+          accessor: (l) => l.loan_purpose || l.remark || '-'
+        }
+      ];
+
+      const filename = `finn4sure-applications-${new Date().toISOString().slice(0, 10)}`;
+      if (isXls) {
+        downloadXLS(filename, "Applications", columns, filteredLeads);
+      } else {
+        downloadCSV(filename, columns, filteredLeads);
+      }
+      setCustomAlert({ message: `Exported ${filteredLeads.length} filtered application(s) as ${isXls ? 'XLS' : 'CSV'}!`, type: "success" });
       return;
     }
-    const url = `/api/admin/export?type=${type}&from=${from}&to=${to}&format=${format}`;
-    window.open(url, "_blank");
+
+    if (type === "brokers" || type === "partners") {
+      if (!filteredBrokers || filteredBrokers.length === 0) {
+        setCustomAlert({ message: "No matching partners to export for the applied filters.", type: "warning" });
+        return;
+      }
+
+      const columns = [
+        {
+          header: "Partner ID",
+          accessor: (b) => b.brokerId ? (String(b.brokerId).startsWith('P4S') || String(b.brokerId).startsWith('F4S') ? b.brokerId : `F4S-${String(b.brokerId).padStart(5, '0')}`) : `F4S-${String(b.id).padStart(5, '0')}`
+        },
+        {
+          header: "Partner Name",
+          accessor: (b) => b.name || "—"
+        },
+        {
+          header: "Email",
+          accessor: (b) => b.email || "—"
+        },
+        {
+          header: "Phone",
+          accessor: (b) => b.number || b.mob_no || "—"
+        },
+        {
+          header: "Status",
+          accessor: (b) => (b.status || "inactive").toUpperCase()
+        },
+        {
+          header: "City / Location",
+          accessor: (b) => b.city || b.district || b.address || "Mumbai"
+        },
+        {
+          header: "State",
+          accessor: (b) => b.state || "—"
+        },
+        {
+          header: "Clients Count",
+          accessor: (b) => b.clientCount !== undefined ? b.clientCount : (b.clients ? b.clients.length : 0)
+        },
+        {
+          header: "Disbursed Count",
+          accessor: (b) => {
+            const leadsList = b.leads || [];
+            return b.disbursed !== undefined ? b.disbursed : leadsList.filter(l => ['disbursed', 'completed'].includes((l.status || l.stage || '').toLowerCase())).length;
+          }
+        },
+        {
+          header: "In Progress Count",
+          accessor: (b) => {
+            const leadsList = b.leads || [];
+            return b.inProgress !== undefined ? b.inProgress : leadsList.filter(l => ['in-progress', 'applied', 'submitted', 'docs', 'credit', 'legal', 'sanction', 'processing'].includes((l.status || l.stage || '').toLowerCase())).length;
+          }
+        },
+        {
+          header: "Pending Count",
+          accessor: (b) => {
+            const leadsList = b.leads || [];
+            return b.pending !== undefined ? b.pending : leadsList.filter(l => ['pending', 'rejected'].includes((l.status || l.stage || '').toLowerCase())).length;
+          }
+        },
+        {
+          header: "Total Volume (₹)",
+          accessor: (b) => {
+            const leadsList = b.leads || [];
+            return b.volume !== undefined ? b.volume : leadsList.reduce((acc, l) => acc + (parseFloat(l.loan_amount) || 0), 0);
+          }
+        },
+        {
+          header: "Registered Date",
+          accessor: (b) => b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-IN') : '—'
+        }
+      ];
+
+      const filename = `finn4sure-partners-${new Date().toISOString().slice(0, 10)}`;
+      if (isXls) {
+        downloadXLS(filename, "Partners", columns, filteredBrokers);
+      } else {
+        downloadCSV(filename, columns, filteredBrokers);
+      }
+      setCustomAlert({ message: `Exported ${filteredBrokers.length} filtered partner(s) as ${isXls ? 'XLS' : 'CSV'}!`, type: "success" });
+      return;
+    }
+
+    if (type === "borrowers") {
+      if (!filteredBorrowers || filteredBorrowers.length === 0) {
+        setCustomAlert({ message: "No matching borrowers to export for the applied filters.", type: "warning" });
+        return;
+      }
+
+      const columns = [
+        {
+          header: "Borrower Name",
+          accessor: (b) => b.name || "—"
+        },
+        {
+          header: "Email",
+          accessor: (b) => b.email || "—"
+        },
+        {
+          header: "Mobile",
+          accessor: (b) => {
+            const matchedLead = leads.find(l => (b.email && l.email && l.email.toLowerCase() === b.email.toLowerCase()) || (b.id && l.userId === b.id));
+            const rawPhone = b.number || b.mob_no || b.phone || (matchedLead ? (matchedLead.number || matchedLead.mob_no) : null);
+            return (rawPhone && rawPhone !== '-' && rawPhone !== 'null') ? rawPhone : '—';
+          }
+        },
+        {
+          header: "Total Loans",
+          accessor: (b) => {
+            const matched = leads.filter(l => (b.email && l.email && l.email.toLowerCase() === b.email.toLowerCase()) || (b.id && l.userId === b.id));
+            return matched.length || 1;
+          }
+        },
+        {
+          header: "Applied Lenders",
+          accessor: (b) => {
+            const matchedLeads = leads.filter(l => (b.email && l.email && l.email.toLowerCase() === b.email.toLowerCase()) || (b.id && l.userId === b.id));
+            const lenderSet = new Set();
+            if (b.appliedLender && b.appliedLender !== '-' && b.appliedLender !== 'null') {
+              b.appliedLender.split(',').forEach(s => { const t = s.trim(); if (t && t !== '-') lenderSet.add(t); });
+            }
+            if (b.lender && b.lender !== '-' && b.lender !== 'null') {
+              b.lender.split(',').forEach(s => { const t = s.trim(); if (t && t !== '-') lenderSet.add(t); });
+            }
+            matchedLeads.forEach(l => {
+              if (l.lender) l.lender.split(',').forEach(s => { const t = s.trim(); if (t && t !== '-') lenderSet.add(t); });
+            });
+            return Array.from(lenderSet).join(', ') || 'SBI, HDFC Bank';
+          }
+        },
+        {
+          header: "Best Stage",
+          accessor: (b) => (b.bestStage || b.stage || "Applied").toUpperCase()
+        },
+        {
+          header: "Status",
+          accessor: (b) => (b.status || "in progress").toUpperCase()
+        },
+        {
+          header: "Registered Date",
+          accessor: (b) => b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-IN') : '—'
+        }
+      ];
+
+      const filename = `finn4sure-borrowers-${new Date().toISOString().slice(0, 10)}`;
+      if (isXls) {
+        downloadXLS(filename, "Borrowers", columns, filteredBorrowers);
+      } else {
+        downloadCSV(filename, columns, filteredBorrowers);
+      }
+      setCustomAlert({ message: `Exported ${filteredBorrowers.length} filtered borrower(s) as ${isXls ? 'XLS' : 'CSV'}!`, type: "success" });
+      return;
+    }
+  };
+
+  // Backwards compatible exportData function
+  function exportData(type, format = "xlsx") {
+    exportFilteredData(type, format);
   }
 
   const handleSignOut = async () => {
@@ -911,22 +1249,28 @@ export default function AdminDashboard() {
 
   // Search and status filter
   const filteredBrokers = useMemo(() => {
-    return brokers.filter((b) => {
-      const term = searchTerm.toLowerCase();
-      const matchesSearch = !term ||
-        b.name?.toLowerCase().includes(term) ||
-        b.email?.toLowerCase().includes(term) ||
-        b.brokerId?.toLowerCase().includes(term);
+    return brokers
+      .filter((b) => {
+        const term = searchTerm.toLowerCase();
+        const matchesSearch = !term ||
+          b.name?.toLowerCase().includes(term) ||
+          b.email?.toLowerCase().includes(term) ||
+          b.brokerId?.toLowerCase().includes(term);
 
-      const stLower = (b.status || 'active').toLowerCase().trim();
-      const matchesStatus =
-        brokerStatusFilter === "all_partners" ||
-        brokerStatusFilter === "all_statuses" ||
-        (brokerStatusFilter === "active" && (stLower === "active" || stLower === "approved")) ||
-        (brokerStatusFilter === "inactive" && stLower !== "active" && stLower !== "approved");
+        const stLower = (b.status || 'active').toLowerCase().trim();
+        const matchesStatus =
+          brokerStatusFilter === "all_partners" ||
+          brokerStatusFilter === "all_statuses" ||
+          (brokerStatusFilter === "active" && (stLower === "active" || stLower === "approved")) ||
+          (brokerStatusFilter === "inactive" && stLower !== "active" && stLower !== "approved");
 
-      return matchesSearch && matchesStatus;
-    });
+        return matchesSearch && matchesStatus;
+      })
+      .sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : (a.id ? Number(a.id) : 0);
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : (b.id ? Number(b.id) : 0);
+        return dateB - dateA;
+      });
   }, [brokers, searchTerm, brokerStatusFilter]);
 
   const filteredLeads = useMemo(() => {
@@ -977,6 +1321,34 @@ export default function AdminDashboard() {
       return matchesSearch && matchesStatus;
     });
   }, [borrowers, searchTerm, borrowerStatusFilter]);
+
+  const filteredRates = useMemo(() => {
+    const activeList = Array.isArray(rates) && rates.length > 0 ? rates : buildCategoryRates(selectedLoanCategory);
+
+    return activeList.filter(r => {
+      if (!r) return false;
+      const rawType = String(r.type || 'Private').toLowerCase().trim();
+      const filterType = String(selectedRateType || 'all_types').toLowerCase().trim();
+
+      let matchType = true;
+      if (filterType === "psu") {
+        matchType = rawType === "psu" || rawType.includes("psu") || rawType.includes("public") || rawType.includes("govt");
+      } else if (filterType === "private") {
+        matchType = rawType === "private";
+      } else if (filterType === "nbfc_hfc" || filterType === "nbfc") {
+        matchType = rawType.includes("nbfc") || rawType.includes("hfc") || rawType.includes("housing finance");
+      } else if (filterType === "sfb") {
+        matchType = rawType.includes("sfb") || rawType.includes("small");
+      }
+
+      if (!matchType) return false;
+
+      const term = String(searchTerm || '').toLowerCase().trim();
+      return !term ||
+        String(r.name || '').toLowerCase().includes(term) ||
+        String(r.short || '').toLowerCase().includes(term);
+    });
+  }, [rates, selectedLoanCategory, selectedRateType, searchTerm]);
 
   // Reset pagination when filters/search change
   useEffect(() => { setLeadsPage(1); }, [filteredLeads]);
@@ -1053,10 +1425,7 @@ export default function AdminDashboard() {
     : (stats.inProgressCount ?? 0);
 
   const pendingCount = leads.length > 0
-    ? leads.filter(l => {
-        const st = (l.stage || '').toLowerCase().trim();
-        return st === 'pending' || st === 'applied';
-      }).length
+    ? leads.filter(l => (l.status || '').toLowerCase().trim() === 'pending').length
     : (stats.pendingCount ?? 0);
 
   const rejectedCount = leads.length > 0
@@ -1424,10 +1793,7 @@ export default function AdminDashboard() {
                           return s === 'in-progress' || s === 'in progress';
                         });
                       } else if (activeKpiFilter === 'pending') {
-                        filtered = sourceList.filter(l => {
-                          const st = (l.stage || '').toLowerCase().trim();
-                          return st === 'pending' || st === 'applied';
-                        });
+                        filtered = sourceList.filter(l => (l.status || '').toLowerCase().trim() === 'pending');
                       } else if (activeKpiFilter === 'rejected') {
                         filtered = sourceList.filter(l => (l.status || '').toLowerCase().trim() === 'rejected');
                       } else if (activeKpiFilter === 'loan_volume') {
@@ -1696,45 +2062,149 @@ export default function AdminDashboard() {
 
               {/* Bottom Card: Top Lenders */}
               <div className="adm-workspace-card mt-6">
-                <div className="adm-wcard-header">
-                  <h3>Top Lenders by Application Volume</h3>
+                <div className="adm-wcard-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '1.2rem' }}>📊</span>
+                    <h3 style={{ margin: 0, fontWeight: 800, color: '#0F2942', fontSize: '1.05rem' }}>Top Lenders by Application Volume</h3>
+                  </div>
+                  <span style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>Real-time aggregated portfolio share</span>
                 </div>
-                <div className="adm-wcard-body">
-                  <table className="lenders-table">
+                <div className="adm-wcard-body" style={{ padding: 0 }}>
+                  <table className="lenders-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr>
-                        <th>LENDER</th>
-                        <th>VOLUME BAR</th>
-                        <th>COUNT</th>
-                        <th>TYPE</th>
+                      <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
+                        <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: '0.74rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em' }}>LENDER</th>
+                        <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: '0.74rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em', width: '45%' }}>VOLUME SHARE</th>
+                        <th style={{ padding: '14px 20px', textAlign: 'center', fontSize: '0.74rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em' }}>APPLICATIONS</th>
+                        <th style={{ padding: '14px 20px', textAlign: 'right', fontSize: '0.74rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em' }}>INSTITUTION TYPE</th>
                       </tr>
                     </thead>
                     <tbody>
                       {!stats.topLenders || stats.topLenders.length === 0 ? (
                         <tr>
-                          <td colSpan="4" className="no-data-cell">No lender volume data available</td>
+                          <td colSpan="4" className="no-data-cell" style={{ padding: '32px', textAlign: 'center', color: '#94A3B8' }}>
+                            No lender volume data available
+                          </td>
                         </tr>
                       ) : (
-                        stats.topLenders.map((lender, index) => {
-                          const maxCount = Math.max(...stats.topLenders.map(l => Number(l.count))) || 1;
-                          const barWidth = Math.round((Number(lender.count) / maxCount) * 100);
-                          return (
-                            <tr key={index}>
-                              <td style={{ fontWeight: 600, color: '#0d2b6b' }}>{lender.name}</td>
-                              <td style={{ verticalAlign: 'middle', width: '50%' }}>
-                                <div className="breakdown-progress-bar" style={{ height: '8px', margin: 0 }}>
-                                  <div className="breakdown-progress bg-blue" style={{ width: `${barWidth}%`, height: '100%', borderRadius: '4px' }}></div>
-                                </div>
-                              </td>
-                              <td style={{ fontWeight: 700 }}>{lender.count}</td>
-                              <td>
-                                <span className={`rate-type-badge ${lender.type.toLowerCase().replace('/', '-')}`}>
-                                  {lender.type.toUpperCase()}
-                                </span>
-                              </td>
-                            </tr>
-                          );
-                        })
+                        (() => {
+                          const maxCount = Math.max(...stats.topLenders.map(l => Number(l.count) || 0)) || 1;
+                          const totalApps = stats.topLenders.reduce((sum, l) => sum + (Number(l.count) || 0), 0) || 1;
+
+                          return stats.topLenders.map((lender, index) => {
+                            const countNum = Number(lender.count) || 0;
+                            const barWidth = Math.max(8, Math.round((countNum / maxCount) * 100));
+                            const sharePct = Math.round((countNum / totalApps) * 100);
+
+                            const typeStr = String(lender.type || '').toLowerCase();
+                            const isPsu = typeStr.includes('psu') || typeStr.includes('public');
+                            const isNbfc = typeStr.includes('nbfc') || typeStr.includes('hfc');
+                            const isSfb = typeStr.includes('sfb') || typeStr.includes('small');
+
+                            const theme = isPsu
+                              ? { bg: '#DCFCE7', text: '#15803D', border: '#BBF7D0', grad: 'linear-gradient(90deg, #10B981 0%, #059669 100%)', icon: '🏛️', label: 'PSU BANK' }
+                              : isNbfc
+                              ? { bg: '#F3E8FF', text: '#7E22CE', border: '#E9D5FF', grad: 'linear-gradient(90deg, #8B5CF6 0%, #6D28D9 100%)', icon: '🏢', label: 'NBFC / HFC' }
+                              : isSfb
+                              ? { bg: '#FEF3C7', text: '#B45309', border: '#FDE68A', grad: 'linear-gradient(90deg, #F59E0B 0%, #D97706 100%)', icon: '⚡', label: 'SFB' }
+                              : { bg: '#DBEAFE', text: '#1D4ED8', border: '#BFDBFE', grad: 'linear-gradient(90deg, #3B82F6 0%, #1D4ED8 100%)', icon: '🏦', label: 'PRIVATE BANK' };
+
+                            return (
+                              <tr
+                                key={index}
+                                style={{
+                                  borderBottom: '1px solid #F1F5F9',
+                                  transition: 'background-color 0.15s ease'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F8FAFC'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                              >
+                                {/* Lender Name & Logo */}
+                                <td style={{ padding: '14px 20px', verticalAlign: 'middle' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <span style={{
+                                      width: '32px', height: '32px', borderRadius: '8px',
+                                      background: theme.bg, color: theme.text,
+                                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                      fontSize: '1rem', flexShrink: 0
+                                    }}>
+                                      {theme.icon}
+                                    </span>
+                                    <div>
+                                      <div style={{ fontWeight: 700, color: '#0F2942', fontSize: '0.92rem' }}>
+                                        {lender.name}
+                                      </div>
+                                      <div style={{ fontSize: '0.72rem', color: '#94A3B8', fontWeight: 500 }}>
+                                        Rank #{index + 1}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+
+                                {/* Volume Bar */}
+                                <td style={{ padding: '14px 20px', verticalAlign: 'middle' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{
+                                      flex: 1, height: '10px',
+                                      background: '#E2E8F0',
+                                      borderRadius: '999px',
+                                      overflow: 'hidden',
+                                      position: 'relative',
+                                      boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06)'
+                                    }}>
+                                      <div
+                                        style={{
+                                          width: `${barWidth}%`,
+                                          height: '100%',
+                                          background: theme.grad,
+                                          borderRadius: '999px',
+                                          transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
+                                        }}
+                                      />
+                                    </div>
+                                    <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748B', minWidth: '38px', textAlign: 'right' }}>
+                                      {sharePct}%
+                                    </span>
+                                  </div>
+                                </td>
+
+                                {/* Application Count */}
+                                <td style={{ padding: '14px 20px', textAlign: 'center', verticalAlign: 'middle' }}>
+                                  <span style={{
+                                    display: 'inline-block',
+                                    padding: '4px 12px',
+                                    background: '#F1F5F9',
+                                    borderRadius: '12px',
+                                    fontWeight: 800,
+                                    fontSize: '0.9rem',
+                                    color: '#0F2942'
+                                  }}>
+                                    {countNum}
+                                  </span>
+                                </td>
+
+                                {/* Type Badge */}
+                                <td style={{ padding: '14px 20px', textAlign: 'right', verticalAlign: 'middle' }}>
+                                  <span style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    padding: '4px 10px',
+                                    borderRadius: '8px',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
+                                    background: theme.bg,
+                                    color: theme.text,
+                                    border: `1px solid ${theme.border}`
+                                  }}>
+                                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: theme.text }} />
+                                    {theme.label}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          });
+                        })()
                       )}
                     </tbody>
                   </table>
@@ -1767,14 +2237,14 @@ export default function AdminDashboard() {
                   <option value="vehicle">VEHICLE LOAN</option>
                 </select>
 
-                <button className="adm-ctrl-btn btn-csv" onClick={() => exportData("clients", "csv")}>
+                <button className="adm-ctrl-btn btn-csv" onClick={() => exportFilteredData("leads", "csv")}>
                   <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                   CSV
                 </button>
 
-                <button className="adm-ctrl-btn btn-xls" onClick={() => exportData("clients", "xlsx")}>
+                <button className="adm-ctrl-btn btn-xls" onClick={() => exportFilteredData("leads", "xls")}>
                   <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
@@ -2003,28 +2473,28 @@ export default function AdminDashboard() {
                 </div>
 
                 <button
-                  onClick={() => exportData("brokers")}
-                  style={{
-                    background: '#0F2942',
-                    color: '#FFFFFF',
-                    padding: '10px 20px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    fontWeight: 700,
-                    fontSize: '0.88rem',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    boxShadow: '0 2px 6px rgba(15,41,66,0.15)'
-                  }}
+                  className="adm-ctrl-btn btn-csv"
+                  onClick={() => exportFilteredData("brokers", "csv")}
                 >
-                  <span>↓</span> Export CSV
+                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  CSV
+                </button>
+
+                <button
+                  className="adm-ctrl-btn btn-xls"
+                  onClick={() => exportFilteredData("brokers", "xls")}
+                >
+                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  XLS
                 </button>
               </div>
 
               {/* Partner Cards Container */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {filteredBrokers.length === 0 ? (
                   <div className="adm-workspace-card" style={{ padding: '40px 20px', textAlign: 'center', borderRadius: '16px' }}>
                     <p className="no-data-text">No partners match</p>
@@ -2049,25 +2519,25 @@ export default function AdminDashboard() {
                     return (
                       <div
                         key={b.id}
+                        className="adm-partner-card-row"
                         style={{
                           background: '#FFFFFF',
-                          borderRadius: '16px',
+                          borderRadius: '14px',
                           border: '1px solid #E2E8F0',
-                          padding: '18px 24px',
-                          display: 'flex',
+                          padding: '14px 20px',
+                          display: 'grid',
+                          gridTemplateColumns: 'minmax(240px, 300px) 1fr auto',
                           alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '20px',
-                          flexWrap: 'wrap',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
+                          gap: '16px',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
                         }}
                       >
-                        {/* Avatar & Partner Details */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: '280px' }}>
+                        {/* 1. Avatar & Partner Details */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0, overflow: 'hidden' }}>
                           <div
                             style={{
-                              width: '48px',
-                              height: '48px',
+                              width: '44px',
+                              height: '44px',
                               borderRadius: '50%',
                               background: '#00A884',
                               color: '#FFFFFF',
@@ -2075,30 +2545,31 @@ export default function AdminDashboard() {
                               alignItems: 'center',
                               justifyContent: 'center',
                               fontWeight: 800,
-                              fontSize: '1.2rem',
+                              fontSize: '1.15rem',
                               flexShrink: 0
                             }}
                           >
                             {initialLetter}
                           </div>
-                          <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                              <span style={{ fontWeight: 800, color: '#0F2942', fontSize: '1.05rem' }}>{b.name}</span>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px', flexWrap: 'wrap' }}>
+                              <span style={{ fontWeight: 800, color: '#0F2942', fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.name}</span>
                               <span
                                 style={{
-                                  padding: '2px 8px',
-                                  borderRadius: '10px',
-                                  fontSize: '0.72rem',
+                                  padding: '2px 7px',
+                                  borderRadius: '8px',
+                                  fontSize: '0.7rem',
                                   fontWeight: 700,
                                   textTransform: 'uppercase',
                                   background: isLive ? '#DCFCE7' : '#F1F5F9',
-                                  color: isLive ? '#166534' : '#64748B'
+                                  color: isLive ? '#166534' : '#64748B',
+                                  flexShrink: 0
                                 }}
                               >
                                 {isLive ? 'ACTIVE' : (b.status || 'INACTIVE').toUpperCase()}
                               </span>
                             </div>
-                            <div style={{ fontSize: '0.8rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <div style={{ fontSize: '0.78rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               <span>{partnerCode}</span>
                               <span>·</span>
                               <span>📍 {locationStr}</span>
@@ -2108,36 +2579,43 @@ export default function AdminDashboard() {
                           </div>
                         </div>
 
-                        {/* Metric Counters Grid */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '28px', flexWrap: 'wrap' }}>
+                        {/* 2. Metric Counters Grid - Compact & Centered with controlled spacing */}
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(5, 78px)',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '10px',
+                          margin: '0 auto'
+                        }}>
                           <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#0F2942' }}>{clientsCount}</div>
-                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em' }}>CLIENTS</div>
+                            <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#0F2942' }}>{clientsCount}</div>
+                            <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>CLIENTS</div>
                           </div>
 
                           <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#10B981' }}>{disbursedCount}</div>
-                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em' }}>DISBURSED</div>
+                            <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#10B981' }}>{disbursedCount}</div>
+                            <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>DISBURSED</div>
                           </div>
 
                           <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#3B82F6' }}>{inProgressCount}</div>
-                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em' }}>IN PROGRESS</div>
+                            <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#3B82F6' }}>{inProgressCount}</div>
+                            <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>IN PROGRESS</div>
                           </div>
 
                           <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#F59E0B' }}>{pendingCount}</div>
-                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em' }}>PENDING</div>
+                            <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#F59E0B' }}>{pendingCount}</div>
+                            <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>PENDING</div>
                           </div>
 
                           <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#8B5CF6' }}>{volFormatted}</div>
-                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em' }}>VOLUME</div>
+                            <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#8B5CF6' }}>{volFormatted}</div>
+                            <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>VOLUME</div>
                           </div>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {/* 3. Action Buttons */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', flexShrink: 0 }}>
                           <button
                             onClick={() => openEditBroker(b)}
                             style={{
@@ -2158,7 +2636,7 @@ export default function AdminDashboard() {
                           </button>
 
                           <button
-                            onClick={() => updateBrokerStatus(b.brokerId || b.id, isLive ? 'inactive' : 'active')}
+                            onClick={() => updateBrokerStatus(b.id || b.brokerId, isLive ? 'inactive' : 'active')}
                             style={{
                               padding: '7px 16px',
                               borderRadius: '8px',
@@ -2207,25 +2685,48 @@ export default function AdminDashboard() {
           {/* 4. BORROWERS MANAGEMENT VIEW */}
           {activeTab === "borrowers" && (
             <div className="adm-subtab-container animate-fade-up">
-              <div style={{ marginBottom: '16px' }}>
-                <button
-                  onClick={() => exportData("clients")}
-                  style={{
-                    background: '#0F2942',
-                    color: '#FFFFFF',
-                    padding: '10px 18px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    fontWeight: 700,
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    boxShadow: '0 2px 4px rgba(15,41,66,0.15)'
-                  }}
+              <div className="adm-controls-row" style={{ marginBottom: '16px', display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <select
+                  className="adm-filter-dropdown"
+                  value={borrowerStatusFilter}
+                  onChange={(e) => setBorrowerStatusFilter(e.target.value)}
+                  style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #CBD5E1', background: '#FFFFFF', fontWeight: 500, fontSize: '0.88rem', color: '#1E293B', cursor: 'pointer', outline: 'none' }}
                 >
-                  <span>↓</span> Export Borrowers CSV
+                  <option value="all_statuses">ALL STATUSES</option>
+                  <option value="active">ACTIVE</option>
+                  <option value="inactive">INACTIVE</option>
+                </select>
+
+                <div className="adm-inner-search-box" style={{ flex: 1, minWidth: '240px', background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '8px', display: 'flex', alignItems: 'center', padding: '0 12px' }}>
+                  <span style={{ fontSize: '1rem', color: '#00B4D8', marginRight: '8px' }}>🔍</span>
+                  <input
+                    type="text"
+                    placeholder="Search borrower by name, email, phone..."
+                    className="adm-inner-search-input"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{ border: 'none', outline: 'none', width: '100%', padding: '10px 0', fontSize: '0.88rem', color: '#1E293B' }}
+                  />
+                </div>
+
+                <button
+                  className="adm-ctrl-btn btn-csv"
+                  onClick={() => exportFilteredData("borrowers", "csv")}
+                >
+                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  CSV
+                </button>
+
+                <button
+                  className="adm-ctrl-btn btn-xls"
+                  onClick={() => exportFilteredData("borrowers", "xls")}
+                >
+                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" style={{ marginRight: '6px' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  XLS
                 </button>
               </div>
 
@@ -2698,7 +3199,7 @@ export default function AdminDashboard() {
                     fontSize: '0.75rem',
                     fontWeight: 700
                   }}>
-                    🏛️ {LENDERS.length} Total Institutions
+                    🏛️ {filteredRates.length} {filteredRates.length === LENDERS.length ? 'Total Institutions' : `of ${LENDERS.length} Institutions`}
                   </span>
                 </div>
 
@@ -2721,7 +3222,12 @@ export default function AdminDashboard() {
                   <select
                     className="adm-filter-dropdown"
                     value={selectedLoanCategory}
-                    onChange={(e) => setSelectedLoanCategory(e.target.value)}
+                    onChange={(e) => {
+                      const newCat = e.target.value;
+                      setSelectedLoanCategory(newCat);
+                      setRates(buildCategoryRates(newCat));
+                      fetchLenderRates(newCat);
+                    }}
                     style={{ padding: '9px 14px', borderRadius: '10px', border: '1px solid #CBD5E1', background: '#FFFFFF', fontWeight: 600, fontSize: '0.85rem', color: '#1E293B', cursor: 'pointer', outline: 'none' }}
                   >
                     <option value="HL">🏠 Home Loan</option>
@@ -2877,41 +3383,15 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {(() => {
-                        const activeList = buildCategoryRates(selectedLoanCategory, rates);
-
-                        const filteredRates = activeList.filter(r => {
-                          if (!r) return false;
-                          const rawType = String(r.type || 'Private').toLowerCase();
-                          const filterType = String(selectedRateType || 'all_types').toLowerCase();
-
-                          let matchType = true;
-                          if (filterType === "psu") {
-                            matchType = rawType.includes("psu");
-                          } else if (filterType === "private") {
-                            matchType = rawType.includes("private");
-                          } else if (filterType === "nbfc_hfc") {
-                            matchType = rawType.includes("nbfc") || rawType.includes("hfc");
-                          } else if (filterType === "sfb") {
-                            matchType = rawType.includes("sfb") || rawType.includes("small");
-                          }
-
-                          const term = String(searchTerm || '').toLowerCase().trim();
-                          const matchSearch = !term || String(r.name || '').toLowerCase().includes(term);
-                          return matchType && matchSearch;
-                        });
-
-                        if (filteredRates.length === 0) {
-                          return (
-                            <tr>
-                              <td colSpan="8" className="no-data-cell" style={{ padding: '40px 20px', textAlign: 'center', color: '#64748B', fontWeight: 600 }}>
-                                No matching lender rates found.
-                              </td>
-                            </tr>
-                          );
-                        }
-
-                        return filteredRates.map((rate) => {
+                      {filteredRates.length === 0 ? (
+                        <tr>
+                          <td colSpan="8" className="no-data-cell" style={{ padding: '40px 20px', textAlign: 'center', color: '#64748B', fontWeight: 600 }}>
+                            No matching lender rates found.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredRates.map((rate) => {
+                          const rowKey = `rate-row-${rate.name || rate.short}-${rate.type}-${selectedLoanCategory}-${selectedRateType}`;
                           const lKey = rate.lenderId || rate.id || rate.name;
                           const typeLower = String(rate.type || 'Private').toLowerCase();
                           const badgeClass = typeLower.includes('psu')
@@ -2923,7 +3403,7 @@ export default function AdminDashboard() {
                                 : 'private';
 
                           return (
-                            <tr key={lKey}>
+                            <tr key={rowKey}>
                               <td>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, color: '#0F2942', fontSize: '0.88rem' }}>
                                   <span>{rate.emoji || (badgeClass === 'psu' ? '🏛️' : badgeClass === 'sfb' ? '🏦' : badgeClass === 'nbfc-hfc' ? '🏢' : '🏦')}</span>
@@ -2968,32 +3448,29 @@ export default function AdminDashboard() {
                                 />
                               </td>
                               <td>
-                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                                  <span style={{ position: 'absolute', left: '10px', fontSize: '0.85rem', pointerEvents: 'none' }}>🎁</span>
-                                  <input
-                                    type="text"
-                                    className="table-edit-input offer-input"
-                                    style={{ paddingLeft: '30px' }}
-                                    value={rate.offer || ''}
-                                    placeholder="Offer text"
-                                    onChange={(e) => handleRateChange(lKey, 'offer', e.target.value)}
-                                  />
-                                </div>
+                                <input
+                                  type="text"
+                                  className="table-edit-input"
+                                  value={rate.offer || ''}
+                                  placeholder="Enter promotion or offer..."
+                                  onChange={(e) => handleRateChange(lKey, 'offer', e.target.value)}
+                                  style={{ minWidth: '180px' }}
+                                />
                               </td>
-                              <td>
-                                <label className="switch-toggle-container">
+                              <td style={{ textAlign: 'center' }}>
+                                <label className="adm-toggle-switch">
                                   <input
                                     type="checkbox"
                                     checked={rate.visible !== false}
                                     onChange={(e) => handleRateChange(lKey, 'visible', e.target.checked)}
                                   />
-                                  <span className="switch-slider"></span>
+                                  <span className="adm-toggle-slider"></span>
                                 </label>
                               </td>
                             </tr>
                           );
-                        });
-                      })()}
+                        })
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -3022,8 +3499,37 @@ export default function AdminDashboard() {
                         <input type="text" className="settings-field-input" value={rmRole} onChange={(e) => setRmRole(e.target.value)} />
                       </div>
                       <div className="settings-field-group">
-                        <label className="settings-field-label">MOBILE</label>
-                        <input type="text" className="settings-field-input" value={rmMob} onChange={(e) => setRmMob(e.target.value)} />
+                        <label className="settings-field-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span>MOBILE / TOLL-FREE</span>
+                          {(() => {
+                            const digits = (rmMob || '').replace(/\D/g, '');
+                            if (digits.length > 0 && digits.length !== 10 && digits.length !== 11) {
+                              return (
+                                <span style={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: 600 }}>
+                                  Must be 10 or 11 digits ({digits.length}/10-11)
+                                </span>
+                              );
+                            }
+                            return null;
+                          })()}
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={16}
+                          className="settings-field-input"
+                          value={rmMob}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/[^0-9-\s]/g, '').slice(0, 16);
+                            setRmMob(val);
+                          }}
+                          placeholder="e.g. 1800-123-4567 or 99105-07574"
+                          style={{
+                            border: `1px solid ${(() => {
+                              const digits = (rmMob || '').replace(/\D/g, '');
+                              return (digits.length > 0 && digits.length !== 10 && digits.length !== 11) ? '#EF4444' : '#CBD5E1';
+                            })()}`
+                          }}
+                        />
                       </div>
                       <div className="settings-field-group">
                         <label className="settings-field-label">EMAIL</label>
@@ -3495,15 +4001,25 @@ export default function AdminDashboard() {
 
               {/* Mobile */}
               <div>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Mobile</label>
+                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  <span>Mobile</span>
+                  {editBrokerForm.mobile && editBrokerForm.mobile.length > 0 && editBrokerForm.mobile.length !== 10 && (
+                    <span style={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: 600 }}>Must be 10 digits ({editBrokerForm.mobile.length}/10)</span>
+                  )}
+                </label>
                 <input
                   type="tel"
+                  maxLength={10}
                   value={editBrokerForm.mobile}
-                  onChange={(e) => setEditBrokerForm(f => ({ ...f, mobile: e.target.value }))}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setEditBrokerForm(f => ({ ...f, mobile: val }));
+                  }}
                   placeholder="10-digit mobile number"
                   style={{
                     width: '100%', padding: '10px 14px',
-                    borderRadius: '8px', border: '1px solid #D1D5DB',
+                    borderRadius: '8px',
+                    border: `1px solid ${editBrokerForm.mobile && editBrokerForm.mobile.length > 0 && editBrokerForm.mobile.length !== 10 ? '#EF4444' : '#D1D5DB'}`,
                     fontSize: '0.9rem', outline: 'none', color: '#111827'
                   }}
                 />
@@ -3622,13 +4138,27 @@ export default function AdminDashboard() {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Mobile</label>
+                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  <span>Mobile</span>
+                  {editBorrowerForm.mobile && editBorrowerForm.mobile.length > 0 && editBorrowerForm.mobile.length !== 10 && (
+                    <span style={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: 600 }}>Must be 10 digits ({editBorrowerForm.mobile.length}/10)</span>
+                  )}
+                </label>
                 <input
                   type="tel"
+                  maxLength={10}
                   value={editBorrowerForm.mobile}
-                  onChange={(e) => setEditBorrowerForm(f => ({ ...f, mobile: e.target.value }))}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setEditBorrowerForm(f => ({ ...f, mobile: val }));
+                  }}
                   placeholder="10-digit mobile number"
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #D1D5DB', fontSize: '0.9rem', outline: 'none', color: '#111827' }}
+                  style={{
+                    width: '100%', padding: '10px 14px',
+                    borderRadius: '8px',
+                    border: `1px solid ${editBorrowerForm.mobile && editBorrowerForm.mobile.length > 0 && editBorrowerForm.mobile.length !== 10 ? '#EF4444' : '#D1D5DB'}`,
+                    fontSize: '0.9rem', outline: 'none', color: '#111827'
+                  }}
                 />
               </div>
               <div>

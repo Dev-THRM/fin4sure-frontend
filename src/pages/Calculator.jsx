@@ -217,11 +217,18 @@ export default function Calculator() {
         if (dbEntry.offer) offer = dbEntry.offer;
       }
 
+      const typeUpper = l.type ? (
+        l.type.toUpperCase() === 'PSU' ? 'PSU' :
+        (l.type.toLowerCase().includes('nbfc') || l.type.toLowerCase().includes('hfc')) ? 'NBFC/HFC' :
+        (l.type.toLowerCase().includes('small') || l.type.toLowerCase().includes('sfb')) ? 'SFB' :
+        'PRIVATE'
+      ) : 'PRIVATE';
+
       result.push({
         id: dbEntry?.id || (idx + 1),
         name: l.name,
         short: l.short || l.name,
-        type: l.type ? l.type.toUpperCase() : "PRIVATE",
+        type: typeUpper,
         emoji: l.emoji || '🏛️',
         logo: l.logo || null,
         rate: parseFloat(minR),
@@ -296,7 +303,22 @@ export default function Calculator() {
 
     if (lenderFilter !== "All") {
       const fl = lenderFilter.toLowerCase();
-      list = list.filter(l => (l.type || '').toLowerCase().includes(fl));
+      list = list.filter(l => {
+        const rawType = String(l.type || 'PRIVATE').toLowerCase();
+        if (fl === "psu") {
+          return rawType === "psu" || rawType.includes("psu") || rawType.includes("public") || rawType.includes("govt");
+        }
+        if (fl === "private") {
+          return rawType === "private";
+        }
+        if (fl === "nbfc/hfc" || fl === "nbfc" || fl === "hfc") {
+          return rawType.includes("nbfc") || rawType.includes("hfc");
+        }
+        if (fl === "sfb" || fl === "small") {
+          return rawType.includes("sfb") || rawType.includes("small");
+        }
+        return true;
+      });
     }
 
     // Type priority order: Private → NBFC/HFC → SFB → PSU
@@ -310,7 +332,6 @@ export default function Calculator() {
     };
 
     if (lenderSort === "rate_asc") {
-      // Sort by rate first, then by type order for ties
       list.sort((a, b) => {
         if (a.rate !== b.rate) return a.rate - b.rate;
         return getTypeOrder(a.type) - getTypeOrder(b.type);
@@ -327,8 +348,12 @@ export default function Calculator() {
         return getTypeOrder(a.type) - getTypeOrder(b.type);
       });
     } else {
-      // Default: sort purely by type order
-      list.sort((a, b) => getTypeOrder(a.type) - getTypeOrder(b.type));
+      list.sort((a, b) => {
+        const pA = getTypeOrder(a.type);
+        const pB = getTypeOrder(b.type);
+        if (pA !== pB) return pA - pB;
+        return a.rate - b.rate;
+      });
     }
 
     return list;
@@ -350,7 +375,8 @@ export default function Calculator() {
     <div className="calc-full-page animate-fade-up">
       {/* ═══ STANDALONE EMI CALCULATOR HERO BANNER (COMPACT) ═══ */}
       <div style={{
-        maxWidth: '1280px',
+        maxWidth: '1600px',
+        width: '96%',
         margin: '12px auto 8px',
         padding: '0 16px',
         boxSizing: 'border-box'
@@ -448,28 +474,6 @@ export default function Calculator() {
               — Fixed
             </button>
           </div>
-        </div>
-
-        {/* Floating / Fixed Info Notification Banner */}
-        <div style={{
-          background: '#FEF9C3',
-          border: '1px solid #FDE047',
-          borderRadius: '12px',
-          padding: '6px 14px',
-          margin: '8px 0 0 0',
-          color: '#854D0E',
-          fontSize: '0.78rem',
-          fontWeight: 600,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px'
-        }}>
-          <span>ℹ️</span>
-          <span>
-            {rateType === 'fixed'
-              ? 'Fixed rate: Rate stays constant throughout tenure. This loan type is offered on a fixed-rate basis by lenders.'
-              : 'Floating rate: Rate adjusts with market interest rate benchmark (Repo Rate/MCLR). Offered on a floating-rate basis.'}
-          </span>
         </div>
       </div>
 
@@ -574,7 +578,7 @@ export default function Calculator() {
         </div>
 
         {/* ═══ UNIFIED SIDE-BY-SIDE GRID (LEFT: CALCULATOR | RIGHT: COMPARE LENDERS TABLE) ═══ */}
-        <div className="calc-main-side-grid" style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: '20px', alignItems: 'start', marginBottom: '24px' }}>
+        <div className="calc-main-side-grid" style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: '24px', alignItems: 'start', marginBottom: '24px' }}>
 
           {/* ═══ LEFT PANEL: LOAN CALCULATOR & EMI READOUT ═══ */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -631,14 +635,15 @@ export default function Calculator() {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: "6px",
+                      gap: "4px",
                       background: "#F8FAFC",
                       border: "1px solid #CBD5E1",
                       borderRadius: "8px",
-                      padding: "2px 10px",
-                      width: "230px",
+                      padding: "2px 8px",
+                      width: "auto",
+                      minWidth: "150px",
                       boxSizing: "border-box",
-                      flexShrink: 0
+                      overflow: "visible"
                     }}
                   >
                     <span
@@ -646,7 +651,7 @@ export default function Calculator() {
                       style={{
                         fontWeight: 700,
                         color: "#0F2942",
-                        fontSize: "0.8rem",
+                        fontSize: "0.85rem",
                         flexShrink: 0
                       }}
                     >
@@ -668,10 +673,9 @@ export default function Calculator() {
                         fontWeight: 800,
                         fontSize: "0.85rem",
                         color: "#0F2942",
-                        width: "65px",
-                        minWidth: 0,
-                        flexShrink: 0,
-                        textAlign: "right"
+                        width: "55px",
+                        textAlign: "right",
+                        padding: "2px 0"
                       }}
                     />
 
@@ -684,11 +688,10 @@ export default function Calculator() {
                         background: "transparent",
                         outline: "none",
                         fontWeight: 700,
-                        fontSize: "0.78rem",
-                        color: "#475569",
+                        fontSize: "0.8rem",
+                        color: "#0F2942",
                         cursor: "pointer",
-                        width: "75px",
-                        minWidth: "75px",
+                        padding: "2px 2px",
                         flexShrink: 0
                       }}
                     >
@@ -750,7 +753,8 @@ export default function Calculator() {
                       border: "1px solid #CBD5E1",
                       borderRadius: "8px",
                       padding: "2px 10px",
-                      minWidth: "230px",
+                      width: "auto",
+                      minWidth: "90px",
                       overflow: "visible"
                     }}
                   >
@@ -761,7 +765,7 @@ export default function Calculator() {
                       onChange={(e) => setRate(e.target.value)}
                       onBlur={clampRate}
                       step="0.05"
-                      style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.85rem', color: '#0F2942', width: '70px', textAlign: 'right' }}
+                      style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.85rem', color: '#0F2942', width: '50px', textAlign: 'right' }}
                     />
                     <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569' }}>%</span>
                   </div>
@@ -1051,57 +1055,77 @@ export default function Calculator() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredAndSortedLenders.map((lender) => {
-                    const lEmi = calcEMI(amount, lender.rate, tenure);
-                    return (
-                      <tr key={lender.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                        <td style={{ padding: '10px 14px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <div style={{ width: '30px', height: '30px', borderRadius: '6px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.95rem' }}>
-                              🏛️
-                            </div>
-                            <div>
-                              <div style={{ fontWeight: 800, color: '#0F2942' }}>{lender.name}</div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '1px' }}>
-                                <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', background: '#F1F5F9', padding: '1px 4px', borderRadius: '4px' }}>
-                                  {lender.type || 'PRIVATE'}
-                                </span>
+                  {filteredAndSortedLenders.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" style={{ padding: '30px 14px', textAlign: 'center', color: '#64748B', fontWeight: 600 }}>
+                        No matching lenders found for {lenderFilter}.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredAndSortedLenders.map((lender) => {
+                      const lEmi = calcEMI(amount, lender.rate, tenure);
+                      const rowKey = `calc-lender-${lender.name}-${lender.type}-${lenderFilter}-${rateType}-${loanType}`;
+                      const isPsu = lender.type === 'PSU';
+                      const isNbfc = lender.type === 'NBFC/HFC';
+                      const isSfb = lender.type === 'SFB';
+
+                      return (
+                        <tr key={rowKey} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '10px 14px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div style={{ width: '30px', height: '30px', borderRadius: '6px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.95rem' }}>
+                                🏛️
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 800, color: '#0F2942' }}>{lender.name}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '1px' }}>
+                                  <span style={{
+                                    fontSize: '0.65rem',
+                                    fontWeight: 700,
+                                    color: isPsu ? '#1E40AF' : isNbfc ? '#92400E' : isSfb ? '#15803D' : '#475569',
+                                    background: isPsu ? '#DBEAFE' : isNbfc ? '#FEF3C7' : isSfb ? '#DCFCE7' : '#F1F5F9',
+                                    padding: '1px 6px',
+                                    borderRadius: '4px'
+                                  }}>
+                                    {lender.type || 'PRIVATE'}
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </td>
+                          </td>
 
-                        <td style={{ padding: '10px 14px' }}>
-                          <div style={{ fontWeight: 800, color: '#0F2942', fontSize: '0.88rem' }}>{lender.rate.toFixed(2)}%</div>
-                          <div style={{ fontSize: '0.68rem', color: '#64748B' }}>{lender.rate.toFixed(2)}–{lender.maxRate.toFixed(2)}</div>
-                        </td>
+                          <td style={{ padding: '10px 14px' }}>
+                            <div style={{ fontWeight: 800, color: '#0F2942', fontSize: '0.88rem' }}>{lender.rate.toFixed(2)}%</div>
+                            <div style={{ fontSize: '0.68rem', color: '#64748B' }}>{lender.rate.toFixed(2)}–{lender.maxRate.toFixed(2)}%</div>
+                          </td>
 
-                        <td style={{ padding: '10px 14px' }}>
-                          <div style={{ fontWeight: 800, color: '#0284C7', fontSize: '0.88rem' }}>{fmtINRFull(lEmi)}<span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#64748B' }}>/mo</span></div>
-                        </td>
+                          <td style={{ padding: '10px 14px' }}>
+                            <div style={{ fontWeight: 800, color: '#0284C7', fontSize: '0.88rem' }}>{fmtINRFull(lEmi)}<span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#64748B' }}>/mo</span></div>
+                          </td>
 
-                        <td style={{ padding: '10px 14px', textAlign: 'right' }}>
-                          <button
-                            type="button"
-                            onClick={() => handleApplyToLender(lender.id)}
-                            style={{
-                              padding: '6px 14px',
-                              borderRadius: '6px',
-                              background: '#0F2942',
-                              color: '#FFFFFF',
-                              border: 'none',
-                              fontWeight: 800,
-                              fontSize: '0.78rem',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s ease'
-                            }}
-                          >
-                            Apply →
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                          <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                            <button
+                              type="button"
+                              onClick={() => handleApplyToLender(lender.id)}
+                              style={{
+                                padding: '6px 14px',
+                                borderRadius: '6px',
+                                background: '#0F2942',
+                                color: '#FFFFFF',
+                                border: 'none',
+                                fontWeight: 800,
+                                fontSize: '0.78rem',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                              }}
+                            >
+                              Apply →
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
