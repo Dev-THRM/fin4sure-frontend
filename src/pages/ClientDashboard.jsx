@@ -293,6 +293,7 @@ export default function ClientDashboard() {
                 <span className="cdash-badge">Borrower</span>
                 <span>📱 {user.number || authUser?.number || "8123123712"}</span>
               </div>
+              )}
             </div>
           </div>
 
@@ -437,7 +438,7 @@ export default function ClientDashboard() {
                           </div>
                         </div>
 
-                        {(statusId === 1 || statusId === 2) && (
+                        {(currentStepIndex === 0 || currentStepIndex === 1) && (
                           <div style={{ 
                             marginTop: '20px', 
                             paddingTop: '16px', 
@@ -473,7 +474,12 @@ export default function ClientDashboard() {
                 </div>
               </div>
 
-              {/* Reward Almirah Panel */}
+              {/* Reward Almirah Panel - Only show if there's a disbursed loan */}
+              {applications.some(app => {
+                const sId = Number(app.status_id || 1);
+                const rawSt = (app.Status?.name || "").toLowerCase();
+                return sId === 7 || rawSt.includes("disburs");
+              }) && (
               <div className="cdash-section">
                 <div className="cdash-sec-head">
                   <h3>🏆 Finn4sure Reward Cabinet</h3>
@@ -558,6 +564,7 @@ export default function ClientDashboard() {
                   </div>
                 </div>
               </div>
+              )}
             </div>
 
             {/* Right Column */}
