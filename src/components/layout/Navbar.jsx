@@ -1,5 +1,6 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { Info, Home, Calculator, Banknote, Users, User, Key } from "lucide-react";
 import logo from "../../assets/images/logo.jpeg";
 import { useAuth } from "../../context/AuthContext";
 import "./navbar.css";
@@ -104,12 +105,13 @@ export default function Navbar() {
 
       {/* ═══ ROW 2: Tab ribbon ═══ */}
       <nav className={`navbar-ribbon ${mobileMenuOpen ? 'open' : ''}`}>
-         <NavLink 
+        <NavLink 
           to="/about" 
           className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
           onClick={() => setMobileMenuOpen(false)}
         >
-          🏢 About Us
+          <Info size={15} strokeWidth={2} style={{ opacity: 0.85 }} />
+          <span>About Us</span>
         </NavLink>
         <NavLink 
           to="/" 
@@ -117,28 +119,32 @@ export default function Navbar() {
           className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
           onClick={() => setMobileMenuOpen(false)}
         >
-          🏠 Home
+          <Home size={15} strokeWidth={2} style={{ opacity: 0.85 }} />
+          <span>Home</span>
         </NavLink>
         <NavLink 
           to="/EMI-calculator" 
           className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
           onClick={() => setMobileMenuOpen(false)}
         >
-          🧮 EMI Calculator
-        </NavLink>
-        <NavLink 
-          to="/loans" 
-          className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          📈 Loans
+          <Calculator size={15} strokeWidth={2} style={{ opacity: 0.85 }} />
+          <span>EMI Calculator</span>
         </NavLink>
         <NavLink 
           to="/partner" 
           className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
           onClick={() => setMobileMenuOpen(false)}
         >
-          🤝 Partner 
+          <Users size={15} strokeWidth={2} style={{ opacity: 0.85 }} />
+          <span>Partner</span>
+        </NavLink>
+        <NavLink 
+          to="/loans" 
+          className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          <Banknote size={15} strokeWidth={2} style={{ opacity: 0.85 }} />
+          <span>Loans</span>
         </NavLink>
 
         {isAuthenticated ? (
@@ -147,7 +153,8 @@ export default function Navbar() {
             className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
             onClick={() => setMobileMenuOpen(false)}
           >
-            🔑 Dashboard ({role})
+            <Key size={15} strokeWidth={2} style={{ opacity: 0.85 }} />
+            <span>Dashboard ({role})</span>
           </NavLink>
         ) : (
           <NavLink 
@@ -155,7 +162,8 @@ export default function Navbar() {
             className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
             onClick={() => setMobileMenuOpen(false)}
           >
-            🔑 Sign In
+            <User size={15} strokeWidth={2} style={{ opacity: 0.85 }} />
+            <span>Customer Login</span>
           </NavLink>
         )}
       </nav>
