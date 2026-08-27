@@ -180,6 +180,13 @@ export default function AdminDashboard() {
 
   async function saveEditBroker() {
     if (!editingBroker) return;
+    if (editBrokerForm.mobile) {
+      const cleanMobile = String(editBrokerForm.mobile).replace(/\D/g, '');
+      if (cleanMobile.length !== 10 || !/^[6-9]\d{9}$/.test(cleanMobile)) {
+        setCustomAlert({ type: 'error', message: 'Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.' });
+        return;
+      }
+    }
     try {
       const res = await fetch('/api/admin/update-broker', {
         method: 'POST',
@@ -189,7 +196,7 @@ export default function AdminDashboard() {
           id: editingBroker.id || editingBroker.brokerId,
           name: editBrokerForm.name,
           city: editBrokerForm.city,
-          mobile: editBrokerForm.mobile,
+          mobile: editBrokerForm.mobile ? editBrokerForm.mobile.replace(/\D/g, '') : '',
           status: editBrokerForm.status.toLowerCase()
         })
       });
@@ -223,13 +230,20 @@ export default function AdminDashboard() {
     setEditBorrowerForm({
       name: borrower.name || '',
       email: borrower.email || '',
-      mobile: borrower.number || borrower.mob_no || '',
+      mobile: (borrower.number || borrower.mob_no || '').replace(/\D/g, '').slice(0, 10),
       status: borrower.status || 'active'
     });
   }
 
   async function saveEditBorrower() {
     if (!editingBorrower) return;
+    if (editBorrowerForm.mobile) {
+      const cleanMobile = String(editBorrowerForm.mobile).replace(/\D/g, '');
+      if (cleanMobile.length !== 10 || !/^[6-9]\d{9}$/.test(cleanMobile)) {
+        setCustomAlert({ type: 'error', message: 'Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.' });
+        return;
+      }
+    }
     try {
       const res = await fetch('/api/admin/update-borrower', {
         method: 'POST',
@@ -238,7 +252,7 @@ export default function AdminDashboard() {
           id: editingBorrower.id,
           name: editBorrowerForm.name,
           email: editBorrowerForm.email,
-          mobile: editBorrowerForm.mobile,
+          mobile: editBorrowerForm.mobile ? editBorrowerForm.mobile.replace(/\D/g, '') : '',
           status: editBorrowerForm.status
         })
       });
@@ -3768,15 +3782,25 @@ export default function AdminDashboard() {
 
               {/* Mobile */}
               <div>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Mobile</label>
+                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  <span>Mobile</span>
+                  {editBrokerForm.mobile && editBrokerForm.mobile.length > 0 && editBrokerForm.mobile.length !== 10 && (
+                    <span style={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: 600 }}>Must be 10 digits ({editBrokerForm.mobile.length}/10)</span>
+                  )}
+                </label>
                 <input
                   type="tel"
+                  maxLength={10}
                   value={editBrokerForm.mobile}
-                  onChange={(e) => setEditBrokerForm(f => ({ ...f, mobile: e.target.value }))}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setEditBrokerForm(f => ({ ...f, mobile: val }));
+                  }}
                   placeholder="10-digit mobile number"
                   style={{
                     width: '100%', padding: '10px 14px',
-                    borderRadius: '8px', border: '1px solid #D1D5DB',
+                    borderRadius: '8px',
+                    border: `1px solid ${editBrokerForm.mobile && editBrokerForm.mobile.length > 0 && editBrokerForm.mobile.length !== 10 ? '#EF4444' : '#D1D5DB'}`,
                     fontSize: '0.9rem', outline: 'none', color: '#111827'
                   }}
                 />
@@ -3895,13 +3919,27 @@ export default function AdminDashboard() {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Mobile</label>
+                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  <span>Mobile</span>
+                  {editBorrowerForm.mobile && editBorrowerForm.mobile.length > 0 && editBorrowerForm.mobile.length !== 10 && (
+                    <span style={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: 600 }}>Must be 10 digits ({editBorrowerForm.mobile.length}/10)</span>
+                  )}
+                </label>
                 <input
                   type="tel"
+                  maxLength={10}
                   value={editBorrowerForm.mobile}
-                  onChange={(e) => setEditBorrowerForm(f => ({ ...f, mobile: e.target.value }))}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setEditBorrowerForm(f => ({ ...f, mobile: val }));
+                  }}
                   placeholder="10-digit mobile number"
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #D1D5DB', fontSize: '0.9rem', outline: 'none', color: '#111827' }}
+                  style={{
+                    width: '100%', padding: '10px 14px',
+                    borderRadius: '8px',
+                    border: `1px solid ${editBorrowerForm.mobile && editBorrowerForm.mobile.length > 0 && editBorrowerForm.mobile.length !== 10 ? '#EF4444' : '#D1D5DB'}`,
+                    fontSize: '0.9rem', outline: 'none', color: '#111827'
+                  }}
                 />
               </div>
               <div>
