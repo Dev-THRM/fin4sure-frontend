@@ -27,7 +27,11 @@ export default function UploadDocs() {
   const [loadingExisting, setLoadingExisting] = useState(true);
 
   React.useEffect(() => {
-    fetch(`/api/client/application-documents/${applicationId}`, { credentials: 'include' })
+    const token = localStorage.getItem("accessToken");
+    const headers = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    fetch(`/api/client/application-documents/${applicationId}`, { credentials: 'include', headers })
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -81,10 +85,14 @@ export default function UploadDocs() {
       if (docs.salarySlip) { formData.append('files', docs.salarySlip); formData.append('types', 'salary slip'); }
       if (docs.bankStatement) { formData.append('files', docs.bankStatement); formData.append('types', 'bank statement'); }
 
+      const token = localStorage.getItem("accessToken");
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res = await fetch(`/api/client/upload-docs/${applicationId}`, {
         method: "POST",
         body: formData,
-        // Include credentials for session cookie authentication
+        headers,
         credentials: "include",
       });
 
