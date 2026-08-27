@@ -599,6 +599,13 @@ export default function AdminDashboard() {
   }
 
   async function handleSaveRM() {
+    if (rmMob) {
+      const cleanDigits = String(rmMob).replace(/\D/g, '');
+      if (cleanDigits.length !== 10 || !/^[6-9]\d{9}$/.test(cleanDigits)) {
+        setCustomAlert({ message: "Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.", type: "error" });
+        return;
+      }
+    }
     try {
       const res = await fetch("/api/admin/relationship-manager", {
         method: "POST",
@@ -607,7 +614,7 @@ export default function AdminDashboard() {
         body: JSON.stringify({
           name: rmName,
           role: rmRole,
-          mob: rmMob,
+          mob: rmMob ? String(rmMob).replace(/\D/g, '') : '',
           email: rmEmail,
           availability: rmAvailability
         }),
@@ -3472,8 +3479,26 @@ export default function AdminDashboard() {
                         <input type="text" className="settings-field-input" value={rmRole} onChange={(e) => setRmRole(e.target.value)} />
                       </div>
                       <div className="settings-field-group">
-                        <label className="settings-field-label">MOBILE</label>
-                        <input type="text" className="settings-field-input" value={rmMob} onChange={(e) => setRmMob(e.target.value)} />
+                        <label className="settings-field-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span>MOBILE</span>
+                          {rmMob && rmMob.replace(/\D/g, '').length > 0 && rmMob.replace(/\D/g, '').length !== 10 && (
+                            <span style={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: 600 }}>Must be 10 digits ({rmMob.replace(/\D/g, '').length}/10)</span>
+                          )}
+                        </label>
+                        <input
+                          type="tel"
+                          maxLength={10}
+                          className="settings-field-input"
+                          value={rmMob}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                            setRmMob(val);
+                          }}
+                          placeholder="10-digit mobile number"
+                          style={{
+                            border: `1px solid ${rmMob && rmMob.replace(/\D/g, '').length > 0 && rmMob.replace(/\D/g, '').length !== 10 ? '#EF4444' : '#CBD5E1'}`
+                          }}
+                        />
                       </div>
                       <div className="settings-field-group">
                         <label className="settings-field-label">EMAIL</label>
