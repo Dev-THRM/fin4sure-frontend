@@ -1352,10 +1352,7 @@ export default function AdminDashboard() {
     : (stats.inProgressCount ?? 0);
 
   const pendingCount = leads.length > 0
-    ? leads.filter(l => {
-        const st = (l.stage || '').toLowerCase().trim();
-        return st === 'pending' || st === 'applied';
-      }).length
+    ? leads.filter(l => (l.status || '').toLowerCase().trim() === 'pending').length
     : (stats.pendingCount ?? 0);
 
   const rejectedCount = leads.length > 0
@@ -1723,10 +1720,7 @@ export default function AdminDashboard() {
                           return s === 'in-progress' || s === 'in progress';
                         });
                       } else if (activeKpiFilter === 'pending') {
-                        filtered = sourceList.filter(l => {
-                          const st = (l.stage || '').toLowerCase().trim();
-                          return st === 'pending' || st === 'applied';
-                        });
+                        filtered = sourceList.filter(l => (l.status || '').toLowerCase().trim() === 'pending');
                       } else if (activeKpiFilter === 'rejected') {
                         filtered = sourceList.filter(l => (l.status || '').toLowerCase().trim() === 'rejected');
                       } else if (activeKpiFilter === 'loan_volume') {
