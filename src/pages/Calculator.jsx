@@ -449,28 +449,6 @@ export default function Calculator() {
             </button>
           </div>
         </div>
-
-        {/* Floating / Fixed Info Notification Banner */}
-        <div style={{
-          background: '#FEF9C3',
-          border: '1px solid #FDE047',
-          borderRadius: '12px',
-          padding: '6px 14px',
-          margin: '8px 0 0 0',
-          color: '#854D0E',
-          fontSize: '0.78rem',
-          fontWeight: 600,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px'
-        }}>
-          <span>ℹ️</span>
-          <span>
-            {rateType === 'fixed'
-              ? 'Fixed rate: Rate stays constant throughout tenure. This loan type is offered on a fixed-rate basis by lenders.'
-              : 'Floating rate: Rate adjusts with market interest rate benchmark (Repo Rate/MCLR). Offered on a floating-rate basis.'}
-          </span>
-        </div>
       </div>
 
       {/* ═══ MAIN CONTENT BODY (NO STEPPER) ═══ */}
