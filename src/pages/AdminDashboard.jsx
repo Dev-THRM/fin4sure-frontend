@@ -186,7 +186,7 @@ export default function AdminDashboard() {
         headers: getAuthHeaders(true),
         credentials: 'include',
         body: JSON.stringify({
-          id: editingBroker.brokerId || editingBroker.id,
+          id: editingBroker.id || editingBroker.brokerId,
           name: editBrokerForm.name,
           city: editBrokerForm.city,
           mobile: editBrokerForm.mobile,
