@@ -183,7 +183,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch('/api/admin/update-broker', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(true),
         credentials: 'include',
         body: JSON.stringify({
           id: editingBroker.brokerId || editingBroker.id,
