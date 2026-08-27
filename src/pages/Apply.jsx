@@ -269,6 +269,8 @@ export default function Apply() {
     }
   ];
 
+  const [lenderFilter, setLenderFilter] = useState("All");
+
   // Combine DB lenders or real master list based on loanType & rateType
   const mergedLendersList = useMemo(() => {
     const dbMap = new Map();
@@ -289,7 +291,7 @@ export default function Apply() {
       const flowPair = rateObj.f;
       const fixPair = rateObj.x;
 
-      // Skip lenders that do not offer this loan category (e.g. Mahindra on Home Loans)
+      // Skip lenders that do not offer this loan category
       if (!flowPair && !fixPair) return;
 
       let minR = rateType === 'floating'
@@ -328,11 +330,18 @@ export default function Apply() {
         if (dbEntry.offer) offer = dbEntry.offer;
       }
 
+      const typeUpper = l.type ? (
+        l.type.toUpperCase() === 'PSU' ? 'PSU' :
+        (l.type.toLowerCase().includes('nbfc') || l.type.toLowerCase().includes('hfc')) ? 'NBFC/HFC' :
+        (l.type.toLowerCase().includes('small') || l.type.toLowerCase().includes('sfb')) ? 'SFB' :
+        'PRIVATE'
+      ) : 'PRIVATE';
+
       result.push({
         id: dbEntry?.id || (idx + 1),
         name: l.name,
         short: l.short || l.name,
-        type: l.type ? l.type.toUpperCase() : "PRIVATE",
+        type: typeUpper,
         emoji: l.emoji || '🏛️',
         logo: l.logo || null,
         rate: parseFloat(minR),
@@ -348,6 +357,33 @@ export default function Apply() {
       return a.rate - b.rate;
     });
   }, [dbLenders, loanType, rateType]);
+
+  // Filtered Lenders List for Step 2
+  const filteredAndSortedLenders = useMemo(() => {
+    let list = [...mergedLendersList];
+
+    if (lenderFilter !== "All") {
+      const fl = lenderFilter.toLowerCase();
+      list = list.filter(l => {
+        const rawType = String(l.type || 'PRIVATE').toLowerCase();
+        if (fl === "psu") {
+          return rawType === "psu" || rawType.includes("psu") || rawType.includes("public") || rawType.includes("govt");
+        }
+        if (fl === "private") {
+          return rawType === "private";
+        }
+        if (fl === "nbfc/hfc" || fl === "nbfc" || fl === "hfc") {
+          return rawType.includes("nbfc") || rawType.includes("hfc");
+        }
+        if (fl === "sfb" || fl === "small") {
+          return rawType.includes("sfb") || rawType.includes("small");
+        }
+        return true;
+      });
+    }
+
+    return list;
+  }, [mergedLendersList, lenderFilter]);
 
   // Format Lakhs/Crores for summary cards
   const fmtLakhCr = (val) => {
@@ -708,9 +744,37 @@ export default function Apply() {
           /* ═══ STEP 2: CHOOSE LENDERS ═══ */
           <div className="calc-step2-wrap animate-fade-up">
             <div className="calc-step2-header">
-              <h2 className="calc-step2-title">Available Lenders</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '8px' }}>
+                <h2 className="calc-step2-title" style={{ margin: 0 }}>Available Lenders</h2>
+                
+                {/* Bank Type Filter Chips */}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {["All", "PSU", "Private", "NBFC/HFC", "SFB"].map((fl) => (
+                    <button
+                      key={fl}
+                      type="button"
+                      onClick={() => setLenderFilter(fl)}
+                      style={{
+                        padding: '4px 14px',
+                        borderRadius: '16px',
+                        border: lenderFilter === fl ? '1px solid #0284C7' : '1px solid #E2E8F0',
+                        background: lenderFilter === fl ? '#0F2942' : '#FFFFFF',
+                        color: lenderFilter === fl ? '#FFFFFF' : '#475569',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        boxShadow: lenderFilter === fl ? '0 2px 6px rgba(15,41,66,0.15)' : 'none'
+                      }}
+                    >
+                      {fl}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <p className="calc-step2-sub">
-                Sorted by best Expected ROI — EMI shown is for your selected amount &amp; tenure.
+                Live interest rates for {currentTitle} · Sorted by best Expected ROI ({rateType === 'floating' ? 'Floating' : 'Fixed'})
               </p>
 
               <div className="smart-tip-box green">
@@ -727,15 +791,22 @@ export default function Apply() {
                 <div style={{ textAlign: "center", padding: "40px", color: "#64748B" }}>
                   Loading real lenders from database...
                 </div>
+              ) : filteredAndSortedLenders.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "40px", color: "#64748B", background: '#FFFFFF', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
+                  No lenders found matching the "{lenderFilter}" filter for {currentTitle}.
+                </div>
               ) : (
-                mergedLendersList.map((lender, idx) => {
+                filteredAndSortedLenders.map((lender, idx) => {
                   const isSel = selectedLenders.includes(lender.id);
                   const lEmi = calcEMI(amount, lender.rate, tenure);
                   const isBest = idx === 0;
+                  const isPsu = lender.type === 'PSU';
+                  const isNbfc = lender.type === 'NBFC/HFC';
+                  const isSfb = lender.type === 'SFB';
 
                   return (
                     <div
-                      key={lender.id}
+                      key={`apply-lender-${lender.name}-${lender.type}-${lenderFilter}-${loanType}-${rateType}`}
                       className={`calc-lender-card ${isSel ? "selected" : ""}`}
                       onClick={() => toggleLenderSelection(lender.id)}
                     >
@@ -758,7 +829,16 @@ export default function Apply() {
                             {isBest && <span className="clc-best-badge">★ Best Rate</span>}
                           </div>
                           <div className="clc-sub-row">
-                            <span>{lender.type ? String(lender.type).toUpperCase() : "PRIVATE"}</span>
+                            <span style={{
+                              fontSize: '0.65rem',
+                              fontWeight: 700,
+                              color: isPsu ? '#1E40AF' : isNbfc ? '#92400E' : isSfb ? '#15803D' : '#475569',
+                              background: isPsu ? '#DBEAFE' : isNbfc ? '#FEF3C7' : isSfb ? '#DCFCE7' : '#F1F5F9',
+                              padding: '1px 6px',
+                              borderRadius: '4px'
+                            }}>
+                              {lender.type || 'PRIVATE'}
+                            </span>
                             <span className="clc-bullet">·</span>
                             <span className="clc-pf">PF applicable*</span>
                             <span className="clc-bullet">·</span>
@@ -769,7 +849,8 @@ export default function Apply() {
 
                       <div className="clc-right">
                         <div className="clc-rate">{lender.rate.toFixed(2)}%</div>
-                        <div className="clc-emi">EMI {fmtINRFull(lEmi)}</div>
+                        <div style={{ fontSize: '0.7rem', color: '#64748B', textAlign: 'right' }}>{lender.rate.toFixed(2)}–{lender.maxRate.toFixed(2)}%</div>
+                        <div className="clc-emi" style={{ marginTop: '2px' }}>EMI {fmtINRFull(lEmi)}</div>
                       </div>
                     </div>
                   );
