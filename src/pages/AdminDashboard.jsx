@@ -2040,45 +2040,149 @@ export default function AdminDashboard() {
 
               {/* Bottom Card: Top Lenders */}
               <div className="adm-workspace-card mt-6">
-                <div className="adm-wcard-header">
-                  <h3>Top Lenders by Application Volume</h3>
+                <div className="adm-wcard-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '1.2rem' }}>📊</span>
+                    <h3 style={{ margin: 0, fontWeight: 800, color: '#0F2942', fontSize: '1.05rem' }}>Top Lenders by Application Volume</h3>
+                  </div>
+                  <span style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>Real-time aggregated portfolio share</span>
                 </div>
-                <div className="adm-wcard-body">
-                  <table className="lenders-table">
+                <div className="adm-wcard-body" style={{ padding: 0 }}>
+                  <table className="lenders-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr>
-                        <th>LENDER</th>
-                        <th>VOLUME BAR</th>
-                        <th>COUNT</th>
-                        <th>TYPE</th>
+                      <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
+                        <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: '0.74rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em' }}>LENDER</th>
+                        <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: '0.74rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em', width: '45%' }}>VOLUME SHARE</th>
+                        <th style={{ padding: '14px 20px', textAlign: 'center', fontSize: '0.74rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em' }}>APPLICATIONS</th>
+                        <th style={{ padding: '14px 20px', textAlign: 'right', fontSize: '0.74rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em' }}>INSTITUTION TYPE</th>
                       </tr>
                     </thead>
                     <tbody>
                       {!stats.topLenders || stats.topLenders.length === 0 ? (
                         <tr>
-                          <td colSpan="4" className="no-data-cell">No lender volume data available</td>
+                          <td colSpan="4" className="no-data-cell" style={{ padding: '32px', textAlign: 'center', color: '#94A3B8' }}>
+                            No lender volume data available
+                          </td>
                         </tr>
                       ) : (
-                        stats.topLenders.map((lender, index) => {
-                          const maxCount = Math.max(...stats.topLenders.map(l => Number(l.count))) || 1;
-                          const barWidth = Math.round((Number(lender.count) / maxCount) * 100);
-                          return (
-                            <tr key={index}>
-                              <td style={{ fontWeight: 600, color: '#0d2b6b' }}>{lender.name}</td>
-                              <td style={{ verticalAlign: 'middle', width: '50%' }}>
-                                <div className="breakdown-progress-bar" style={{ height: '8px', margin: 0 }}>
-                                  <div className="breakdown-progress bg-blue" style={{ width: `${barWidth}%`, height: '100%', borderRadius: '4px' }}></div>
-                                </div>
-                              </td>
-                              <td style={{ fontWeight: 700 }}>{lender.count}</td>
-                              <td>
-                                <span className={`rate-type-badge ${lender.type.toLowerCase().replace('/', '-')}`}>
-                                  {lender.type.toUpperCase()}
-                                </span>
-                              </td>
-                            </tr>
-                          );
-                        })
+                        (() => {
+                          const maxCount = Math.max(...stats.topLenders.map(l => Number(l.count) || 0)) || 1;
+                          const totalApps = stats.topLenders.reduce((sum, l) => sum + (Number(l.count) || 0), 0) || 1;
+
+                          return stats.topLenders.map((lender, index) => {
+                            const countNum = Number(lender.count) || 0;
+                            const barWidth = Math.max(8, Math.round((countNum / maxCount) * 100));
+                            const sharePct = Math.round((countNum / totalApps) * 100);
+
+                            const typeStr = String(lender.type || '').toLowerCase();
+                            const isPsu = typeStr.includes('psu') || typeStr.includes('public');
+                            const isNbfc = typeStr.includes('nbfc') || typeStr.includes('hfc');
+                            const isSfb = typeStr.includes('sfb') || typeStr.includes('small');
+
+                            const theme = isPsu
+                              ? { bg: '#DCFCE7', text: '#15803D', border: '#BBF7D0', grad: 'linear-gradient(90deg, #10B981 0%, #059669 100%)', icon: '🏛️', label: 'PSU BANK' }
+                              : isNbfc
+                              ? { bg: '#F3E8FF', text: '#7E22CE', border: '#E9D5FF', grad: 'linear-gradient(90deg, #8B5CF6 0%, #6D28D9 100%)', icon: '🏢', label: 'NBFC / HFC' }
+                              : isSfb
+                              ? { bg: '#FEF3C7', text: '#B45309', border: '#FDE68A', grad: 'linear-gradient(90deg, #F59E0B 0%, #D97706 100%)', icon: '⚡', label: 'SFB' }
+                              : { bg: '#DBEAFE', text: '#1D4ED8', border: '#BFDBFE', grad: 'linear-gradient(90deg, #3B82F6 0%, #1D4ED8 100%)', icon: '🏦', label: 'PRIVATE BANK' };
+
+                            return (
+                              <tr
+                                key={index}
+                                style={{
+                                  borderBottom: '1px solid #F1F5F9',
+                                  transition: 'background-color 0.15s ease'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F8FAFC'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                              >
+                                {/* Lender Name & Logo */}
+                                <td style={{ padding: '14px 20px', verticalAlign: 'middle' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <span style={{
+                                      width: '32px', height: '32px', borderRadius: '8px',
+                                      background: theme.bg, color: theme.text,
+                                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                      fontSize: '1rem', flexShrink: 0
+                                    }}>
+                                      {theme.icon}
+                                    </span>
+                                    <div>
+                                      <div style={{ fontWeight: 700, color: '#0F2942', fontSize: '0.92rem' }}>
+                                        {lender.name}
+                                      </div>
+                                      <div style={{ fontSize: '0.72rem', color: '#94A3B8', fontWeight: 500 }}>
+                                        Rank #{index + 1}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+
+                                {/* Volume Bar */}
+                                <td style={{ padding: '14px 20px', verticalAlign: 'middle' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{
+                                      flex: 1, height: '10px',
+                                      background: '#E2E8F0',
+                                      borderRadius: '999px',
+                                      overflow: 'hidden',
+                                      position: 'relative',
+                                      boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06)'
+                                    }}>
+                                      <div
+                                        style={{
+                                          width: `${barWidth}%`,
+                                          height: '100%',
+                                          background: theme.grad,
+                                          borderRadius: '999px',
+                                          transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
+                                        }}
+                                      />
+                                    </div>
+                                    <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748B', minWidth: '38px', textAlign: 'right' }}>
+                                      {sharePct}%
+                                    </span>
+                                  </div>
+                                </td>
+
+                                {/* Application Count */}
+                                <td style={{ padding: '14px 20px', textAlign: 'center', verticalAlign: 'middle' }}>
+                                  <span style={{
+                                    display: 'inline-block',
+                                    padding: '4px 12px',
+                                    background: '#F1F5F9',
+                                    borderRadius: '12px',
+                                    fontWeight: 800,
+                                    fontSize: '0.9rem',
+                                    color: '#0F2942'
+                                  }}>
+                                    {countNum}
+                                  </span>
+                                </td>
+
+                                {/* Type Badge */}
+                                <td style={{ padding: '14px 20px', textAlign: 'right', verticalAlign: 'middle' }}>
+                                  <span style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    padding: '4px 10px',
+                                    borderRadius: '8px',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
+                                    background: theme.bg,
+                                    color: theme.text,
+                                    border: `1px solid ${theme.border}`
+                                  }}>
+                                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: theme.text }} />
+                                    {theme.label}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          });
+                        })()
                       )}
                     </tbody>
                   </table>
