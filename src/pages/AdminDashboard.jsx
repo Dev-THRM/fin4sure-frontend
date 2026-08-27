@@ -1286,6 +1286,33 @@ export default function AdminDashboard() {
     });
   }, [borrowers, searchTerm, borrowerStatusFilter]);
 
+  const filteredRates = useMemo(() => {
+    const activeList = Array.isArray(rates) && rates.length > 0 ? rates : buildCategoryRates(selectedLoanCategory);
+
+    return activeList.filter(r => {
+      if (!r) return false;
+      const rawType = String(r.type || 'Private').toLowerCase();
+      const filterType = String(selectedRateType || 'all_types').toLowerCase();
+
+      let matchType = true;
+      if (filterType === "psu") {
+        matchType = rawType.includes("psu");
+      } else if (filterType === "private") {
+        matchType = rawType.includes("private");
+      } else if (filterType === "nbfc_hfc") {
+        matchType = rawType.includes("nbfc") || rawType.includes("hfc");
+      } else if (filterType === "sfb") {
+        matchType = rawType.includes("sfb") || rawType.includes("small");
+      }
+
+      const term = String(searchTerm || '').toLowerCase().trim();
+      const matchSearch = !term ||
+        String(r.name || '').toLowerCase().includes(term) ||
+        String(r.short || '').toLowerCase().includes(term);
+      return matchType && matchSearch;
+    });
+  }, [rates, selectedLoanCategory, selectedRateType, searchTerm]);
+
   // Reset pagination when filters/search change
   useEffect(() => { setLeadsPage(1); }, [filteredLeads]);
   useEffect(() => { setBrokersPage(1); }, [filteredBrokers]);
@@ -3207,43 +3234,14 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {(() => {
-                        const activeList = Array.isArray(rates) && rates.length > 0 ? rates : buildCategoryRates(selectedLoanCategory);
-
-                        const filteredRates = activeList.filter(r => {
-                          if (!r) return false;
-                          const rawType = String(r.type || 'Private').toLowerCase();
-                          const filterType = String(selectedRateType || 'all_types').toLowerCase();
-
-                          let matchType = true;
-                          if (filterType === "psu") {
-                            matchType = rawType.includes("psu");
-                          } else if (filterType === "private") {
-                            matchType = rawType.includes("private");
-                          } else if (filterType === "nbfc_hfc") {
-                            matchType = rawType.includes("nbfc") || rawType.includes("hfc");
-                          } else if (filterType === "sfb") {
-                            matchType = rawType.includes("sfb") || rawType.includes("small");
-                          }
-
-                          const term = String(searchTerm || '').toLowerCase().trim();
-                          const matchSearch = !term ||
-                            String(r.name || '').toLowerCase().includes(term) ||
-                            String(r.short || '').toLowerCase().includes(term);
-                          return matchType && matchSearch;
-                        });
-
-                        if (filteredRates.length === 0) {
-                          return (
-                            <tr>
-                              <td colSpan="8" className="no-data-cell" style={{ padding: '40px 20px', textAlign: 'center', color: '#64748B', fontWeight: 600 }}>
-                                No matching lender rates found.
-                              </td>
-                            </tr>
-                          );
-                        }
-
-                        return filteredRates.map((rate) => {
+                      {filteredRates.length === 0 ? (
+                        <tr>
+                          <td colSpan="8" className="no-data-cell" style={{ padding: '40px 20px', textAlign: 'center', color: '#64748B', fontWeight: 600 }}>
+                            No matching lender rates found.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredRates.map((rate) => {
                           const lKey = rate.lenderId || rate.id || rate.name;
                           const typeLower = String(rate.type || 'Private').toLowerCase();
                           const badgeClass = typeLower.includes('psu')
@@ -3300,32 +3298,29 @@ export default function AdminDashboard() {
                                 />
                               </td>
                               <td>
-                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                                  <span style={{ position: 'absolute', left: '10px', fontSize: '0.85rem', pointerEvents: 'none' }}>🎁</span>
-                                  <input
-                                    type="text"
-                                    className="table-edit-input offer-input"
-                                    style={{ paddingLeft: '30px' }}
-                                    value={rate.offer || ''}
-                                    placeholder="Offer text"
-                                    onChange={(e) => handleRateChange(lKey, 'offer', e.target.value)}
-                                  />
-                                </div>
+                                <input
+                                  type="text"
+                                  className="table-edit-input"
+                                  value={rate.offer || ''}
+                                  placeholder="Enter promotion or offer..."
+                                  onChange={(e) => handleRateChange(lKey, 'offer', e.target.value)}
+                                  style={{ minWidth: '180px' }}
+                                />
                               </td>
-                              <td>
-                                <label className="switch-toggle-container">
+                              <td style={{ textAlign: 'center' }}>
+                                <label className="adm-toggle-switch">
                                   <input
                                     type="checkbox"
                                     checked={rate.visible !== false}
                                     onChange={(e) => handleRateChange(lKey, 'visible', e.target.checked)}
                                   />
-                                  <span className="switch-slider"></span>
+                                  <span className="adm-toggle-slider"></span>
                                 </label>
                               </td>
                             </tr>
                           );
-                        });
-                      })()}
+                        })
+                      )}
                     </tbody>
                   </table>
                 </div>
