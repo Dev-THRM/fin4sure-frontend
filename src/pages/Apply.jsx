@@ -445,15 +445,6 @@ export default function Apply() {
     <div className="calc-full-page animate-fade-up">
       {/* ═══ TOP BLUE/PURPLE GRADIENT HERO ═══ */}
       <div className="calc-header-gradient">
-        <div className="calc-nav-top">
-          <button className="calc-pill-btn" onClick={() => navigate("/client-dashboard")}>
-            ← Dashboard
-          </button>
-          <button className="calc-pill-btn active" onClick={() => setStepperStep(1)}>
-            + New Loan Application
-          </button>
-        </div>
-
         <h1 className="calc-hero-title">Let's find your perfect loan</h1>
         <p className="calc-hero-sub">
           Choose your loan type, set the amount &amp; tenure — then pick lenders and apply in minutes.
@@ -878,15 +869,16 @@ export default function Apply() {
 
       {/* ═══ STICKY BOTTOM ACTION BAR ═══ */}
       <div className="calc-bottom-bar">
-        <button
-          className="calc-bar-back"
-          onClick={() => {
-            if (stepperStep > 1) setStepperStep(stepperStep - 1);
-            else navigate("/client-dashboard");
-          }}
-        >
-          ← Dashboard
-        </button>
+        {stepperStep > 1 ? (
+          <button
+            className="calc-bar-back"
+            onClick={() => setStepperStep(stepperStep - 1)}
+          >
+            ← Back
+          </button>
+        ) : (
+          <div style={{ width: '80px' }}></div>
+        )}
 
         <div className="calc-bar-center">
           <span className="cbc-lbl">EMI</span>
