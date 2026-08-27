@@ -113,7 +113,7 @@ export default function Apply() {
   // Applicant details state for Step 3
   const [applicantData, setApplicantData] = useState({
     name: user?.name || "",
-    mob_no: user?.number || user?.mob_no || user?.phone || "",
+    mob_no: user?.mob_no || user?.number || user?.phone || user?.mobile || user?.mob || "",
     email: user?.email || "",
     dob: "1995-05-15",
     gender: "male",
@@ -126,18 +126,19 @@ export default function Apply() {
     password: "Pass@1234"
   });
 
-  // Sync applicant fields when user loads
+  // Sync applicant fields when user loads or when navigating steps
   useEffect(() => {
     if (user) {
-      const userPhone = user.number || user.mob_no || user.phone || "";
+      const userPhone = user.mob_no || user.number || user.phone || user.mobile || user.mob || "";
       setApplicantData((prev) => ({
         ...prev,
         name: user.name || prev.name,
         email: user.email || prev.email,
-        mob_no: userPhone || prev.mob_no
+        mob_no: userPhone || prev.mob_no,
+        loanPurpose: prev.loanPurpose || ""
       }));
     }
-  }, [user]);
+  }, [user, stepperStep]);
 
   // Fetch real lenders and live admin overrides
   useEffect(() => {
