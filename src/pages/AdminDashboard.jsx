@@ -601,8 +601,8 @@ export default function AdminDashboard() {
   async function handleSaveRM() {
     if (rmMob) {
       const cleanDigits = String(rmMob).replace(/\D/g, '');
-      if (cleanDigits.length !== 10 || !/^[6-9]\d{9}$/.test(cleanDigits)) {
-        setCustomAlert({ message: "Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.", type: "error" });
+      if (cleanDigits.length < 10 || cleanDigits.length > 11) {
+        setCustomAlert({ message: "Please enter a valid 10 or 11-digit mobile or toll-free number (hyphens allowed, e.g. 1800-123-4567).", type: "error" });
         return;
       }
     }
@@ -614,7 +614,7 @@ export default function AdminDashboard() {
         body: JSON.stringify({
           name: rmName,
           role: rmRole,
-          mob: rmMob ? String(rmMob).replace(/\D/g, '') : '',
+          mob: rmMob,
           email: rmEmail,
           availability: rmAvailability
         }),
@@ -3480,23 +3480,34 @@ export default function AdminDashboard() {
                       </div>
                       <div className="settings-field-group">
                         <label className="settings-field-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span>MOBILE</span>
-                          {rmMob && rmMob.replace(/\D/g, '').length > 0 && rmMob.replace(/\D/g, '').length !== 10 && (
-                            <span style={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: 600 }}>Must be 10 digits ({rmMob.replace(/\D/g, '').length}/10)</span>
-                          )}
+                          <span>MOBILE / TOLL-FREE</span>
+                          {(() => {
+                            const digits = (rmMob || '').replace(/\D/g, '');
+                            if (digits.length > 0 && digits.length !== 10 && digits.length !== 11) {
+                              return (
+                                <span style={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: 600 }}>
+                                  Must be 10 or 11 digits ({digits.length}/10-11)
+                                </span>
+                              );
+                            }
+                            return null;
+                          })()}
                         </label>
                         <input
-                          type="tel"
-                          maxLength={10}
+                          type="text"
+                          maxLength={16}
                           className="settings-field-input"
                           value={rmMob}
                           onChange={(e) => {
-                            const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                            const val = e.target.value.replace(/[^0-9-\s]/g, '').slice(0, 16);
                             setRmMob(val);
                           }}
-                          placeholder="10-digit mobile number"
+                          placeholder="e.g. 1800-123-4567 or 99105-07574"
                           style={{
-                            border: `1px solid ${rmMob && rmMob.replace(/\D/g, '').length > 0 && rmMob.replace(/\D/g, '').length !== 10 ? '#EF4444' : '#CBD5E1'}`
+                            border: `1px solid ${(() => {
+                              const digits = (rmMob || '').replace(/\D/g, '');
+                              return (digits.length > 0 && digits.length !== 10 && digits.length !== 11) ? '#EF4444' : '#CBD5E1';
+                            })()}`
                           }}
                         />
                       </div>
