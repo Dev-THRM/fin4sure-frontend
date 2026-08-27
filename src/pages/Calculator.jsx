@@ -375,7 +375,8 @@ export default function Calculator() {
     <div className="calc-full-page animate-fade-up">
       {/* ═══ STANDALONE EMI CALCULATOR HERO BANNER (COMPACT) ═══ */}
       <div style={{
-        maxWidth: '1280px',
+        maxWidth: '1600px',
+        width: '96%',
         margin: '12px auto 8px',
         padding: '0 16px',
         boxSizing: 'border-box'
@@ -577,7 +578,7 @@ export default function Calculator() {
         </div>
 
         {/* ═══ UNIFIED SIDE-BY-SIDE GRID (LEFT: CALCULATOR | RIGHT: COMPARE LENDERS TABLE) ═══ */}
-        <div className="calc-main-side-grid" style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: '20px', alignItems: 'start', marginBottom: '24px' }}>
+        <div className="calc-main-side-grid" style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: '24px', alignItems: 'start', marginBottom: '24px' }}>
 
           {/* ═══ LEFT PANEL: LOAN CALCULATOR & EMI READOUT ═══ */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
