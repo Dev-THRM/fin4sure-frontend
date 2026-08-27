@@ -2507,21 +2507,21 @@ export default function AdminDashboard() {
                     return (
                       <div
                         key={b.id}
+                        className="adm-partner-card-row"
                         style={{
                           background: '#FFFFFF',
                           borderRadius: '16px',
                           border: '1px solid #E2E8F0',
                           padding: '18px 24px',
-                          display: 'flex',
+                          display: 'grid',
+                          gridTemplateColumns: 'minmax(260px, 320px) 1fr auto',
                           alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '20px',
-                          flexWrap: 'wrap',
+                          gap: '24px',
                           boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
                         }}
                       >
-                        {/* Avatar & Partner Details */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: '280px' }}>
+                        {/* 1. Avatar & Partner Details */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: 0, overflow: 'hidden' }}>
                           <div
                             style={{
                               width: '48px',
@@ -2539,9 +2539,9 @@ export default function AdminDashboard() {
                           >
                             {initialLetter}
                           </div>
-                          <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                              <span style={{ fontWeight: 800, color: '#0F2942', fontSize: '1.05rem' }}>{b.name}</span>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                              <span style={{ fontWeight: 800, color: '#0F2942', fontSize: '1.05rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.name}</span>
                               <span
                                 style={{
                                   padding: '2px 8px',
@@ -2550,13 +2550,14 @@ export default function AdminDashboard() {
                                   fontWeight: 700,
                                   textTransform: 'uppercase',
                                   background: isLive ? '#DCFCE7' : '#F1F5F9',
-                                  color: isLive ? '#166534' : '#64748B'
+                                  color: isLive ? '#166534' : '#64748B',
+                                  flexShrink: 0
                                 }}
                               >
                                 {isLive ? 'ACTIVE' : (b.status || 'INACTIVE').toUpperCase()}
                               </span>
                             </div>
-                            <div style={{ fontSize: '0.8rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               <span>{partnerCode}</span>
                               <span>·</span>
                               <span>📍 {locationStr}</span>
@@ -2566,8 +2567,14 @@ export default function AdminDashboard() {
                           </div>
                         </div>
 
-                        {/* Metric Counters Grid */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '28px', flexWrap: 'wrap' }}>
+                        {/* 2. Metric Counters Grid - Perfectly Aligned Vertically Across Rows */}
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(5, minmax(60px, 1fr))',
+                          alignItems: 'center',
+                          gap: '12px',
+                          padding: '0 8px'
+                        }}>
                           <div style={{ textAlign: 'center' }}>
                             <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#0F2942' }}>{clientsCount}</div>
                             <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.05em' }}>CLIENTS</div>
@@ -2594,8 +2601,8 @@ export default function AdminDashboard() {
                           </div>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {/* 3. Action Buttons */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', flexShrink: 0 }}>
                           <button
                             onClick={() => openEditBroker(b)}
                             style={{
