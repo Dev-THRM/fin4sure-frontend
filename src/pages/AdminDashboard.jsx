@@ -3050,7 +3050,7 @@ export default function AdminDashboard() {
                     fontSize: '0.75rem',
                     fontWeight: 700
                   }}>
-                    🏛️ {LENDERS.length} Total Institutions
+                    🏛️ {filteredRates.length} {filteredRates.length === LENDERS.length ? 'Total Institutions' : `of ${LENDERS.length} Institutions`}
                   </span>
                 </div>
 
