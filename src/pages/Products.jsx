@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { LENDERS } from '../utils/loanConstants';
 import './styles/stepper.css';
 
 const LOAN_TYPE_MAPPING = {
@@ -29,7 +30,7 @@ export default function Products() {
         
         if (loanTypesRes.data.success) {
           const mappedTypes = loanTypesRes.data.data.map(lt => {
-            const mapping = LOAN_TYPE_MAPPING[lt.name] || { id: lt.name.toLowerCase().replace(/\s+/g, ''), icon: '📄', desc: 'Apply for ' + lt.name };
+            const mapping = LOAN_TYPE_MAPPING[lt.name] || { id: lt.short_id || lt.name.toLowerCase().replace(/\s+/g, ''), icon: '📄', desc: 'Apply for ' + lt.name };
             return {
               id: mapping.id,
               dbName: lt.name,
@@ -56,6 +57,7 @@ export default function Products() {
 
   const handleLoanTypeSelect = (typeId) => {
     setLoanType(typeId);
+    setSelectedLenders([]);
   };
 
   const toggleLender = (lenderId) => {
@@ -64,12 +66,93 @@ export default function Products() {
     );
   };
 
+  const normalizeTypeKey = (typeStr) => {
+    const s = String(typeStr || '').toLowerCase().replace(/[^a-z]/g, '');
+    if (s.includes('home')) return 'home';
+    if (s.includes('lap') || s.includes('property')) return 'lap';
+    if (s.includes('personal')) return 'personal';
+    if (s.includes('business')) return 'business';
+    if (s.includes('vehicle') || s.includes('car') || s.includes('auto')) return 'vehicle';
+    return s;
+  };
+
   const getRateForLoanType = (lender, selectedTypeId) => {
-    if (!lender.loanRates || lender.loanRates.length === 0) return 'N/A';
-    // Find the first rate matching the selected loan type short_id
-    const rateData = lender.loanRates.find(r => r.type && r.type.short_id === selectedTypeId);
-    if (rateData && rateData.min_rate) return rateData.min_rate;
+    if (!lender) return 'N/A';
+    const normKey = normalizeTypeKey(selectedTypeId);
+    
+    // 1. Check database rates
+    if (lender.loanRates && lender.loanRates.length > 0) {
+      const rateData = lender.loanRates.find(r => {
+        if (!r) return false;
+        const rateNorm = normalizeTypeKey(r.type?.short_id || r.type?.name || '');
+        return rateNorm === normKey;
+      });
+      if (rateData && rateData.min_rate && parseFloat(rateData.min_rate) > 0) {
+        return parseFloat(rateData.min_rate).toFixed(2);
+      }
+    }
+    
+    // 2. Check static LENDERS catalog
+    const matchedConstant = LENDERS.find(c => 
+      c.name.toLowerCase() === lender.name?.toLowerCase() ||
+      c.short.toLowerCase() === (lender.short || lender.name)?.toLowerCase()
+    );
+    if (matchedConstant && matchedConstant.rates && matchedConstant.rates[normKey]) {
+      const rateObj = matchedConstant.rates[normKey];
+      const minVal = (rateObj.f && rateObj.f[0]) || (rateObj.x && rateObj.x[0]);
+      if (minVal && minVal > 0) {
+        return minVal.toFixed(2);
+      }
+    }
+
     return 'N/A';
+  };
+
+  const getLenderCategoryLabel = (lender) => {
+    const name = String(lender.name || '').toUpperCase();
+    const type = String(lender.type || '').toLowerCase();
+    if (
+      type === 'psu' ||
+      name.includes('SBI') ||
+      name.includes('STATE BANK') ||
+      name.includes('PNB') ||
+      name.includes('PUNJAB NATIONAL') ||
+      name.includes('BOB') ||
+      name.includes('BANK OF BARODA') ||
+      name.includes('CANARA') ||
+      name.includes('UNION BANK') ||
+      name.includes('UBI') ||
+      name.includes('BANK OF INDIA') ||
+      name.includes('BOI') ||
+      name.includes('INDIAN BANK') ||
+      name.includes('CENTRAL BANK') ||
+      name.includes('UCO') ||
+      name.includes('MAHARASHTRA') ||
+      name.includes('PUNJAB & SIND') ||
+      name.includes('IDBI')
+    ) {
+      return 'PSU Bank';
+    }
+    if (
+      type === 'nbfc' ||
+      name.includes('HOUSING') ||
+      name.includes('FINSERV') ||
+      name.includes('FINANCE') ||
+      name.includes('CAPITAL') ||
+      name.includes('MUTHOOT') ||
+      name.includes('MANAPPURAM') ||
+      name.includes('CHOLA') ||
+      name.includes('PIRAMAL') ||
+      name.includes('AAVAS') ||
+      name.includes('HOMEFIRST') ||
+      name.includes('NAVI')
+    ) {
+      return 'NBFC / HFC';
+    }
+    if (type === 'small' || type === 'sfb' || name.includes('SMALL FINANCE') || name.includes('SFB')) {
+      return 'SFB Bank';
+    }
+    return 'Private Bank';
   };
 
   return (
@@ -150,7 +233,9 @@ export default function Products() {
               {step === 2 && (
                 <div>
                   <div className="form-title">Choose Preferred Lenders</div>
-                  <div className="form-subtitle">Select at least 2 lenders you'd like to apply to</div>
+                  <div className="form-subtitle">
+                    Showing best {loanTypesData.find(t => t.id === loanType)?.title || 'Loan'} rates. Select as many lenders as you like — we’ll apply to all at once.
+                  </div>
                   
                   <div className="bl-lender-list">
                     {lendersData
@@ -158,6 +243,7 @@ export default function Products() {
                       .map(lender => {
                       const isSel = selectedLenders.includes(lender.id);
                       const rate = getRateForLoanType(lender, loanType);
+                      const catLabel = getLenderCategoryLabel(lender);
                       return (
                         <div key={lender.id} className={`bl-lender ${isSel ? 'sel' : ''}`} onClick={() => toggleLender(lender.id)}>
                           <div className="bl-check">{isSel ? '✓' : ''}</div>
@@ -170,7 +256,7 @@ export default function Products() {
                               )}
                               {lender.name}
                             </div>
-                            <div className="bl-l-sub">{lender.type === 'psu' ? 'PSU' : 'Private'} Bank</div>
+                            <div className="bl-l-sub">{catLabel}</div>
                           </div>
                           <div className="bl-l-rate">
                             <div className="bl-l-rate-v">{rate}%</div>
