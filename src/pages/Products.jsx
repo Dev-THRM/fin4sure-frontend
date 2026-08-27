@@ -42,9 +42,21 @@ export default function Products() {
           setLoanTypesData(mappedTypes);
         }
         
-        if (lendersRes.data.success) {
-          setLendersData(lendersRes.data.data);
-        }
+        let apiLenders = (lendersRes.data?.success && Array.isArray(lendersRes.data.data)) ? [...lendersRes.data.data] : [];
+        const existingNames = new Set(apiLenders.map(l => (l.name || '').toLowerCase().trim()));
+        LENDERS.forEach((l, idx) => {
+          if (!existingNames.has((l.name || '').toLowerCase().trim())) {
+            apiLenders.push({
+              id: 100 + idx,
+              name: l.name,
+              short: l.short,
+              type: l.type,
+              emoji: l.emoji,
+              rates: l.rates
+            });
+          }
+        });
+        setLendersData(apiLenders);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
