@@ -42,6 +42,9 @@ export default function UploadDocs() {
       .finally(() => setLoadingExisting(false));
   }, [applicationId]);
 
+  const MAX_FILE_SIZE_MB = 5;
+  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
   const docConfig = [
     { key: "aadhar", title: "Aadhaar Card", icon: "🪪", desc: "Front & back scanned copy in single PDF/Image", type: "aadhar" },
     { key: "pan", title: "PAN Card", icon: "💳", desc: "Clear scanned copy of your PAN card", type: "pan" },
@@ -49,8 +52,16 @@ export default function UploadDocs() {
     { key: "bankStatement", title: "Bank Statement", icon: "🏦", desc: "Latest 6 months bank account statements in PDF", type: "bank statement" },
   ];
 
-  const handleFileChange = (key, file) => {
+  const handleFileChange = (key, file, inputElement = null) => {
     if (file) {
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        setErrorMsg(`⚠️ "${file.name}" is ${sizeMB} MB, which exceeds the allowed limit of ${MAX_FILE_SIZE_MB} MB. Please upload a smaller file.`);
+        if (inputElement) inputElement.value = "";
+        setDocs((prev) => ({ ...prev, [key]: null }));
+        return;
+      }
+      setErrorMsg("");
       setDocs((prev) => ({ ...prev, [key]: file }));
     }
   };
@@ -74,6 +85,14 @@ export default function UploadDocs() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isFormValid) return;
+
+    // Check size limit before sending network request
+    for (const [docKey, file] of Object.entries(docs)) {
+      if (file && file.size > MAX_FILE_SIZE_BYTES) {
+        setErrorMsg(`⚠️ File "${file.name}" exceeds the maximum limit of ${MAX_FILE_SIZE_MB} MB. Please select a smaller file.`);
+        return;
+      }
+    }
 
     setLoading(true);
     setErrorMsg("");
@@ -115,6 +134,9 @@ export default function UploadDocs() {
         <div className="upd-header">
           <h2>Upload Compulsory Documents</h2>
           <p>Please upload all the required documents to progress your loan application to credit evaluation.</p>
+          <div style={{ marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#F0F9FF', border: '1px solid #BAE6FD', color: '#0369A1', padding: '6px 14px', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 600 }}>
+            ℹ️ Maximum allowed file size: <strong>5 MB per document</strong> (PDF, PNG, JPG, JPEG)
+          </div>
         </div>
 
         {errorMsg && (
@@ -147,7 +169,7 @@ export default function UploadDocs() {
                   </div>
                 ) : docs[item.key] ? (
                   <div className="upd-file-info">
-                    <span className="upd-file-name">📄 {docs[item.key].name}</span>
+                    <span className="upd-file-name">📄 {docs[item.key].name} ({(docs[item.key].size / (1024 * 1024)).toFixed(2)} MB)</span>
                     <button 
                       type="button" 
                       className="upd-remove-btn" 
@@ -171,9 +193,9 @@ export default function UploadDocs() {
                       id={`file-${item.key}`} 
                       className="upd-file-input" 
                       accept=".pdf,image/*"
-                      onChange={(e) => handleFileChange(item.key, e.target.files[0])} 
+                      onChange={(e) => handleFileChange(item.key, e.target.files[0], e.target)} 
                     />
-                    <span className="upd-drop-lbl">or drag file here</span>
+                    <span className="upd-drop-lbl">or drag file here (Max 5 MB)</span>
                   </div>
                 )}
               </div>
