@@ -1,8 +1,59 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  Home,
+  Building2,
+  CreditCard,
+  Briefcase,
+  Car,
+  FileText,
+  Landmark,
+  Check,
+  Save,
+  Zap,
+  Clock,
+  ShieldCheck,
+  User,
+  Users,
+  Handshake,
+  Search,
+  Edit,
+  Edit3,
+  Trash2,
+  ChevronRight,
+  ChevronDown,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  AlertCircle,
+  Info,
+  Sparkles,
+  Tag,
+  Eye,
+  Lock,
+  Bell,
+  Megaphone,
+  BarChart3,
+  TrendingUp,
+  DollarSign,
+  ArrowRight,
+  Play,
+  Pause,
+  RefreshCw,
+  Smartphone,
+  Mail,
+  Phone,
+  MapPin,
+  X
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { LENDERS, getLenderTypePriority } from "../utils/loanConstants";
 import "./styles/adminDashboard.css";
+
+function cleanOfferText(str = "") {
+  if (!str) return "";
+  return str.replace(/^[\u{1F300}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}\u{FE00}-\u{FE0F}\s]+/gu, "").trim();
+}
 
 function buildCategoryRates(catKey, backendRates = []) {
   const mapKey = {
@@ -44,7 +95,7 @@ function buildCategoryRates(catKey, backendRates = []) {
     let flowHigh = (defaultFlow && Array.isArray(defaultFlow)) ? String(defaultFlow[1]) : "N/A";
     let fixLow = (defaultFix && Array.isArray(defaultFix)) ? String(defaultFix[0]) : "N/A";
     let fixHigh = (defaultFix && Array.isArray(defaultFix)) ? String(defaultFix[1]) : "N/A";
-    let offer = l.offer || 'Special interest rate offer';
+    let offer = cleanOfferText(l.offer || 'Special interest rate offer');
     let visible = true;
 
     if (br) {
@@ -60,7 +111,7 @@ function buildCategoryRates(catKey, backendRates = []) {
       if (br.fixHigh !== undefined && br.fixHigh !== null && br.fixHigh !== "null" && br.fixHigh !== "" && br.fixHigh !== "N/A") {
         fixHigh = String(br.fixHigh);
       }
-      if (br.offer) offer = br.offer;
+      if (br.offer) offer = cleanOfferText(br.offer);
       if (br.visible !== undefined) visible = br.visible;
     }
 
@@ -69,7 +120,6 @@ function buildCategoryRates(catKey, backendRates = []) {
       name: l.name,
       short: l.short,
       type: typeUpper,
-      emoji: l.emoji || '🏦',
       flowLow,
       flowHigh,
       fixLow,
@@ -88,15 +138,29 @@ function buildCategoryRates(catKey, backendRates = []) {
   });
 }
 
-function getLoanIcon(name) {
-  if (!name) return "📋";
+function getLoanIcon(name, size = 16) {
+  if (!name) return <FileText size={size} />;
   const lower = String(name).toLowerCase();
-  if (lower.includes("home")) return "🏠";
-  if (lower.includes("personal")) return "💳";
-  if (lower.includes("business")) return "💼";
-  if (lower.includes("vehicle") || lower.includes("car") || lower.includes("auto")) return "🚗";
-  if (lower.includes("lap") || lower.includes("property")) return "🏬";
-  return "📋";
+  if (lower.includes("home")) return <Home size={size} />;
+  if (lower.includes("personal")) return <CreditCard size={size} />;
+  if (lower.includes("business")) return <Briefcase size={size} />;
+  if (lower.includes("vehicle") || lower.includes("car") || lower.includes("auto")) return <Car size={size} />;
+  if (lower.includes("lap") || lower.includes("property")) return <Building2 size={size} />;
+  return <FileText size={size} />;
+}
+
+function getLenderIcon(lender, size = 16) {
+  const typeStr = String(lender?.type || '').toLowerCase();
+  if (typeStr.includes('psu') || typeStr.includes('public')) {
+    return <Landmark size={size} />;
+  }
+  if (typeStr.includes('nbfc') || typeStr.includes('hfc')) {
+    return <Building2 size={size} />;
+  }
+  if (typeStr.includes('sfb') || typeStr.includes('small')) {
+    return <Zap size={size} />;
+  }
+  return <Landmark size={size} />;
 }
 
 export default function AdminDashboard() {
@@ -1974,9 +2038,12 @@ export default function AdminDashboard() {
                                   fontSize: '0.7rem',
                                   fontWeight: 700,
                                   background: '#F1F5F9',
-                                  color: '#475569'
+                                  color: '#475569',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
                                 }}>
-                                  👤 {item.source || 'Direct'}
+                                  <User size={11} /> {item.source || 'Direct'}
                                 </span>
                               </div>
                               <div style={{ color: '#64748B', fontSize: '0.78rem', fontWeight: 500 }}>
@@ -1990,8 +2057,8 @@ export default function AdminDashboard() {
                               ₹{formattedAmt}
                             </div>
                             <span style={{
-                              padding: '3px 10px',
-                              borderRadius: '12px',
+                              padding: '3px 9px',
+                              borderRadius: '10px',
                               fontSize: '0.72rem',
                               fontWeight: 800,
                               background: stBg,
@@ -2065,7 +2132,7 @@ export default function AdminDashboard() {
               <div className="adm-workspace-card mt-6">
                 <div className="adm-wcard-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '1.2rem' }}>📊</span>
+                    <BarChart3 size={18} color="#0F2942" />
                     <h3 style={{ margin: 0, fontWeight: 800, color: '#0F2942', fontSize: '1.05rem' }}>Top Lenders by Application Volume</h3>
                   </div>
                   <span style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>Real-time aggregated portfolio share</span>
@@ -2103,12 +2170,12 @@ export default function AdminDashboard() {
                             const isSfb = typeStr.includes('sfb') || typeStr.includes('small');
 
                             const theme = isPsu
-                              ? { bg: '#DCFCE7', text: '#15803D', border: '#BBF7D0', grad: 'linear-gradient(90deg, #10B981 0%, #059669 100%)', icon: '🏛️', label: 'PSU BANK' }
+                              ? { bg: '#DCFCE7', text: '#15803D', border: '#BBF7D0', grad: 'linear-gradient(90deg, #10B981 0%, #059669 100%)', icon: <Landmark size={15} />, label: 'PSU BANK' }
                               : isNbfc
-                              ? { bg: '#F3E8FF', text: '#7E22CE', border: '#E9D5FF', grad: 'linear-gradient(90deg, #8B5CF6 0%, #6D28D9 100%)', icon: '🏢', label: 'NBFC / HFC' }
+                              ? { bg: '#F3E8FF', text: '#7E22CE', border: '#E9D5FF', grad: 'linear-gradient(90deg, #8B5CF6 0%, #6D28D9 100%)', icon: <Building2 size={15} />, label: 'NBFC / HFC' }
                               : isSfb
-                              ? { bg: '#FEF3C7', text: '#B45309', border: '#FDE68A', grad: 'linear-gradient(90deg, #F59E0B 0%, #D97706 100%)', icon: '⚡', label: 'SFB' }
-                              : { bg: '#DBEAFE', text: '#1D4ED8', border: '#BFDBFE', grad: 'linear-gradient(90deg, #3B82F6 0%, #1D4ED8 100%)', icon: '🏦', label: 'PRIVATE BANK' };
+                              ? { bg: '#FEF3C7', text: '#B45309', border: '#FDE68A', grad: 'linear-gradient(90deg, #F59E0B 0%, #D97706 100%)', icon: <Zap size={15} />, label: 'SFB' }
+                              : { bg: '#DBEAFE', text: '#1D4ED8', border: '#BFDBFE', grad: 'linear-gradient(90deg, #3B82F6 0%, #1D4ED8 100%)', icon: <Landmark size={15} />, label: 'PRIVATE BANK' };
 
                             return (
                               <tr
@@ -2127,7 +2194,7 @@ export default function AdminDashboard() {
                                       width: '32px', height: '32px', borderRadius: '8px',
                                       background: theme.bg, color: theme.text,
                                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                      fontSize: '1rem', flexShrink: 0
+                                      flexShrink: 0
                                     }}>
                                       {theme.icon}
                                     </span>
@@ -2148,22 +2215,19 @@ export default function AdminDashboard() {
                                     <div style={{
                                       flex: 1, height: '10px',
                                       background: '#E2E8F0',
-                                      borderRadius: '999px',
-                                      overflow: 'hidden',
-                                      position: 'relative',
-                                      boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06)'
+                                      borderRadius: '6px', overflow: 'hidden'
                                     }}>
                                       <div
                                         style={{
                                           width: `${barWidth}%`,
                                           height: '100%',
                                           background: theme.grad,
-                                          borderRadius: '999px',
+                                          borderRadius: '6px',
                                           transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
                                         }}
                                       />
                                     </div>
-                                    <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748B', minWidth: '38px', textAlign: 'right' }}>
+                                    <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0F2942', width: '38px', textAlign: 'right' }}>
                                       {sharePct}%
                                     </span>
                                   </div>
@@ -2172,13 +2236,10 @@ export default function AdminDashboard() {
                                 {/* Application Count */}
                                 <td style={{ padding: '14px 20px', textAlign: 'center', verticalAlign: 'middle' }}>
                                   <span style={{
-                                    display: 'inline-block',
-                                    padding: '4px 12px',
-                                    background: '#F1F5F9',
-                                    borderRadius: '12px',
-                                    fontWeight: 800,
-                                    fontSize: '0.9rem',
-                                    color: '#0F2942'
+                                    background: '#F1F5F9', color: '#0F2942',
+                                    fontWeight: 800, fontSize: '0.85rem',
+                                    padding: '4px 12px', borderRadius: '12px',
+                                    display: 'inline-block'
                                   }}>
                                     {countNum}
                                   </span>
@@ -2187,18 +2248,12 @@ export default function AdminDashboard() {
                                 {/* Type Badge */}
                                 <td style={{ padding: '14px 20px', textAlign: 'right', verticalAlign: 'middle' }}>
                                   <span style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '5px',
-                                    padding: '4px 10px',
-                                    borderRadius: '8px',
-                                    fontSize: '0.72rem',
-                                    fontWeight: 700,
-                                    background: theme.bg,
-                                    color: theme.text,
-                                    border: `1px solid ${theme.border}`
+                                    background: theme.bg, color: theme.text,
+                                    border: `1px solid ${theme.border}`,
+                                    fontSize: '0.72rem', fontWeight: 800,
+                                    padding: '4px 10px', borderRadius: '10px',
+                                    display: 'inline-block', letterSpacing: '0.04em'
                                   }}>
-                                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: theme.text }} />
                                     {theme.label}
                                   </span>
                                 </td>
@@ -2293,7 +2348,7 @@ export default function AdminDashboard() {
                                 <div>
                                   <div style={{ fontWeight: 700, color: '#1E293B', fontSize: '0.85rem' }}>{l.name}</div>
                                   <div style={{ marginTop: '2px', display: 'inline-flex', alignItems: 'center', gap: '3px', background: '#F1F5F9', color: '#475569', padding: '1px 7px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600 }}>
-                                    {l.partner_name || (l.source && l.source !== 'Direct') ? `🤝 ${l.partner_name || l.source}` : '👤 Direct'}
+                                    {l.partner_name || (l.source && l.source !== 'Direct') ? <><Handshake size={11} /> {l.partner_name || l.source}</> : <><User size={11} /> Direct</>}
                                   </div>
                                 </div>
                               </td>
@@ -2351,7 +2406,7 @@ export default function AdminDashboard() {
                                   title="Click to update application stage"
                                 >
                                   <span>{(l.stage || l.status || 'APPLIED').toUpperCase()}</span>
-                                  <span style={{ fontSize: '0.7rem' }}>✏️</span>
+                                  <Edit3 size={11} />
                                 </button>
                               </td>
                               <td>
@@ -2385,12 +2440,10 @@ export default function AdminDashboard() {
                                       display: 'inline-flex',
                                       alignItems: 'center',
                                       justifyContent: 'center',
-                                      cursor: 'pointer',
-                                      fontSize: '0.7rem',
-                                      fontWeight: 700
+                                      cursor: 'pointer'
                                     }}
                                   >
-                                    ▶
+                                    <Play size={12} fill="#1E293B" />
                                   </button>
                                   <button
                                     onClick={() => disburseLead(l)}
@@ -2405,12 +2458,10 @@ export default function AdminDashboard() {
                                       display: 'inline-flex',
                                       alignItems: 'center',
                                       justifyContent: 'center',
-                                      cursor: 'pointer',
-                                      fontSize: '0.85rem',
-                                      fontWeight: 700
+                                      cursor: 'pointer'
                                     }}
                                   >
-                                    ✓
+                                    <Check size={14} strokeWidth={3} />
                                   </button>
                                   <button
                                     onClick={() => openEditLead(l)}
@@ -2425,11 +2476,10 @@ export default function AdminDashboard() {
                                       display: 'inline-flex',
                                       alignItems: 'center',
                                       justifyContent: 'center',
-                                      cursor: 'pointer',
-                                      fontSize: '0.8rem'
+                                      cursor: 'pointer'
                                     }}
                                   >
-                                    ✏️
+                                    <Edit3 size={13} />
                                   </button>
                                 </div>
                               </td>
@@ -2462,7 +2512,7 @@ export default function AdminDashboard() {
                 </select>
 
                 <div className="adm-inner-search-box" style={{ flex: 1, minWidth: '240px', background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '8px', display: 'flex', alignItems: 'center', padding: '0 12px' }}>
-                  <span style={{ fontSize: '1rem', color: '#00B4D8', marginRight: '8px' }}>🔍</span>
+                  <Search size={15} color="#00B4D8" style={{ marginRight: '8px' }} />
                   <input
                     type="text"
                     placeholder="Search partner or borrower.."
@@ -2573,9 +2623,9 @@ export default function AdminDashboard() {
                             <div style={{ fontSize: '0.78rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               <span>{partnerCode}</span>
                               <span>·</span>
-                              <span>📍 {locationStr}</span>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}><MapPin size={11} /> {locationStr}</span>
                               <span>·</span>
-                              <span>📇 {phoneStr}</span>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}><Phone size={11} /> {phoneStr}</span>
                             </div>
                           </div>
                         </div>
@@ -2633,7 +2683,7 @@ export default function AdminDashboard() {
                               gap: '6px'
                             }}
                           >
-                            <span style={{ color: '#D97706' }}>✏️</span> Edit
+                            <Edit3 size={13} color="#D97706" /> Edit
                           </button>
 
                           <button
@@ -2652,7 +2702,7 @@ export default function AdminDashboard() {
                               gap: '6px'
                             }}
                           >
-                            <span>{isLive ? '⏸' : '▶'}</span> {isLive ? 'Pause' : 'Activate'}
+                            {isLive ? <Pause size={13} /> : <Play size={13} />} {isLive ? 'Pause' : 'Activate'}
                           </button>
 
                           <button
@@ -2671,7 +2721,7 @@ export default function AdminDashboard() {
                               gap: '6px'
                             }}
                           >
-                            <span>▼</span> Clients
+                            <ChevronDown size={13} /> Clients
                           </button>
                         </div>
                       </div>
@@ -2699,7 +2749,7 @@ export default function AdminDashboard() {
                 </select>
 
                 <div className="adm-inner-search-box" style={{ flex: 1, minWidth: '240px', background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '8px', display: 'flex', alignItems: 'center', padding: '0 12px' }}>
-                  <span style={{ fontSize: '1rem', color: '#00B4D8', marginRight: '8px' }}>🔍</span>
+                  <Search size={15} color="#00B4D8" style={{ marginRight: '8px' }} />
                   <input
                     type="text"
                     placeholder="Search borrower by name, email, phone..."
@@ -2792,7 +2842,7 @@ export default function AdminDashboard() {
                               </td>
                               <td>
                                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: '#1E293B', fontSize: '0.86rem' }}>
-                                  <span style={{ fontSize: '0.9rem' }}>📇</span>
+                                  <Phone size={13} />
                                   <span>{phoneDisplay}</span>
                                 </div>
                               </td>
@@ -2844,7 +2894,7 @@ export default function AdminDashboard() {
                                       gap: '4px'
                                     }}
                                   >
-                                    <span>✏️</span> Edit
+                                    <Edit3 size={11} /> Edit
                                   </button>
                                   <button
                                     onClick={() => openBorrowerLoansModal(b)}
@@ -2862,7 +2912,7 @@ export default function AdminDashboard() {
                                       gap: '4px'
                                     }}
                                   >
-                                    <span>📑</span> Loans
+                                    <FileText size={11} /> Loans
                                   </button>
                                 </div>
                               </td>
@@ -2906,9 +2956,8 @@ export default function AdminDashboard() {
 
               {/* Subtitle Info Banner */}
               <div className="timeline-subtitle-legend" style={{ margin: '0 0 20px 0', background: '#F8FAFC', padding: '12px 18px', borderRadius: '12px', border: '1px solid #E2E8F0', color: '#475569', fontSize: '0.86rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span></span>
                 <span>
-                  Date-wise loan activity grouped by month. Stage bar shows progress (colour: <strong style={{ color: '#059669' }}>🟢 Disbursed</strong> • <strong style={{ color: '#2563EB' }}>🔵 In Progress</strong> • <strong style={{ color: '#D97706' }}>🟡 Pending</strong>). Edit stage inline.
+                  Date-wise loan activity grouped by month. Stage bar shows progress (colour: <strong style={{ color: '#059669' }}>Disbursed</strong> • <strong style={{ color: '#2563EB' }}>In Progress</strong> • <strong style={{ color: '#D97706' }}>Pending</strong>). Edit stage inline.
                 </span>
               </div>
 
@@ -3083,8 +3132,8 @@ export default function AdminDashboard() {
                                         {item.lender || 'SBI'} · {formattedDate} · ₹{formattedAmt}
                                       </div>
                                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
-                                        <span style={{ background: '#F1F5F9', color: '#475569', padding: '2px 8px', borderRadius: '10px', fontSize: '0.72rem', fontWeight: 600 }}>
-                                          👤 {item.source || item.partner_name || 'Direct'}
+                                        <span style={{ background: '#F1F5F9', color: '#475569', padding: '2px 8px', borderRadius: '10px', fontSize: '0.72rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                          <User size={11} /> {item.source || item.partner_name || 'Direct'}
                                         </span>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                           <div style={{ width: '90px', height: '6px', background: '#E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
@@ -3151,7 +3200,7 @@ export default function AdminDashboard() {
                                         }}
                                       >
                                         {bankOptions.map(bank => (
-                                          <option key={bank} value={bank}>🏛️ {bank}</option>
+                                          <option key={bank} value={bank}>{bank}</option>
                                         ))}
                                       </select>
                                     </div>
@@ -3198,9 +3247,12 @@ export default function AdminDashboard() {
                     padding: '4px 12px',
                     borderRadius: '14px',
                     fontSize: '0.75rem',
-                    fontWeight: 700
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
                   }}>
-                    🏛️ {filteredRates.length} {filteredRates.length === LENDERS.length ? 'Total Institutions' : `of ${LENDERS.length} Institutions`}
+                    <Landmark size={13} /> {filteredRates.length} {filteredRates.length === LENDERS.length ? 'Total Institutions' : `of ${LENDERS.length} Institutions`}
                   </span>
                 </div>
 
@@ -3231,11 +3283,11 @@ export default function AdminDashboard() {
                     }}
                     style={{ padding: '9px 14px', borderRadius: '10px', border: '1px solid #CBD5E1', background: '#FFFFFF', fontWeight: 600, fontSize: '0.85rem', color: '#1E293B', cursor: 'pointer', outline: 'none' }}
                   >
-                    <option value="HL">🏠 Home Loan</option>
-                    <option value="PL">💳 Personal Loan</option>
-                    <option value="BL">💼 Business Loan</option>
-                    <option value="VL">🚗 Vehicle Loan</option>
-                    <option value="LAP">🏢 Loan Against Property</option>
+                    <option value="HL">Home Loan</option>
+                    <option value="PL">Personal Loan</option>
+                    <option value="BL">Business Loan</option>
+                    <option value="VL">Vehicle Loan</option>
+                    <option value="LAP">Loan Against Property</option>
                   </select>
 
                   {/* Save Button */}
@@ -3257,7 +3309,7 @@ export default function AdminDashboard() {
                       boxShadow: '0 2px 4px rgba(15,41,66,0.15)'
                     }}
                   >
-                    <span>💾</span> Save Rate Changes
+                    <Save size={15} /> Save Rate Changes
                   </button>
                 </div>
               </div>
@@ -3358,7 +3410,7 @@ export default function AdminDashboard() {
                       boxShadow: '0 2px 6px rgba(34, 197, 94, 0.3)'
                     }}
                   >
-                    <span>{scraperRunning ? '⏳' : '⚡'}</span>
+                    {scraperRunning ? <Clock size={15} /> : <Zap size={15} />}
                     <span>{scraperRunning ? 'Scraping Banks...' : 'Scrape Live Bank Rates'}</span>
                   </button>
                 </div>
@@ -3407,7 +3459,9 @@ export default function AdminDashboard() {
                             <tr key={rowKey}>
                               <td>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, color: '#0F2942', fontSize: '0.88rem' }}>
-                                  <span>{rate.emoji || (badgeClass === 'psu' ? '🏛️' : badgeClass === 'sfb' ? '🏦' : badgeClass === 'nbfc-hfc' ? '🏢' : '🏦')}</span>
+                                  <span className="text-slate-600" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                                    {getLenderIcon(rate, 18)}
+                                  </span>
                                   <span>{rate.name}</span>
                                 </div>
                               </td>
@@ -3465,7 +3519,7 @@ export default function AdminDashboard() {
                                     checked={rate.visible !== false}
                                     onChange={(e) => handleRateChange(lKey, 'visible', e.target.checked)}
                                   />
-                                  <span className="adm-toggle-slider"></span>
+                                  <span className="adm-toggle-slider" />
                                 </label>
                               </td>
                             </tr>
@@ -3488,7 +3542,9 @@ export default function AdminDashboard() {
                   {/* Card 1: Relationship Manager */}
                   <div className="adm-workspace-card">
                     <div className="adm-wcard-header">
-                      <h3 style={{ color: '#0d2b6b' }}>👤 Relationship Manager</h3>
+                      <h3 style={{ color: '#0d2b6b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <User size={18} /> Relationship Manager
+                      </h3>
                     </div>
                     <div className="adm-wcard-body settings-card-body">
                       <div className="settings-field-group">
@@ -3548,7 +3604,9 @@ export default function AdminDashboard() {
                   <div className="adm-workspace-card mt-6">
                     <div className="adm-wcard-body settings-card-body">
                       <div className="settings-field-group">
-                        <h3 className="settings-section-heading">🔔 ROI Disclaimer Text</h3>
+                        <h3 className="settings-section-heading" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Bell size={18} /> ROI Disclaimer Text
+                        </h3>
                         <textarea
                           className="settings-field-textarea"
                           value={roiDisclaimer}
@@ -3558,7 +3616,9 @@ export default function AdminDashboard() {
                       </div>
 
                       <div className="settings-field-group" style={{ marginTop: '20px' }}>
-                        <h3 className="settings-section-heading">📣 Announcement Banner</h3>
+                        <h3 className="settings-section-heading" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Megaphone size={18} /> Announcement Banner
+                        </h3>
                         <input
                           type="text"
                           className="settings-field-input"
@@ -3578,7 +3638,9 @@ export default function AdminDashboard() {
                   {/* Card 3: Platform Stats Display */}
                   <div className="adm-workspace-card">
                     <div className="adm-wcard-header">
-                      <h3 style={{ color: '#0d2b6b' }}>📊 Platform Stats Display</h3>
+                      <h3 style={{ color: '#0d2b6b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <BarChart3 size={18} /> Platform Stats Display
+                      </h3>
                     </div>
                     <div className="adm-wcard-body settings-card-body">
                       <div className="settings-field-group">
@@ -3604,7 +3666,9 @@ export default function AdminDashboard() {
                   {/* Card 4: Admin Access */}
                   <div className="adm-workspace-card mt-6">
                     <div className="adm-wcard-header">
-                      <h3 style={{ color: '#0d2b6b' }}>🔐 Admin Access</h3>
+                      <h3 style={{ color: '#0d2b6b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Lock size={18} /> Admin Access
+                      </h3>
                     </div>
                     <div className="adm-wcard-body settings-card-body">
                       <div className="settings-field-group">
@@ -3713,9 +3777,9 @@ export default function AdminDashboard() {
             {/* Modal Header Bar */}
             <div style={{ background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)', padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <h3 style={{ margin: 0, color: '#FFFFFF', fontSize: '1.15rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>✏️</span> Edit Application — {editingLead.application_no ?? (String(editingLead.id).startsWith('F4S') ? editingLead.id : `F4S-${2000 + editingLead.id}`)}
+                <Edit3 size={18} /> Edit Application — {editingLead.application_no ?? (String(editingLead.id).startsWith('F4S') ? editingLead.id : `F4S-${2000 + editingLead.id}`)}
               </h3>
-              <button onClick={() => setEditingLead(null)} style={{ background: 'rgba(255, 255, 255, 0.2)', border: 'none', color: '#FFFFFF', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+              <button onClick={() => setEditingLead(null)} style={{ background: 'rgba(255, 255, 255, 0.2)', border: 'none', color: '#FFFFFF', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={16} /></button>
             </div>
 
             <div style={{ padding: '24px', maxHeight: '80vh', overflowY: 'auto' }}>
@@ -3727,7 +3791,9 @@ export default function AdminDashboard() {
 
               {/* Documents Section */}
               <div style={{ marginBottom: '20px', padding: '14px 18px', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-                <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#334155', display: 'flex', alignItems: 'center', gap: '6px' }}>📄 Uploaded Documents</h4>
+                <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#334155', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <FileText size={16} /> Uploaded Documents
+                </h4>
                 {fetchingDocs ? (
                   <div style={{ fontSize: '0.85rem', color: '#64748B' }}>Loading documents...</div>
                 ) : editLeadDocs.length === 0 ? (
@@ -3837,17 +3903,17 @@ export default function AdminDashboard() {
                   >
                     {/* Preferred candidate banks selected by borrower / partner */}
                     {editingLead && Array.isArray(editingLead.all_selected_lenders) && editingLead.all_selected_lenders.length > 0 && (
-                      <optgroup label="🌟 Client / Partner Preferred Banks">
+                      <optgroup label="Client / Partner Preferred Banks">
                         {editingLead.all_selected_lenders.map((bName) => (
                           <option key={`cand-${bName}`} value={bName}>
-                            ⭐ {bName} (Preferred Choice)
+                            {bName} (Preferred Choice)
                           </option>
                         ))}
                       </optgroup>
                     )}
 
                     {/* All 66+ network lenders */}
-                    <optgroup label="🏦 All Network Lenders (Private, PSU, NBFC, SFB)">
+                    <optgroup label="All Network Lenders (Private, PSU, NBFC, SFB)">
                       {LENDERS.filter((l) => {
                         if (!editingLead || !editingLead.product) return true;
                         const prod = editingLead.product.toLowerCase();
@@ -3864,13 +3930,13 @@ export default function AdminDashboard() {
                         return a.name.localeCompare(b.name);
                       }).map((l) => (
                         <option key={l.name} value={l.name}>
-                          {l.emoji || '🏦'} {l.name} {l.type ? `(${l.type.toUpperCase()})` : ''}
+                          {l.name} {l.type ? `(${l.type.toUpperCase()})` : ''}
                         </option>
                       ))}
                     </optgroup>
                   </select>
                   <p style={{ margin: '5px 0 0', fontSize: '0.74rem', color: '#64748B' }}>
-                    💡 Selecting a bank will mark it as <strong>Active</strong> and set all other options to <strong>Inactive</strong>.
+                    Selecting a bank will mark it as <strong>Active</strong> and set all other options to <strong>Inactive</strong>.
                   </p>
                 </div>
 
