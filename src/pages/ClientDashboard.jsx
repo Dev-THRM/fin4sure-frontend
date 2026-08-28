@@ -356,7 +356,9 @@ export default function ClientDashboard() {
 
                       let currentStepIndex = 0; // 0: applied, 1: docs, 2: credit, 3: submitted, 4: sanction, 5: legal, 6: disbursed
 
-                      if (statusId === 1 || rawStatus.includes("applied") || rawStatus.includes("new")) {
+                      if (app.has_rejected_docs) {
+                        currentStepIndex = 1; // Stay in Docs stage if docs rejected
+                      } else if (statusId === 1 || rawStatus.includes("applied") || rawStatus.includes("new")) {
                         currentStepIndex = 0;
                       } else if (statusId === 2 || rawStatus.includes("doc")) {
                         currentStepIndex = 1;
@@ -402,6 +404,8 @@ export default function ClientDashboard() {
                               className={`cdl-status-chip ${
                                 statusId === 7 || rawStatus.includes("disburs")
                                   ? "cdl-chip-green"
+                                  : app.has_rejected_docs
+                                  ? "cdl-chip-amber"
                                   : rawStatus.includes("reject")
                                   ? "cdl-chip-amber"
                                   : "cdl-chip-blue"
@@ -411,6 +415,8 @@ export default function ClientDashboard() {
                               <span>
                                 {statusId === 7 || rawStatus.includes("disburs")
                                   ? "Completed"
+                                  : app.has_rejected_docs
+                                  ? "Action Required"
                                   : rawStatus.includes("reject")
                                   ? "Rejected"
                                   : "In Progress"}
@@ -437,7 +443,53 @@ export default function ClientDashboard() {
                           </div>
                         </div>
 
-                        {(currentStepIndex === 0 || currentStepIndex === 1) && (
+                        {app.has_rejected_docs ? (
+                          <div style={{
+                            marginTop: '20px',
+                            padding: '14px 18px',
+                            background: '#FEF2F2',
+                            border: '1.5px solid #FCA5A5',
+                            borderRadius: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: '12px'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <span style={{ fontSize: '1.4rem' }}>⚠️</span>
+                              <div>
+                                <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#991B1B' }}>
+                                  Document Re-upload Required
+                                </div>
+                                <div style={{ fontSize: '0.80rem', color: '#B91C1C', marginTop: '2px' }}>
+                                  {app.rejected_count > 1 
+                                    ? `${app.rejected_count} documents were rejected by the admin. Please re-upload them to proceed to Credit evaluation.`
+                                    : `One of your documents was rejected by the admin. Please re-upload a clear copy to proceed to Credit evaluation.`}
+                                </div>
+                              </div>
+                            </div>
+                            <Link 
+                              to={`/upload-docs/${app.id}`} 
+                              style={{ 
+                                textDecoration: "none", 
+                                background: "linear-gradient(135deg, #DC2626, #EF4444)", 
+                                color: "#fff",
+                                fontSize: "0.82rem",
+                                fontWeight: "700",
+                                padding: "9px 18px",
+                                borderRadius: "8px",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                boxShadow: "0 4px 12px rgba(239, 68, 68, 0.25)",
+                                transition: "all 0.2s ease"
+                              }}
+                            >
+                              🔄 Re-upload Documents
+                            </Link>
+                          </div>
+                        ) : (currentStepIndex === 0 || currentStepIndex === 1) ? (
                           <div style={{ 
                             marginTop: '20px', 
                             paddingTop: '16px', 
@@ -466,7 +518,7 @@ export default function ClientDashboard() {
                               📤 Upload Documents
                             </Link>
                           </div>
-                        )}
+                        ) : null}
                       </div>
                     )})
                   )}
