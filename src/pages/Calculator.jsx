@@ -687,11 +687,12 @@ export default function Calculator() {
                         background: "transparent",
                         outline: "none",
                         fontWeight: 800,
-                        fontSize: "0.85rem",
+                        fontSize: "0.92rem",
                         color: "#0F2942",
-                        width: "55px",
+                        width: "56px",
+                        minWidth: "45px",
                         textAlign: "right",
-                        padding: "2px 0"
+                        padding: "2px 4px"
                       }}
                     />
 
@@ -701,13 +702,18 @@ export default function Calculator() {
                       onChange={handleUnitChange}
                       style={{
                         border: "none",
-                        background: "transparent",
+                        borderLeft: "1px solid #CBD5E1",
+                        background: "#E0F2FE",
                         outline: "none",
                         fontWeight: 700,
-                        fontSize: "0.8rem",
-                        color: "#0F2942",
+                        fontSize: "0.82rem",
+                        color: "#0369A1",
                         cursor: "pointer",
-                        padding: "2px 2px",
+                        padding: "4px 8px",
+                        borderRadius: "6px",
+                        marginLeft: "6px",
+                        minWidth: "68px",
+                        textAlign: "center",
                         flexShrink: 0
                       }}
                     >

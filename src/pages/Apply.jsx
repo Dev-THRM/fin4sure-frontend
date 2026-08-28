@@ -560,8 +560,8 @@ export default function Apply() {
                   <div className="range-field" style={{ marginBottom: '20px' }}>
                     <div className="rf-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                       <label style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0F2942' }}>Loan Amount</label>
-                      <div className="rf-input-wrap" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '4px 8px', minWidth: '160px' }}>
-                        <span className="rf-prefix" style={{ fontWeight: 700, color: '#0F2942', fontSize: '0.85rem' }}>₹</span>
+                      <div className="rf-input-wrap" style={{ display: 'flex', alignItems: 'center', background: '#F8FAFC', border: '1.5px solid #CBD5E1', borderRadius: '8px', padding: '3px 6px', minWidth: '175px' }}>
+                        <span className="rf-prefix" style={{ fontWeight: 700, color: '#0F2942', fontSize: '0.85rem', paddingRight: '2px' }}>₹</span>
                         <input
                           type="number"
                           className="rf-input"
@@ -570,16 +570,31 @@ export default function Apply() {
                           onChange={handleAmtInputChange}
                           onBlur={handleAmtBlur}
                           step="0.01"
-                          style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.9rem', color: '#0F2942', flex: 1, textAlign: 'right', minWidth: '50px' }}
+                          style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.92rem', color: '#0F2942', width: '56px', minWidth: '45px', textAlign: 'right', padding: '2px 4px' }}
                         />
                         <select
                           className="rf-unit"
                           value={amtUnit}
                           onChange={handleUnitChange}
-                          style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 700, fontSize: '0.8rem', color: '#475569', cursor: 'pointer', appearance: 'none', width: 'auto', paddingLeft: '4px' }}
+                          style={{
+                            border: 'none',
+                            borderLeft: '1px solid #CBD5E1',
+                            background: '#E0F2FE',
+                            outline: 'none',
+                            fontWeight: 700,
+                            fontSize: '0.82rem',
+                            color: '#0369A1',
+                            cursor: 'pointer',
+                            padding: '4px 8px',
+                            borderRadius: '6px',
+                            marginLeft: '6px',
+                            minWidth: '68px',
+                            textAlign: 'center',
+                            flexShrink: 0
+                          }}
                         >
-                          <option value={100000}>Lakh ▾</option>
-                          <option value={10000000}>Crore ▾</option>
+                          <option value={100000}>Lakh</option>
+                          <option value={10000000}>Crore</option>
                         </select>
                       </div>
                     </div>
