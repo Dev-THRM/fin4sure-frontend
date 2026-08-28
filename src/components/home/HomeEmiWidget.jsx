@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Home, Building2, CreditCard, Briefcase, Car } from "lucide-react";
 import { useEmiCalculator } from "../../hooks/useEmiCalculator";
 import { useSliderPaint } from "../../hooks/useSliderPaint";
 import { fmtINRFull, fmtTenure } from "../../utils/formatters";
@@ -114,31 +115,31 @@ export default function HomeEmiWidget() {
             className={`hltp ${loanType === "home" ? "active" : ""}`}
             onClick={() => setLoanType("home")}
           >
-            <span className="hltp-ic">🏠</span>Home
+            <Home size={14} className="hltp-ic inline" /> Home
           </button>
           <button
             className={`hltp ${loanType === "lap" ? "active" : ""}`}
             onClick={() => setLoanType("lap")}
           >
-            <span className="hltp-ic">🏢</span>LAP
+            <Building2 size={14} className="hltp-ic inline" /> LAP
           </button>
           <button
             className={`hltp ${loanType === "personal" ? "active" : ""}`}
             onClick={() => setLoanType("personal")}
           >
-            <span className="hltp-ic">💳</span>Personal
+            <CreditCard size={14} className="hltp-ic inline" /> Personal
           </button>
           <button
             className={`hltp ${loanType === "business" ? "active" : ""}`}
             onClick={() => setLoanType("business")}
           >
-            <span className="hltp-ic">📦</span>Business
+            <Briefcase size={14} className="hltp-ic inline" /> Business
           </button>
           <button
             className={`hltp ${loanType === "vehicle" ? "active" : ""}`}
             onClick={() => setLoanType("vehicle")}
           >
-            <span className="hltp-ic">🚗</span>Vehicle
+            <Car size={14} className="hltp-ic inline" /> Vehicle
           </button>
         </div>
 

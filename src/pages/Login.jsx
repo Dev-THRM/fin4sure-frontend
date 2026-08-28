@@ -1,5 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import {
+  Home,
+  Handshake,
+  Lock,
+  Mail,
+  AlertTriangle,
+  Key
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import "./styles/login.css";
 
@@ -231,8 +239,8 @@ export default function Login() {
 
           {/* Redirect banner */}
           {redirectTarget && (
-            <div style={{ marginBottom: "20px", padding: "12px 16px", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "12px", color: "#1E40AF", fontSize: ".85rem", textAlign: "center", fontWeight: 600 }}>
-              🔒 Please sign in to review and submit your loan application.
+            <div style={{ marginBottom: "20px", padding: "12px 16px", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "12px", color: "#1E40AF", fontSize: ".85rem", textAlign: "center", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+              <Lock size={15} /> Please sign in to review and submit your loan application.
             </div>
           )}
 
@@ -248,11 +256,11 @@ export default function Login() {
 
           {/* Role Tabs */}
           <div className="login-tabs">
-            <button className={`login-tab ${activeTab === "borrower" ? "active" : ""}`} onClick={() => handleTabChange("borrower")}>
-              🏠 Borrower
+            <button className={`login-tab ${activeTab === "borrower" ? "active" : ""}`} onClick={() => handleTabChange("borrower")} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+              <Home size={15} /> Borrower
             </button>
-            <button className={`login-tab ${activeTab === "partner" ? "active" : ""}`} onClick={() => handleTabChange("partner")}>
-              🤝 Partner
+            <button className={`login-tab ${activeTab === "partner" ? "active" : ""}`} onClick={() => handleTabChange("partner")} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+              <Handshake size={15} /> Partner
             </button>
           </div>
 
@@ -265,9 +273,10 @@ export default function Login() {
                 fontSize: ".8rem", fontWeight: 600, transition: "all .2s",
                 background: loginMode === "password" ? "var(--navy)" : "#f1f5f9",
                 color: loginMode === "password" ? "#fff" : "var(--slate)",
+                display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px"
               }}
             >
-              🔒 Password
+              <Lock size={13} /> Password
             </button>
             <button
               onClick={() => switchMode("otp")}
@@ -276,16 +285,17 @@ export default function Login() {
                 fontSize: ".8rem", fontWeight: 600, transition: "all .2s",
                 background: loginMode === "otp" ? "var(--teal)" : "#f1f5f9",
                 color: loginMode === "otp" ? "#fff" : "var(--slate)",
+                display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px"
               }}
             >
-              ✉️ Email OTP
+              <Mail size={13} /> Email OTP
             </button>
           </div>
 
           {/* Error */}
           {error && (
-            <div style={{ marginBottom: "12px", padding: "10px 14px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "10px", color: "#DC2626", fontSize: ".83rem" }}>
-              ⚠️ {error}
+            <div style={{ marginBottom: "12px", padding: "10px 14px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "10px", color: "#DC2626", fontSize: ".83rem", display: "flex", alignItems: "center", gap: "6px" }}>
+              <AlertTriangle size={15} /> {error}
             </div>
           )}
 
@@ -293,7 +303,7 @@ export default function Login() {
           {loginMode === "password" && (
             <form onSubmit={handlePasswordSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               <div className="input-wrap">
-                <span className="icon">📧</span>
+                <span className="icon"><Mail size={16} /></span>
                 <input
                   id="login-email"
                   type="email"
@@ -304,7 +314,7 @@ export default function Login() {
                 />
               </div>
               <div className="input-wrap">
-                <span className="icon">🔒</span>
+                <span className="icon"><Lock size={16} /></span>
                 <input
                   id="login-password"
                   type="password"
@@ -353,7 +363,7 @@ export default function Login() {
                     We'll send a <strong>4-digit OTP</strong> to your registered email address. No password needed.
                   </p>
                   <div className="input-wrap">
-                    <span className="icon">📧</span>
+                    <span className="icon"><Mail size={16} /></span>
                     <input
                       id="otp-email-input"
                       type="email"
@@ -463,7 +473,7 @@ export default function Login() {
                     Enter your registered email address and we'll send you an OTP to reset your password.
                   </p>
                   <div className="input-wrap">
-                    <span className="icon">📧</span>
+                    <span className="icon"><Mail size={16} /></span>
                     <input
                       id="forgot-email"
                       type="email"
@@ -531,11 +541,11 @@ export default function Login() {
                     Create a new secure password.
                   </p>
                   <div className="input-wrap">
-                    <span className="icon">🔒</span>
+                    <span className="icon"><Lock size={16} /></span>
                     <input type="password" placeholder="New Password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
                   </div>
                   <div className="input-wrap">
-                    <span className="icon">🔒</span>
+                    <span className="icon"><Lock size={16} /></span>
                     <input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
                   </div>
                   <button type="submit" disabled={loading} className="btn-primary" style={{ height: "44px", marginTop: "4px" }}>

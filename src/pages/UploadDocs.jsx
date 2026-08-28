@@ -1,5 +1,15 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import {
+  IdCard,
+  CreditCard,
+  FileText,
+  Landmark,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  Info
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import "./styles/uploadDocs.css";
 
@@ -46,17 +56,17 @@ export default function UploadDocs() {
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
   const docConfig = [
-    { key: "aadhar", title: "Aadhaar Card", icon: "🪪", desc: "Front & back scanned copy in single PDF/Image", type: "aadhar" },
-    { key: "pan", title: "PAN Card", icon: "💳", desc: "Clear scanned copy of your PAN card", type: "pan" },
-    { key: "salarySlip", title: "Salary Slips", icon: "📄", desc: "Latest 3 months salary slips merged in one PDF", type: "salary slip" },
-    { key: "bankStatement", title: "Bank Statement", icon: "🏦", desc: "Latest 6 months bank account statements in PDF", type: "bank statement" },
+    { key: "aadhar", title: "Aadhaar Card", icon: <IdCard size={28} />, desc: "Front & back scanned copy in single PDF/Image", type: "aadhar" },
+    { key: "pan", title: "PAN Card", icon: <CreditCard size={28} />, desc: "Clear scanned copy of your PAN card", type: "pan" },
+    { key: "salarySlip", title: "Salary Slips", icon: <FileText size={28} />, desc: "Latest 3 months salary slips merged in one PDF", type: "salary slip" },
+    { key: "bankStatement", title: "Bank Statement", icon: <Landmark size={28} />, desc: "Latest 6 months bank account statements in PDF", type: "bank statement" },
   ];
 
   const handleFileChange = (key, file, inputElement = null) => {
     if (file) {
       if (file.size > MAX_FILE_SIZE_BYTES) {
         const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-        setErrorMsg(`⚠️ "${file.name}" is ${sizeMB} MB, which exceeds the allowed limit of ${MAX_FILE_SIZE_MB} MB. Please upload a smaller file.`);
+        setErrorMsg(`"${file.name}" is ${sizeMB} MB, which exceeds the allowed limit of ${MAX_FILE_SIZE_MB} MB. Please upload a smaller file.`);
         if (inputElement) inputElement.value = "";
         setDocs((prev) => ({ ...prev, [key]: null }));
         return;
@@ -73,14 +83,10 @@ export default function UploadDocs() {
   const handleDrop = (e, key) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
-    handleFileChange(key, file);
+    if (file) {
+      handleFileChange(key, file);
+    }
   };
-
-  const isFormValid = docConfig.every(config => {
-    const existing = existingDocs.find(d => d.document_type === config.type);
-    if (existing && existing.status !== 'rejected') return true;
-    return !!docs[config.key];
-  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -90,30 +96,32 @@ export default function UploadDocs() {
     for (const [docKey, file] of Object.entries(docs)) {
       if (file && file.size > MAX_FILE_SIZE_BYTES) {
         const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-        setErrorMsg(`⚠️ File "${file.name}" is ${sizeMB} MB, which exceeds the allowed limit of ${MAX_FILE_SIZE_MB} MB. Please compress or select a smaller file.`);
+        setErrorMsg(`File "${file.name}" is ${sizeMB} MB, which exceeds the allowed limit of ${MAX_FILE_SIZE_MB} MB. Please compress or select a smaller file.`);
         return;
       }
     }
 
-    setLoading(true);
     setErrorMsg("");
+    setLoading(true);
+
+    const formData = new FormData();
+    formData.append("application_id", applicationId);
+
+    if (docs.aadhar) formData.append("aadhar", docs.aadhar);
+    if (docs.pan) formData.append("pan", docs.pan);
+    if (docs.salarySlip) formData.append("salarySlip", docs.salarySlip);
+    if (docs.bankStatement) formData.append("bankStatement", docs.bankStatement);
 
     try {
-      const formData = new FormData();
-      if (docs.aadhar) { formData.append('files', docs.aadhar); formData.append('types', 'aadhar'); }
-      if (docs.pan) { formData.append('files', docs.pan); formData.append('types', 'pan'); }
-      if (docs.salarySlip) { formData.append('files', docs.salarySlip); formData.append('types', 'salary slip'); }
-      if (docs.bankStatement) { formData.append('files', docs.bankStatement); formData.append('types', 'bank statement'); }
-
       const token = localStorage.getItem("accessToken");
       const headers = {};
       if (token) headers["Authorization"] = `Bearer ${token}`;
 
-      const res = await fetch(`/api/client/upload-docs/${applicationId}`, {
+      const res = await fetch("/api/client/upload-documents", {
         method: "POST",
-        body: formData,
-        headers,
         credentials: "include",
+        headers,
+        body: formData,
       });
 
       if (!res.ok) {
@@ -133,26 +141,32 @@ export default function UploadDocs() {
 
       setSuccess(true);
     } catch (err) {
-      setErrorMsg(err.message || "Network error occurred");
+      setErrorMsg(err.message || "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Validation: at least one new document must be chosen or all missing documents filled
+  const isFormValid = Object.values(docs).some((f) => f !== null);
+
   return (
     <div className="upd-wrap">
       <div className="upd-container">
-        <div className="upd-header">
+        {/* Header */}
+        <div className="upd-head">
+          <span className="upd-tag">Application #{applicationId}</span>
           <h2>Upload Compulsory Documents</h2>
           <p>Please upload all the required documents to progress your loan application to credit evaluation.</p>
           <div style={{ marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#F0F9FF', border: '1px solid #BAE6FD', color: '#0369A1', padding: '6px 14px', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 600 }}>
-            ℹ️ Maximum allowed file size: <strong>1 MB per document</strong> (PDF, PNG, JPG, JPEG)
+            <Info size={15} /> Maximum allowed file size: <strong>1 MB per document</strong> (PDF, PNG, JPG, JPEG)
           </div>
         </div>
 
         {errorMsg && (
-          <div className="upd-alert-error">
-            <span>⚠️</span> {errorMsg}
+          <div className="upd-alert-error" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertTriangle size={18} className="shrink-0" />
+            <span>{errorMsg}</span>
           </div>
         )}
 
@@ -170,17 +184,21 @@ export default function UploadDocs() {
                 onDragOver={isUploaded ? undefined : handleDragOver}
                 onDrop={isUploaded ? undefined : (e) => handleDrop(e, item.key)}
               >
-                <div className="upd-card-icon">{item.icon}</div>
+                <div className="upd-card-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {item.icon}
+                </div>
                 <h4>{item.title}</h4>
                 <p className="upd-card-desc">{item.desc}</p>
 
                 {isUploaded ? (
                   <div style={{ marginTop: '16px', padding: '10px', background: '#D1FAE5', color: '#065F46', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                    ✅ {existing.status === 'verified' ? 'Verified' : 'Uploaded'}
+                    <CheckCircle2 size={16} color="#059669" /> {existing.status === 'verified' ? 'Verified' : 'Uploaded'}
                   </div>
                 ) : docs[item.key] ? (
                   <div className="upd-file-info">
-                    <span className="upd-file-name">📄 {docs[item.key].name} ({(docs[item.key].size / (1024 * 1024)).toFixed(2)} MB)</span>
+                    <span className="upd-file-name" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <FileText size={14} /> {docs[item.key].name} ({(docs[item.key].size / (1024 * 1024)).toFixed(2)} MB)
+                    </span>
                     <button 
                       type="button" 
                       className="upd-remove-btn" 
@@ -192,8 +210,8 @@ export default function UploadDocs() {
                 ) : (
                   <div className="upd-upload-area">
                     {isRejected && (
-                      <div style={{ marginBottom: '10px', padding: '6px', background: '#FEE2E2', color: '#B91C1C', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>
-                        ❌ Rejected, please re-upload
+                      <div style={{ marginBottom: '10px', padding: '6px', background: '#FEE2E2', color: '#B91C1C', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                        <XCircle size={14} color="#DC2626" /> Rejected, please re-upload
                       </div>
                     )}
                     <label htmlFor={`file-${item.key}`} className="upd-select-lbl">
@@ -238,7 +256,9 @@ export default function UploadDocs() {
       {success && (
         <div className="cd-modal">
           <div className="cd-modal-card" style={{ textAlign: "center", padding: "36px 24px" }}>
-            <div style={{ fontSize: "3.5rem", marginBottom: "16px" }}>🎉</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
+              <CheckCircle2 size={54} color="#059669" />
+            </div>
             <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.5rem", fontWeight: "700", color: "var(--navy)", marginBottom: "8px" }}>
               Documents Submitted!
             </h3>
@@ -259,3 +279,4 @@ export default function UploadDocs() {
     </div>
   );
 }
+export { UploadDocs };

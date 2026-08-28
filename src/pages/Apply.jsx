@@ -1,6 +1,22 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import {
+  Home,
+  Building2,
+  CreditCard,
+  Briefcase,
+  Car,
+  Check,
+  AlertTriangle,
+  AlertCircle,
+  Lightbulb,
+  Landmark,
+  Sparkles,
+  Tag,
+  Lock,
+  CheckCircle2
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useEmiCalculator } from "../hooks/useEmiCalculator";
 import { useSliderPaint } from "../hooks/useSliderPaint";
@@ -163,27 +179,26 @@ export default function Apply() {
     fetchLenders();
   }, [loanType]);
 
-  // Title map for alert banner
-  const typeTitleMap = {
-    home: "Home Loan",
-    lap: "Loan Against Property",
-    personal: "Personal Loan",
-    business: "Business Loan",
-    vehicle: "Vehicle Loan",
-    education: "Education Loan"
-  };
+  // Current loan type title
+  const currentTitle = useMemo(() => {
+    const map = {
+      home: "Home Loan",
+      lap: "Loan Against Property",
+      personal: "Personal Loan",
+      business: "Business Loan",
+      vehicle: "Vehicle Loan",
+      education: "Education Loan"
+    };
+    return map[loanType] || "Home Loan";
+  }, [loanType]);
 
-  const currentTitle = typeTitleMap[loanType] || "Home Loan";
-
-  // Local state for Amount text inputs
+  // Sync amount with input box formatting (Lakh vs Crore)
+  const [amtUnit, setAmtUnit] = useState(100000); // 1 Lakh = 100,000
   const [amtInputVal, setAmtInputVal] = useState("50");
-  const [amtUnit, setAmtUnit] = useState(100000); // Lakhs vs Crores
   const [isEditingAmount, setIsEditingAmount] = useState(false);
 
-  // Synchronize numeric input formatting
   useEffect(() => {
     if (isEditingAmount) return;
-
     if (amount >= 10000000) {
       setAmtUnit(10000000);
       setAmtInputVal((amount / 10000000).toFixed(2));
@@ -236,31 +251,31 @@ export default function Apply() {
     {
       id: "home",
       name: "Home Loan",
-      icon: "🏠",
+      icon: <Home size={28} strokeWidth={1.8} />,
       desc: "Buy or build your dream home"
     },
     {
       id: "lap",
       name: "Loan Against Property",
-      icon: "🏢",
+      icon: <Building2 size={28} strokeWidth={1.8} />,
       desc: "Unlock your property's value"
     },
     {
       id: "personal",
       name: "Personal Loan",
-      icon: "💳",
+      icon: <CreditCard size={28} strokeWidth={1.8} />,
       desc: "For any personal need"
     },
     {
       id: "business",
       name: "Business Loan",
-      icon: "💼",
+      icon: <Briefcase size={28} strokeWidth={1.8} />,
       desc: "Grow your business"
     },
     {
       id: "vehicle",
       name: "Vehicle Loan",
-      icon: "🚗",
+      icon: <Car size={28} strokeWidth={1.8} />,
       desc: "Car, bike or commercial"
     }
   ];
@@ -476,8 +491,9 @@ export default function Apply() {
       {/* ═══ MAIN CONTENT BODY ═══ */}
       <div className="calc-body-wrap">
         {isAdmin && (
-          <div style={{ marginBottom: "24px", padding: "14px 20px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "12px", color: "#991B1B", fontSize: ".88rem", fontWeight: 700, textAlign: "center" }}>
-            ⚠️ Admin &amp; Partner accounts cannot submit loan applications. Please sign out and log in with a Borrower account to apply.
+          <div style={{ marginBottom: "24px", padding: "14px 20px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "12px", color: "#991B1B", fontSize: ".88rem", fontWeight: 700, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+            <AlertTriangle size={18} className="shrink-0" />
+            <span>Admin &amp; Partner accounts cannot submit loan applications. Please sign out and log in with a Borrower account to apply.</span>
           </div>
         )}
 
@@ -495,7 +511,7 @@ export default function Apply() {
                       className={`calc-type-card ${isSel ? "selected" : ""}`}
                       onClick={() => handleSelectLoanType(card.id)}
                     >
-                      {isSel && <div className="calc-type-badge">✓</div>}
+                      {isSel && <div className="calc-type-badge"><Check size={12} strokeWidth={3} /></div>}
                       <div className="calc-type-icon">{card.icon}</div>
                       <div className="calc-type-name">{card.name}</div>
                       <div className="calc-type-desc">{card.desc}</div>
@@ -519,8 +535,8 @@ export default function Apply() {
                   <div className="range-field" style={{ marginBottom: '20px' }}>
                     <div className="rf-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                       <label style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0F2942' }}>Loan Amount</label>
-                      <div className="rf-input-wrap" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '4px 8px', minWidth: '160px' }}>
-                        <span className="rf-prefix" style={{ fontWeight: 700, color: '#0F2942', fontSize: '0.85rem' }}>₹</span>
+                      <div className="rf-input-wrap" style={{ display: 'flex', alignItems: 'center', background: '#F8FAFC', border: '1.5px solid #CBD5E1', borderRadius: '8px', padding: '3px 6px', minWidth: '175px' }}>
+                        <span className="rf-prefix" style={{ fontWeight: 700, color: '#0F2942', fontSize: '0.85rem', paddingRight: '2px' }}>₹</span>
                         <input
                           type="number"
                           className="rf-input"
@@ -529,16 +545,31 @@ export default function Apply() {
                           onChange={handleAmtInputChange}
                           onBlur={handleAmtBlur}
                           step="0.01"
-                          style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.9rem', color: '#0F2942', flex: 1, textAlign: 'right', minWidth: '50px' }}
+                          style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.92rem', color: '#0F2942', width: '56px', minWidth: '45px', textAlign: 'right', padding: '2px 4px' }}
                         />
                         <select
                           className="rf-unit"
                           value={amtUnit}
                           onChange={handleUnitChange}
-                          style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 700, fontSize: '0.8rem', color: '#475569', cursor: 'pointer', appearance: 'none', width: 'auto', paddingLeft: '4px' }}
+                          style={{
+                            border: 'none',
+                            borderLeft: '1px solid #CBD5E1',
+                            background: '#E0F2FE',
+                            outline: 'none',
+                            fontWeight: 700,
+                            fontSize: '0.82rem',
+                            color: '#0369A1',
+                            cursor: 'pointer',
+                            padding: '4px 8px',
+                            borderRadius: '6px',
+                            marginLeft: '6px',
+                            minWidth: '68px',
+                            textAlign: 'center',
+                            flexShrink: 0
+                          }}
                         >
-                          <option value={100000}>Lakh ▾</option>
-                          <option value={10000000}>Crore ▾</option>
+                          <option value={100000}>Lakh</option>
+                          <option value={10000000}>Crore</option>
                         </select>
                       </div>
                     </div>
@@ -701,8 +732,9 @@ export default function Apply() {
                     </div>
                   </div>
 
-                  <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '10px', padding: '10px 12px', fontSize: '0.75rem', color: '#CBD5E1', lineHeight: '1.4' }}>
-                    💡 <strong>This is an indicative EMI.</strong> Actual EMI depends on the lender's approved rate.
+                  <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '10px', padding: '10px 12px', fontSize: '0.75rem', color: '#CBD5E1', lineHeight: '1.4', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                    <Lightbulb size={16} style={{ color: '#38BDF8', flexShrink: 0, marginTop: '2px' }} />
+                    <div><strong>This is an indicative EMI.</strong> Actual EMI depends on the lender's approved rate.</div>
                   </div>
                 </div>
               </div>
@@ -745,8 +777,8 @@ export default function Apply() {
                 Live interest rates for {currentTitle} · Sorted by best Expected ROI ({rateType === 'floating' ? 'Floating' : 'Fixed'})
               </p>
 
-              <div className="smart-tip-box green">
-                <span className="stb-icon">💡</span>
+              <div className="smart-tip-box green" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Lightbulb size={18} style={{ color: '#059669', flexShrink: 0 }} />
                 <span>
                   <strong>Smart tip:</strong> Selecting 2–3 lenders is the sweet spot — they compete for your case, you get better rates. More than 5 can affect your credit score.
                 </span>
@@ -780,21 +812,25 @@ export default function Apply() {
                     >
                       <div className="clc-left">
                         <div className={`clc-checkbox ${isSel ? "checked" : ""}`}>
-                          {isSel ? "✓" : ""}
+                          {isSel && <Check size={12} strokeWidth={3} />}
                         </div>
 
                         <div className="clc-icon">
                           {lender.logo ? (
                             <img src={lender.logo} alt={lender.name} style={{ width: "24px", height: "24px", objectFit: "contain" }} />
                           ) : (
-                            "🏛️"
+                            <Landmark size={20} className="text-slate-600" />
                           )}
                         </div>
 
                         <div className="clc-info">
                           <div className="clc-name-row">
                             <span className="clc-name">{lender.name}</span>
-                            {isBest && <span className="clc-best-badge">★ Best Rate</span>}
+                            {isBest && (
+                              <span className="clc-best-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <Sparkles size={11} /> Best Rate
+                              </span>
+                            )}
                           </div>
                           <div className="clc-sub-row">
                             <span style={{
@@ -810,7 +846,9 @@ export default function Apply() {
                             <span className="clc-bullet">·</span>
                             <span className="clc-pf">PF applicable*</span>
                             <span className="clc-bullet">·</span>
-                            <span className="clc-offer">🎁 Offer</span>
+                            <span className="clc-offer" style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                              <Tag size={11} /> Offer
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -911,8 +949,9 @@ export default function Apply() {
               </div>
 
               {submitError && (
-                <div className="calc-submit-err" style={{ marginTop: '16px' }}>
-                  ⚠️ {submitError}
+                <div className="calc-submit-err" style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <AlertCircle size={16} />
+                  <span>{submitError}</span>
                 </div>
               )}
             </div>
@@ -953,8 +992,8 @@ export default function Apply() {
       {showAdminModal && (
         <div className="custom-modal-backdrop" onClick={() => setShowAdminModal(false)}>
           <div className="custom-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px', padding: '32px', textAlign: 'center' }}>
-            <div className="cmc-icon-badge" style={{ background: '#FEF2F2', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', margin: '0 auto 16px auto', color: '#DC2626' }}>
-              ⚠️
+            <div className="cmc-icon-badge" style={{ background: '#FEF2F2', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto', color: '#DC2626' }}>
+              <AlertTriangle size={30} />
             </div>
             <h3 className="cmc-title" style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0F2942', marginBottom: '10px' }}>
               Action Restricted
@@ -991,8 +1030,8 @@ export default function Apply() {
       {showLoginRequiredModal && (
         <div className="custom-modal-backdrop" onClick={() => setShowLoginRequiredModal(false)}>
           <div className="custom-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px', padding: '32px', textAlign: 'center' }}>
-            <div className="cmc-icon-badge" style={{ background: '#EFF6FF', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', margin: '0 auto 16px auto', color: '#2563EB' }}>
-              🔒
+            <div className="cmc-icon-badge" style={{ background: '#EFF6FF', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto', color: '#2563EB' }}>
+              <Lock size={28} />
             </div>
             <h3 className="cmc-title" style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0F2942', marginBottom: '10px' }}>
               Borrower Account Required
@@ -1049,8 +1088,8 @@ export default function Apply() {
       {showSuccessModal && (
         <div className="custom-modal-backdrop">
           <div className="custom-modal-card" style={{ maxWidth: '460px', padding: '36px 32px', textAlign: 'center' }}>
-            <div className="cmc-icon-badge" style={{ background: '#ECFDF5', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', margin: '0 auto 16px auto', color: '#059669' }}>
-              🎉
+            <div className="cmc-icon-badge" style={{ background: '#ECFDF5', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto', color: '#059669' }}>
+              <CheckCircle2 size={36} />
             </div>
             <h3 className="cmc-title" style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F2942', marginBottom: '8px' }}>
               Application Submitted!

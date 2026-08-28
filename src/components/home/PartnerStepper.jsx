@@ -1,5 +1,19 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  User,
+  Building,
+  Smartphone,
+  Mail,
+  Key,
+  Lock,
+  CheckCircle2,
+  AlertTriangle,
+  Sparkles,
+  MapPin,
+  Check,
+  Handshake
+} from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import "../../pages/styles/stepper.css";
 
@@ -220,7 +234,9 @@ export default function PartnerStepper({ onBack }) {
         <div style={{ maxWidth: "480px", margin: "0 auto", width: "100%", animation: "fadeUp 0.35s ease" }}>
             <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
                 <button className="btn-back" onClick={onBack} style={{ marginRight: "16px" }}>← Back</button>
-                <div className="mode-badge partner" style={{ margin: 0 }}>🤝 Partner Onboarding</div>
+                <div className="mode-badge partner" style={{ margin: 0, display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                    <Handshake size={15} /> Partner Onboarding
+                </div>
             </div>
 
             <div className="form-card">
@@ -249,8 +265,9 @@ export default function PartnerStepper({ onBack }) {
                 </div>
 
                 {error && (
-                    <div className="login-loan-banner" style={{ background: "#FEE2E2", borderColor: "#FCA5A5", color: "#991B1B", padding: "10px 14px", borderRadius: "8px", fontSize: ".76rem", marginBottom: "16px" }}>
-                        ⚠️ {error}
+                    <div className="login-loan-banner" style={{ background: "#FEE2E2", borderColor: "#FCA5A5", color: "#991B1B", padding: "10px 14px", borderRadius: "8px", fontSize: ".76rem", marginBottom: "16px", display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                        <AlertTriangle size={14} className="shrink-0" />
+                        <span>{error}</span>
                         {error.toLowerCase().includes("already exists") && (
                             <span>
                                 {" "}—{" "}
@@ -275,7 +292,7 @@ export default function PartnerStepper({ onBack }) {
                             <div className="field">
                                 <label>Full Name <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap">
-                                    <span className="icon">👤</span>
+                                    <span className="icon"><User size={16} /></span>
                                     <input
                                         type="text"
                                         placeholder="Enter your full name"
@@ -300,7 +317,7 @@ export default function PartnerStepper({ onBack }) {
                                     }}
                                     onClick={() => setIsCityOpen(true)}
                                 >
-                                    <span className="icon">🏙️</span>
+                                    <span className="icon"><Building size={16} /></span>
                                     <input
                                         type="text"
                                         placeholder="Select or type your city"
@@ -419,7 +436,7 @@ export default function PartnerStepper({ onBack }) {
                                                             onMouseEnter={(e) => e.currentTarget.style.background = "#DCFCE7"}
                                                             onMouseLeave={(e) => e.currentTarget.style.background = "#F0FDF4"}
                                                         >
-                                                            <span style={{ fontSize: "1rem" }}>✨</span>
+                                                            <Sparkles size={14} />
                                                             <span>Add custom city: <strong style={{ textDecoration: "underline" }}>"{city.trim()}"</strong></span>
                                                         </div>
                                                     )}
@@ -461,10 +478,10 @@ export default function PartnerStepper({ onBack }) {
                                                                 }}
                                                             >
                                                                 <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                                                    <span style={{ color: "#94A3B8", fontSize: "0.76rem" }}>📍</span>
+                                                                    <MapPin size={13} className="text-slate-400" />
                                                                     {c}
                                                                 </span>
-                                                                {isSelected && <span style={{ color: "#0F766E", fontWeight: 900, fontSize: "0.85rem" }}>✓</span>}
+                                                                {isSelected && <Check size={14} color="#0F766E" strokeWidth={3} />}
                                                             </div>
                                                         );
                                                     })}
@@ -478,7 +495,7 @@ export default function PartnerStepper({ onBack }) {
                             <div className="field">
                                 <label>Mobile Number <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap">
-                                    <span className="icon">📱</span>
+                                    <span className="icon"><Smartphone size={16} /></span>
                                     <input
                                         type="tel"
                                         placeholder="10-digit mobile number"
@@ -493,7 +510,7 @@ export default function PartnerStepper({ onBack }) {
                             <div className="field">
                                 <label>Email Address <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap">
-                                    <span className="icon">📧</span>
+                                    <span className="icon"><Mail size={16} /></span>
                                     <input
                                         type="email"
                                         placeholder="Enter email address"
@@ -523,14 +540,14 @@ export default function PartnerStepper({ onBack }) {
                         <div className="form-subtitle">A 4-digit OTP has been sent to <strong>{email}</strong></div>
 
                         <div style={{ padding: "16px", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "12px", marginBottom: "16px", marginTop: "16px" }}>
-                            <div style={{ color: "#1E40AF", fontSize: ".76rem", fontWeight: 700, marginBottom: "12px" }}>
-                                ✉️ Check your inbox for the OTP
+                            <div style={{ color: "#1E40AF", fontSize: ".76rem", fontWeight: 700, marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
+                                <Mail size={14} /> Check your inbox for the OTP
                             </div>
 
                             <div className="field">
                                 <label>Enter OTP <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap">
-                                    <span className="icon">🔑</span>
+                                    <span className="icon"><Key size={16} /></span>
                                     <input
                                         type="text"
                                         placeholder="Enter 4-digit OTP"
@@ -549,7 +566,7 @@ export default function PartnerStepper({ onBack }) {
                                 disabled={otpVerified || enteredOtp.length < 4 || otpVerifying}
                                 style={{ width: "100%", padding: "10px", borderRadius: "8px", background: otpVerified ? "#059669" : "var(--navy)", border: "none", color: "#fff", marginTop: "10px", opacity: (otpVerified || enteredOtp.length < 4 || otpVerifying) ? 0.5 : 1 }}
                             >
-                                {otpVerified ? "✓ Verified" : otpVerifying ? "Verifying…" : "Verify OTP"}
+                                {otpVerified ? "Verified" : otpVerifying ? "Verifying…" : "Verify OTP"}
                             </button>
                         </div>
 
@@ -579,7 +596,7 @@ export default function PartnerStepper({ onBack }) {
                             <div className="field">
                                 <label>Password <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap">
-                                    <span className="icon">🔒</span>
+                                    <span className="icon"><Lock size={16} /></span>
                                     <input
                                         type={showPassword ? "text" : "password"}
                                         placeholder="Create password"
@@ -621,7 +638,7 @@ export default function PartnerStepper({ onBack }) {
                             <div className="field">
                                 <label>Confirm Password <span style={{ color: "#DC2626" }}>*</span></label>
                                 <div className="input-wrap">
-                                    <span className="icon">🔒</span>
+                                    <span className="icon"><Lock size={16} /></span>
                                     <input
                                         type={showConfirmPassword ? "text" : "password"}
                                         placeholder="Confirm password"
@@ -639,7 +656,7 @@ export default function PartnerStepper({ onBack }) {
                                 </div>
                                 {confirmPassword && (
                                     <div style={{ fontSize: ".74rem", marginTop: "6px", color: password === confirmPassword ? "green" : "red", fontWeight: 700 }}>
-                                        {password === confirmPassword ? "✓ Passwords match" : "✗ Passwords do not match"}
+                                        {password === confirmPassword ? "Passwords match" : "Passwords do not match"}
                                     </div>
                                 )}
                             </div>
@@ -659,7 +676,9 @@ export default function PartnerStepper({ onBack }) {
                 {/* Step 4: Done */}
                 {step === 4 && (
                     <div style={{ textAlign: "center", padding: "20px 0" }}>
-                        <div style={{ fontSize: "3.5rem", marginBottom: "16px" }}>🎉</div>
+                        <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
+                            <CheckCircle2 size={54} color="#059669" />
+                        </div>
                         <div className="form-title">Registration Successful!</div>
                         <div className="form-subtitle">
                             Your partner account is active. Redirecting to your dashboard...

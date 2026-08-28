@@ -728,11 +728,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);min-height:100vh;d
 .rf-unit{
   border:none;border-left:1.5px solid #C8DCF5;outline:none;cursor:pointer;
   background:#E0F2FE;color:var(--navy);
-  font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:700;
-  padding:9px 8px;height:100%;align-self:stretch;
-  -webkit-appearance:none;appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%231E3A5F' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 7px center;padding-right:22px;
+  font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:700;
+  padding:7px 10px;height:100%;align-self:stretch;
+  min-width:68px;flex-shrink:0;text-align:center;
   transition:background .2s;
 }
 .rf-unit:hover{background-color:#BAE6FD}

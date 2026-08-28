@@ -248,8 +248,28 @@
 }
 
 .calc-type-icon {
-  font-size: 2rem;
-  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 12px auto;
+  border-radius: 14px;
+  background: #F1F5F9;
+  color: #0284C7;
+  transition: all 0.2s ease;
+}
+
+.calc-type-card:hover .calc-type-icon {
+  background: #E0F2FE;
+  color: #0369A1;
+  transform: scale(1.05);
+}
+
+.calc-type-card.selected .calc-type-icon {
+  background: #0284C7;
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
 }
 
 .calc-type-name {

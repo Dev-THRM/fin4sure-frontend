@@ -1,5 +1,16 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import {
+  Handshake,
+  BarChart3,
+  CircleDollarSign,
+  Zap,
+  Landmark,
+  ShieldCheck,
+  Lightbulb,
+  RefreshCw,
+  Star
+} from "lucide-react";
 import logo from "../../assets/images/brandlogo.png";
 
 export default function BrandPanel({ mode = "borrower" }) {
@@ -44,31 +55,31 @@ export default function BrandPanel({ mode = "borrower" }) {
         {isPartner ? (
           <>
             <div className="b-feat">
-              <span className="b-feat-ic">🤝</span> Direct Client Referral
+              <span className="b-feat-ic"><Handshake size={15} /></span> Direct Client Referral
             </div>
             <div className="b-feat">
-              <span className="b-feat-ic">📊</span> Real-time Lead Tracking
+              <span className="b-feat-ic"><BarChart3 size={15} /></span> Real-time Lead Tracking
             </div>
             <div className="b-feat">
-              <span className="b-feat-ic">💰</span> High Payout Commission
+              <span className="b-feat-ic"><CircleDollarSign size={15} /></span> High Payout Commission
             </div>
           </>
         ) : (
           <>
             <div className="b-feat">
-              <span className="b-feat-ic">⚡</span> Live ROI Ticker
+              <span className="b-feat-ic"><Zap size={15} /></span> Live ROI Ticker
             </div>
             <div className="b-feat">
-              <span className="b-feat-ic">🏦</span> Direct Lender Integrations
+              <span className="b-feat-ic"><Landmark size={15} /></span> Direct Lender Integrations
             </div>
             <div className="b-feat">
-              <span className="b-feat-ic">🔒</span> Bank-grade Data Encryption
+              <span className="b-feat-ic"><ShieldCheck size={15} /></span> Bank-grade Data Encryption
             </div>
             <div className="b-feat">
-              <span className="b-feat-ic">💡</span> EMI Saver
+              <span className="b-feat-ic"><Lightbulb size={15} /></span> EMI Saver
             </div>
             <div className="b-feat">
-              <span className="b-feat-ic">🔄</span> Home Loan Top-ups & Balance Transfer
+              <span className="b-feat-ic"><RefreshCw size={15} /></span> Home Loan Top-ups & Balance Transfer
             </div>
           </>
         )}
@@ -93,8 +104,8 @@ export default function BrandPanel({ mode = "borrower" }) {
           </div>
         </div>
         <div className="stat">
-          <div className="stat-val" id="sv3">
-            4.8★
+          <div className="stat-val" id="sv3" style={{ display: "inline-flex", alignItems: "center", gap: "2px", justifyContent: "center" }}>
+            4.8<Star size={14} fill="currentColor" />
           </div>
           <div className="stat-lbl" id="sl3">
             Rating

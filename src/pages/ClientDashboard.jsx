@@ -6,6 +6,30 @@ import {
   IoMdCheckmarkCircle,
   IoMdCloseCircle,
 } from "react-icons/io";
+import {
+  Phone,
+  Mail,
+  MessageSquare,
+  AlertTriangle,
+  AlertCircle,
+  RefreshCw,
+  Upload,
+  Trophy,
+  Sparkles,
+  Gift,
+  CircleDollarSign,
+  Handshake,
+  Lock,
+  Star,
+  User,
+  Home,
+  MapPin,
+  Key,
+  CheckCircle2,
+  Info,
+  Clock,
+  Smartphone
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { LOAN_PRODUCTS } from "../utils/constants";
 import { states, districtsByState } from "../components/Statedata";
@@ -291,7 +315,9 @@ export default function ClientDashboard() {
               <div className="cdash-name">{(user.name && user.name !== "Borrower Account") ? user.name : (authUser?.name || "Sahil")}</div>
               <div className="cdash-meta">
                 <span className="cdash-badge">Borrower</span>
-                <span>📱 {user.number || authUser?.number || "8123123712"}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Smartphone size={13} /> {user.number || authUser?.number || "8123123712"}
+                </span>
               </div>
             </div>
           </div>
@@ -457,7 +483,7 @@ export default function ClientDashboard() {
                             gap: '12px'
                           }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <span style={{ fontSize: '1.4rem' }}>⚠️</span>
+                              <AlertTriangle size={24} className="text-red-600 shrink-0" />
                               <div>
                                 <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#991B1B' }}>
                                   Document Re-upload Required
@@ -486,7 +512,7 @@ export default function ClientDashboard() {
                                 transition: "all 0.2s ease"
                               }}
                             >
-                              🔄 Re-upload Documents
+                              <RefreshCw size={14} /> Re-upload Documents
                             </Link>
                           </div>
                         ) : (currentStepIndex === 0 || currentStepIndex === 1) ? (
@@ -515,7 +541,7 @@ export default function ClientDashboard() {
                                 transition: "all 0.2s ease"
                               }}
                             >
-                              📤 Upload Documents
+                              <Upload size={14} /> Upload Documents
                             </Link>
                           </div>
                         ) : null}
@@ -533,13 +559,19 @@ export default function ClientDashboard() {
               }) && (
               <div className="cdash-section">
                 <div className="cdash-sec-head">
-                  <h3>🏆 Finn4sure Reward Cabinet</h3>
-                  <span className="cd-reward-live-tag">✨ Live Rewards</span>
+                  <h3 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <Trophy size={18} /> Finn4sure Reward Cabinet
+                  </h3>
+                  <span className="cd-reward-live-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <Sparkles size={12} /> Live Rewards
+                  </span>
                 </div>
 
                 <div className="reward-almirah">
                   <div className="almirah-arch">
-                    <div className="aa-logo">🎁</div>
+                    <div className="aa-logo" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Gift size={28} />
+                    </div>
                     <div className="aa-title">Your Reward Cabinet</div>
                     <div className="aa-sub">Earn vouchers & exclusive perks after disbursals</div>
                   </div>
@@ -547,19 +579,25 @@ export default function ClientDashboard() {
                   <div className="almirah-tiles">
                     <div className="almirah-tile tile-gold">
                       <div className="at-glow"></div>
-                      <div className="at-icon">💰</div>
+                      <div className="at-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <CircleDollarSign size={26} />
+                      </div>
                       <div className="at-badge">Locked</div>
                       <div className="at-title">Disbursal Reward</div>
                       <div className="at-amount">—</div>
                       <div className="at-desc">Complete your loan disbursement to unlock</div>
                       <div className="at-status">
-                        <span className="ats-pill ats-pending">⏳ Pending</span>
+                        <span className="ats-pill ats-pending" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <Clock size={11} /> Pending
+                        </span>
                       </div>
                     </div>
 
                     <Link to="/partner" className="almirah-tile tile-teal" style={{ textDecoration: "none" }}>
                       <div className="at-glow"></div>
-                      <div className="at-icon">🤝</div>
+                      <div className="at-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Handshake size={26} />
+                      </div>
                       <div className="at-badge at-badge-earn">Earn Now</div>
                       <div className="at-title">Referral Reward</div>
                       <div className="at-amount">₹2k – ₹10k</div>
@@ -571,13 +609,17 @@ export default function ClientDashboard() {
 
                     <div className="almirah-tile tile-purple">
                       <div className="at-glow"></div>
-                      <div className="at-icon">⭐</div>
+                      <div className="at-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Star size={26} />
+                      </div>
                       <div className="at-badge at-badge-soon">Soon</div>
                       <div className="at-title">Loyalty Reward</div>
                       <div className="at-amount">Up to ₹5k</div>
                       <div className="at-desc">Vouchers after 12 on-time EMI repayments.</div>
                       <div className="at-status">
-                        <span className="ats-pill ats-soon">🔒 Locked</span>
+                        <span className="ats-pill ats-soon" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <Lock size={11} /> Locked
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -655,14 +697,14 @@ export default function ClientDashboard() {
                   </span>
                 </div>
                 <div className="cdsm-actions">
-                  <a className="cdsm-btn cdsm-call" href="tel:9910507574">
-                    📞 Call
+                  <a className="cdsm-btn cdsm-call" href="tel:9910507574" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <Phone size={13} /> Call
                   </a>
-                  <a className="cdsm-btn cdsm-email" href="mailto:support@finn4sure.com">
-                    📧 Email
+                  <a className="cdsm-btn cdsm-email" href="mailto:support@finn4sure.com" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <Mail size={13} /> Email
                   </a>
-                  <a className="cdsm-btn cdsm-wa" href="https://wa.me/919910507574" target="_blank" rel="noreferrer">
-                    📱 WhatsApp
+                  <a className="cdsm-btn cdsm-wa" href="https://wa.me/919910507574" target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <MessageSquare size={13} /> WhatsApp
                   </a>
                 </div>
                 <div className="cdsm-hours">Mon–Sat · 9:30 AM – 6:30 PM IST</div>
@@ -676,7 +718,7 @@ export default function ClientDashboard() {
           <div className="cdPanelProfile animate-fade-up" style={{ maxWidth: "640px", margin: "0 auto" }}>
             <div className="cpro-card">
               <div className="cpro-head">
-                <span className="cpro-head-ic">👤</span>
+                <span className="cpro-head-ic"><User size={18} /></span>
                 <div>
                   <div className="cpro-head-title">Personal Details</div>
                   <div className="cpro-head-sub">Review and edit your details below</div>
@@ -687,7 +729,7 @@ export default function ClientDashboard() {
                 <div className="cpro-field">
                   <label htmlFor="pname">Full Name</label>
                   <div className="input-wrap">
-                    <span className="icon">👤</span>
+                    <span className="icon"><User size={16} /></span>
                     <input
                       id="pname"
                       type="text"
@@ -701,7 +743,7 @@ export default function ClientDashboard() {
                 <div className="cpro-field">
                   <label htmlFor="pemail">Email Address</label>
                   <div className="input-wrap">
-                    <span className="icon">📧</span>
+                    <span className="icon"><Mail size={16} /></span>
                     <input
                       id="pemail"
                       type="email"
@@ -715,7 +757,7 @@ export default function ClientDashboard() {
                 <div className="cpro-field">
                   <label htmlFor="paddress">Address</label>
                   <div className="input-wrap">
-                    <span className="icon">🏠</span>
+                    <span className="icon"><Home size={16} /></span>
                     <input
                       id="paddress"
                       type="text"
@@ -730,7 +772,7 @@ export default function ClientDashboard() {
                 <div className="cpro-field">
                   <label htmlFor="ppincode">Pincode</label>
                   <div className="input-wrap">
-                    <span className="icon">📍</span>
+                    <span className="icon"><MapPin size={16} /></span>
                     <input
                       id="ppincode"
                       type="text"
@@ -744,7 +786,7 @@ export default function ClientDashboard() {
                 <div className="cpro-field">
                   <label htmlFor="pphone">Phone Number (WhatsApp)</label>
                   <div className="input-wrap">
-                    <span className="icon">📱</span>
+                    <span className="icon"><Smartphone size={16} /></span>
                     <input
                       id="pphone"
                       type="text"
@@ -822,21 +864,21 @@ export default function ClientDashboard() {
                     <div>
                       <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>Current Password</label>
                       <div className="input-wrap">
-                        <span className="icon">🔑</span>
+                        <span className="icon"><Key size={16} /></span>
                         <input type="password" placeholder="Current password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} required />
                       </div>
                     </div>
                     <div>
                       <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>New Password</label>
                       <div className="input-wrap">
-                        <span className="icon">🔒</span>
+                        <span className="icon"><Lock size={16} /></span>
                         <input type="password" placeholder="New password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
                       </div>
                     </div>
                     <div>
                       <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>Confirm New Password</label>
                       <div className="input-wrap">
-                        <span className="icon">🔒</span>
+                        <span className="icon"><Lock size={16} /></span>
                         <input type="password" placeholder="Confirm new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
                       </div>
                     </div>
@@ -872,21 +914,27 @@ export default function ClientDashboard() {
                 </div>
               </div>
               <a href="tel:9910507574" className="cdm-contact-row">
-                <div className="cdm-ci" style={{ backgroundColor: "#EEF6FF", color: "#1B4D8E" }}>📞</div>
+                <div className="cdm-ci" style={{ backgroundColor: "#EEF6FF", color: "#1B4D8E", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Phone size={15} />
+                </div>
                 <div>
                   <div className="cdm-cl" style={{ fontSize: ".66rem", color: "var(--text2)", textTransform: "uppercase" }}>Phone Support</div>
                   <div className="cdm-cv">99105 07574</div>
                 </div>
               </a>
               <a href="mailto:support@finn4sure.com" className="cdm-contact-row">
-                <div className="cdm-ci" style={{ backgroundColor: "#F0FDF4", color: "#16A34A" }}>📧</div>
+                <div className="cdm-ci" style={{ backgroundColor: "#F0FDF4", color: "#16A34A", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Mail size={15} />
+                </div>
                 <div>
                   <div className="cdm-cl" style={{ fontSize: ".66rem", color: "var(--text2)", textTransform: "uppercase" }}>Email Support</div>
                   <div className="cdm-cv">support@finn4sure.com</div>
                 </div>
               </a>
               <a href="https://wa.me/919910507574" target="_blank" rel="noreferrer" className="cdm-contact-row">
-                <div className="cdm-ci" style={{ backgroundColor: "#ECFDF5", color: "#059669" }}>📱</div>
+                <div className="cdm-ci" style={{ backgroundColor: "#ECFDF5", color: "#059669", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <MessageSquare size={15} />
+                </div>
                 <div>
                   <div className="cdm-cl" style={{ fontSize: ".66rem", color: "var(--text2)", textTransform: "uppercase" }}>WhatsApp Chat</div>
                   <div className="cdm-cv">Chat Live Now</div>
@@ -905,8 +953,14 @@ export default function ClientDashboard() {
           if (cb) cb();
         }}>
           <div className="cd-modal-card" onClick={(e) => e.stopPropagation()} style={{ textAlign: "center", padding: "32px 24px" }}>
-            <div style={{ fontSize: "3.2rem", marginBottom: "16px" }}>
-              {notification.type === "success" ? "🎉" : notification.type === "error" ? "⚠️" : "ℹ️"}
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
+              {notification.type === "success" ? (
+                <CheckCircle2 size={54} color="#059669" />
+              ) : notification.type === "error" ? (
+                <AlertCircle size={54} color="#DC2626" />
+              ) : (
+                <Info size={54} color="#0284C7" />
+              )}
             </div>
             <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.45rem", fontWeight: "700", color: "var(--navy)", marginBottom: "8px" }}>
               {notification.title}
