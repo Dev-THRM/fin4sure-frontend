@@ -138,6 +138,7 @@ export default function AdminDashboard() {
 
   // Custom alert popup notification state
   const [customAlert, setCustomAlert] = useState(null);
+  const [docConfirmModal, setDocConfirmModal] = useState(null);
 
   // Settings states
   const [rmName, setRmName] = useState("");
@@ -3749,33 +3750,56 @@ export default function AdminDashboard() {
                           <a href={doc.file_path.startsWith('http') ? doc.file_path : `https://palevioletred-ape-449755.hostingersite.com${doc.file_path}`} target="_blank" rel="noopener noreferrer" style={{ padding: '6px 12px', background: '#0284C7', color: '#FFFFFF', textDecoration: 'none', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>View</a>
                           
                           {doc.status !== 'verified' && (
-                            <button onClick={async () => {
-                              if (!window.confirm("Verify this document?")) return;
-                              try {
-                                const res = await fetch(`/api/admin/application-documents/${doc.id}/status`, { 
-                                  method: 'PUT', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'verified' }), credentials: 'include' 
-                                });
-                                if (res.ok) setEditLeadDocs(prev => prev.map(d => d.id === doc.id ? { ...d, status: 'verified' } : d));
-                                else alert("Failed to verify document");
-                              } catch (e) { console.error(e); alert("Error verifying document"); }
+                            <button onClick={() => {
+                              setDocConfirmModal({
+                                type: 'verify',
+                                doc,
+                                title: 'Verify Document',
+                                desc: `Are you sure you want to verify the "${doc.document_type}"? Once verified, this document will be locked and approved.`,
+                                btnText: 'Yes, Verify Document',
+                                btnColor: '#10B981',
+                                onConfirm: async () => {
+                                  try {
+                                    const res = await fetch(`/api/admin/application-documents/${doc.id}/status`, { 
+                                      method: 'PUT', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'verified' }), credentials: 'include' 
+                                    });
+                                    if (res.ok) {
+                                      setEditLeadDocs(prev => prev.map(d => d.id === doc.id ? { ...d, status: 'verified' } : d));
+                                      setDocConfirmModal(null);
+                                    } else {
+                                      alert("Failed to verify document");
+                                    }
+                                  } catch (e) { console.error(e); alert("Error verifying document"); }
+                                }
+                              });
                             }} style={{ padding: '6px 12px', background: '#10B981', color: '#FFFFFF', border: 'none', cursor: 'pointer', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>Verify</button>
                           )}
 
                           {doc.status !== 'verified' && doc.status !== 'rejected' && (
-                            <button onClick={async () => {
-                              if (!window.confirm("Reject this document? The file will be deleted and the customer will be prompted to re-upload.")) return;
-                              try {
-                                const res = await fetch(`/api/admin/application-documents/${doc.id}/status`, { 
-                                  method: 'PUT', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'rejected' }), credentials: 'include' 
-                                });
-                                if (res.ok) {
-                                  setEditLeadDocs(prev => prev.map(d => d.id === doc.id ? { ...d, status: 'rejected' } : d));
-                                  setEditForm(f => ({ ...f, stage: 'Docs', status: 'docs' }));
-                                } else {
-                                  const errData = await res.json().catch(() => ({}));
-                                  alert(errData.message || "Failed to reject document");
+                            <button onClick={() => {
+                              setDocConfirmModal({
+                                type: 'reject',
+                                doc,
+                                title: 'Reject Document',
+                                desc: `Are you sure you want to reject this "${doc.document_type}"? The customer will be prompted on their dashboard to re-upload a clean copy.`,
+                                btnText: 'Reject & Request Re-upload',
+                                btnColor: '#EF4444',
+                                onConfirm: async () => {
+                                  try {
+                                    const res = await fetch(`/api/admin/application-documents/${doc.id}/status`, { 
+                                      method: 'PUT', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'rejected' }), credentials: 'include' 
+                                    });
+                                    if (res.ok) {
+                                      setEditLeadDocs(prev => prev.map(d => d.id === doc.id ? { ...d, status: 'rejected' } : d));
+                                      setEditForm(f => ({ ...f, stage: 'Docs', status: 'docs' }));
+                                      setDocConfirmModal(null);
+                                    } else {
+                                      const errData = await res.json().catch(() => ({}));
+                                      alert(errData.message || "Failed to reject document");
+                                    }
+                                  } catch (e) { console.error(e); alert("Error rejecting document"); }
                                 }
-                              } catch (e) { console.error(e); alert("Error rejecting document"); }
+                              });
                             }} style={{ padding: '6px 12px', background: '#EF4444', color: '#FFFFFF', border: 'none', cursor: 'pointer', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>Reject</button>
                           )}
                         </div>
@@ -4321,6 +4345,127 @@ export default function AdminDashboard() {
                 style={{ marginTop: "20px", width: "100%", borderRadius: "8px", padding: "10px" }}
               >
                 Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ SLEEK DOCUMENT CONFIRMATION MODAL ═══ */}
+      {docConfirmModal && (
+        <div 
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            padding: '20px'
+          }}
+          onClick={() => setDocConfirmModal(null)}
+        >
+          <div 
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '16px',
+              maxWidth: '440px',
+              width: '100%',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              overflow: 'hidden',
+              border: '1px solid #E2E8F0',
+              animation: 'fadeIn 0.2s ease-out'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ padding: '26px 24px 16px 24px', textAlign: 'center' }}>
+              <div style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '50%',
+                margin: '0 auto 16px auto',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.6rem',
+                background: docConfirmModal.type === 'verify' ? '#ECFDF5' : '#FEF2F2',
+                color: docConfirmModal.type === 'verify' ? '#059669' : '#DC2626',
+                border: `2px solid ${docConfirmModal.type === 'verify' ? '#A7F3D0' : '#FECACA'}`
+              }}>
+                {docConfirmModal.type === 'verify' ? '✓' : '⚠️'}
+              </div>
+
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '1.25rem', fontWeight: 700, color: '#0F172A' }}>
+                {docConfirmModal.title}
+              </h3>
+
+              <p style={{ margin: '0 0 16px 0', fontSize: '0.88rem', color: '#475569', lineHeight: '1.5' }}>
+                {docConfirmModal.desc}
+              </p>
+
+              <div style={{
+                background: '#F8FAFC',
+                borderRadius: '10px',
+                padding: '10px 14px',
+                fontSize: '0.82rem',
+                color: '#334155',
+                border: '1px solid #E2E8F0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                textAlign: 'left'
+              }}>
+                <span style={{ fontSize: '1.1rem' }}>📄</span>
+                <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <strong style={{ textTransform: 'capitalize' }}>{docConfirmModal.doc?.document_type}:</strong> {docConfirmModal.doc?.file_name}
+                </div>
+              </div>
+            </div>
+
+            <div style={{
+              padding: '16px 24px 20px 24px',
+              background: '#FAFBFC',
+              borderTop: '1px solid #F1F5F9',
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                type="button"
+                onClick={() => setDocConfirmModal(null)}
+                style={{
+                  padding: '10px 18px',
+                  background: '#FFFFFF',
+                  border: '1.5px solid #CBD5E1',
+                  color: '#475569',
+                  borderRadius: '8px',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  flex: 1
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={docConfirmModal.onConfirm}
+                style={{
+                  padding: '10px 20px',
+                  background: docConfirmModal.btnColor || '#0284C7',
+                  border: 'none',
+                  color: '#FFFFFF',
+                  borderRadius: '8px',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  flex: 1.3,
+                  boxShadow: `0 4px 12px ${docConfirmModal.type === 'verify' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
+                }}
+              >
+                {docConfirmModal.btnText}
               </button>
             </div>
           </div>
