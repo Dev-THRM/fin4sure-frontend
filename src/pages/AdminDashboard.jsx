@@ -3761,15 +3761,20 @@ export default function AdminDashboard() {
                             }} style={{ padding: '6px 12px', background: '#10B981', color: '#FFFFFF', border: 'none', cursor: 'pointer', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>Verify</button>
                           )}
 
-                          {doc.status !== 'rejected' && (
+                          {doc.status !== 'verified' && doc.status !== 'rejected' && (
                             <button onClick={async () => {
                               if (!window.confirm("Reject this document? The file will be deleted and the customer will be prompted to re-upload.")) return;
                               try {
                                 const res = await fetch(`/api/admin/application-documents/${doc.id}/status`, { 
                                   method: 'PUT', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'rejected' }), credentials: 'include' 
                                 });
-                                if (res.ok) setEditLeadDocs(prev => prev.map(d => d.id === doc.id ? { ...d, status: 'rejected' } : d));
-                                else alert("Failed to reject document");
+                                if (res.ok) {
+                                  setEditLeadDocs(prev => prev.map(d => d.id === doc.id ? { ...d, status: 'rejected' } : d));
+                                  setEditForm(f => ({ ...f, stage: 'Docs', status: 'docs' }));
+                                } else {
+                                  const errData = await res.json().catch(() => ({}));
+                                  alert(errData.message || "Failed to reject document");
+                                }
                               } catch (e) { console.error(e); alert("Error rejecting document"); }
                             }} style={{ padding: '6px 12px', background: '#EF4444', color: '#FFFFFF', border: 'none', cursor: 'pointer', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>Reject</button>
                           )}
