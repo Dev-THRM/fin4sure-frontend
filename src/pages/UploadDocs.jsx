@@ -42,7 +42,7 @@ export default function UploadDocs() {
       .finally(() => setLoadingExisting(false));
   }, [applicationId]);
 
-  const MAX_FILE_SIZE_MB = 5;
+  const MAX_FILE_SIZE_MB = 1;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
   const docConfig = [
@@ -89,7 +89,8 @@ export default function UploadDocs() {
     // Check size limit before sending network request
     for (const [docKey, file] of Object.entries(docs)) {
       if (file && file.size > MAX_FILE_SIZE_BYTES) {
-        setErrorMsg(`⚠️ File "${file.name}" exceeds the maximum limit of ${MAX_FILE_SIZE_MB} MB. Please select a smaller file.`);
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        setErrorMsg(`⚠️ File "${file.name}" is ${sizeMB} MB, which exceeds the allowed limit of ${MAX_FILE_SIZE_MB} MB. Please compress or select a smaller file.`);
         return;
       }
     }
@@ -115,9 +116,19 @@ export default function UploadDocs() {
         credentials: "include",
       });
 
-      const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || "Failed to upload documents");
+        let errorText = "Failed to upload documents";
+        try {
+          const data = await res.json();
+          errorText = data.message || errorText;
+        } catch (_) {
+          if (res.status === 413) {
+            errorText = "The uploaded files exceed the server limit. Please ensure each file is under 1 MB.";
+          } else {
+            errorText = `Upload failed with status ${res.status}`;
+          }
+        }
+        throw new Error(errorText);
       }
 
       setSuccess(true);
@@ -135,7 +146,7 @@ export default function UploadDocs() {
           <h2>Upload Compulsory Documents</h2>
           <p>Please upload all the required documents to progress your loan application to credit evaluation.</p>
           <div style={{ marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#F0F9FF', border: '1px solid #BAE6FD', color: '#0369A1', padding: '6px 14px', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 600 }}>
-            ℹ️ Maximum allowed file size: <strong>5 MB per document</strong> (PDF, PNG, JPG, JPEG)
+            ℹ️ Maximum allowed file size: <strong>1 MB per document</strong> (PDF, PNG, JPG, JPEG)
           </div>
         </div>
 
@@ -195,7 +206,7 @@ export default function UploadDocs() {
                       accept=".pdf,image/*"
                       onChange={(e) => handleFileChange(item.key, e.target.files[0], e.target)} 
                     />
-                    <span className="upd-drop-lbl">or drag file here (Max 5 MB)</span>
+                    <span className="upd-drop-lbl">or drag file here (Max 1 MB)</span>
                   </div>
                 )}
               </div>
