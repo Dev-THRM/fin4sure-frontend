@@ -1,5 +1,17 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  Home,
+  Building2,
+  CreditCard,
+  Briefcase,
+  Car,
+  Handshake,
+  Phone,
+  Mail,
+  Clock,
+  Rocket
+} from "lucide-react";
 import "./styles/about.css";
 
 export default function About() {
@@ -24,78 +36,65 @@ export default function About() {
               <div className="ahs-l">Disbursed</div>
             </div>
             <div className="ahs">
-              <div className="ahs-v">350+</div>
-              <div className="ahs-l">Borrowers</div>
+              <div className="ahs-v">35+</div>
+              <div className="ahs-l">Lending Partners</div>
             </div>
             <div className="ahs">
               <div className="ahs-v">100+</div>
-              <div className="ahs-l">Partners</div>
+              <div className="ahs-l">Distributors</div>
             </div>
             <div className="ahs">
-              <div className="ahs-v">30+</div>
-              <div className="ahs-l">Lenders</div>
+              <div className="ahs-v">99.2%</div>
+              <div className="ahs-l">Approval Rate</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ═══ CONTENT AREA WITH STICKY TABS ═══ */}
-      <div className="about-content">
-        <div className="about-tabs">
+      {/* ═══ TAB NAVIGATION ═══ */}
+      <div className="about-tabs-wrap">
+        <div className="about-tabs-nav">
           <button
-            className={`about-tab ${activeTab === "story" ? "active" : ""}`}
+            className={`atn-btn ${activeTab === "story" ? "active" : ""}`}
             onClick={() => setActiveTab("story")}
           >
-            <span className="at-ic">📖</span> Our Story
+            Our Story
           </button>
           <button
-            className={`about-tab ${activeTab === "do" ? "active" : ""}`}
+            className={`atn-btn ${activeTab === "do" ? "active" : ""}`}
             onClick={() => setActiveTab("do")}
           >
-            <span className="at-ic">💼</span> What We Do
+            What We Do
           </button>
           <button
-            className={`about-tab ${activeTab === "why" ? "active" : ""}`}
+            className={`atn-btn ${activeTab === "why" ? "active" : ""}`}
             onClick={() => setActiveTab("why")}
           >
-            <span className="at-ic">🌟</span> Why Finn4sure
+            Why Finn4sure
           </button>
           <button
-            className={`about-tab ${activeTab === "contact" ? "active" : ""}`}
+            className={`atn-btn ${activeTab === "contact" ? "active" : ""}`}
             onClick={() => setActiveTab("contact")}
           >
-            <span className="at-ic">📞</span> Contact Us
+            Contact &amp; Support
           </button>
         </div>
+      </div>
 
-        {/* ── Tab Panel: Story ── */}
+      {/* ═══ MAIN CONTENT CONTAINER ═══ */}
+      <div className="about-body">
+        {/* ── Tab Panel: Our Story ── */}
         <div className={`about-panel ${activeTab === "story" ? "active" : ""}`}>
-          <div className="about-vm-grid">
-            <div className="about-vm-card about-vision">
-              <div className="avm-icon">👁️‍🗨️</div>
-              <h3>Our Vision</h3>
-              <p>
-                To create a seamless, digitized lending marketplace where borrowing is transparent, immediate, and fully tailored to the needs of every client.
-              </p>
-            </div>
-            <div className="about-vm-card about-mission">
-              <div className="avm-icon">🎯</div>
-              <h3>Our Mission</h3>
-              <p>
-                To empower borrowers with real-time institutional comparisons and automated applications, bypass middlemen delays, and guarantee pricing certainty.
-              </p>
-            </div>
-            <div className="about-vm-card about-values">
-              <div className="avm-icon">💎</div>
-              <h3>Our Values</h3>
-              <p>
-                Absolute integrity, pricing transparency, bank-grade customer privacy, and commitment to serving first-time home buyers and SMEs across India.
-              </p>
-            </div>
+          <div className="about-section-head">
+            <h2>Transforming Credit Discovery in India</h2>
+            <p className="about-section-sub">
+              Empowering consumers and financial advisors with true institutional price transparency.
+            </p>
           </div>
 
-          <div className="about-story-block">
-            <h2>How it started</h2>
+          <div className="about-story-card">
+            <div className="about-story-badge">Our Mission</div>
+            <h3>Democratizing loan access through data &amp; speed</h3>
             <p>
               Founded by a team of finance veterans and technologists, Finn4sure was born out of a simple observation: navigating the Indian loan ecosystem is unnecessarily complicated. Traditional brokers often recommend options based on high payout incentives, rather than the borrower's best interests.
               <br />
@@ -116,42 +115,42 @@ export default function About() {
 
           <div className="about-services-grid">
             <div className="about-service-item">
-              <div className="asi-icon">🏠</div>
+              <div className="asi-icon"><Home size={22} /></div>
               <div>
                 <strong>Home Loans</strong>
                 <span>New properties, builder projects & balance transfers</span>
               </div>
             </div>
             <div className="about-service-item">
-              <div className="asi-icon">🏢</div>
+              <div className="asi-icon"><Building2 size={22} /></div>
               <div>
                 <strong>Loan Against Property</strong>
                 <span>Unlock capital from residential or commercial buildings</span>
               </div>
             </div>
             <div className="about-service-item">
-              <div className="asi-icon">💳</div>
+              <div className="asi-icon"><CreditCard size={22} /></div>
               <div>
                 <strong>Personal Loans</strong>
                 <span>Collateral-free instant emergency/lifestyle lines</span>
               </div>
             </div>
             <div className="about-service-item">
-              <div className="asi-icon">📦</div>
+              <div className="asi-icon"><Briefcase size={22} /></div>
               <div>
                 <strong>Business Loans</strong>
                 <span>Working capital, plant & machinery and MSME limits</span>
               </div>
             </div>
             <div className="about-service-item">
-              <div className="asi-icon">🚗</div>
+              <div className="asi-icon"><Car size={22} /></div>
               <div>
                 <strong>Vehicle Loans</strong>
                 <span>Low-processing, high-disbursal new & used car loans</span>
               </div>
             </div>
             <div className="about-service-item">
-              <div className="asi-icon">🤝</div>
+              <div className="asi-icon"><Handshake size={22} /></div>
               <div>
                 <strong>Partner Program</strong>
                 <span>Custom portal & lead pipelines for financial agents</span>
@@ -211,21 +210,21 @@ export default function About() {
 
               <div className="acc-rows">
                 <a href="tel:9910507574" className="acc-row">
-                  <div className="acc-ic">📞</div>
+                  <div className="acc-ic"><Phone size={18} /></div>
                   <div>
                     <div className="acc-k">Phone Support</div>
                     <div className="acc-v">99105 07574</div>
                   </div>
                 </a>
                 <a href="mailto:support@finn4sure.com" className="acc-row">
-                  <div className="acc-ic">📧</div>
+                  <div className="acc-ic"><Mail size={18} /></div>
                   <div>
                     <div className="acc-k">Email Support</div>
                     <div className="acc-v">support@finn4sure.com</div>
                   </div>
                 </a>
                 <div className="acc-row">
-                  <div className="acc-ic">⏰</div>
+                  <div className="acc-ic"><Clock size={18} /></div>
                   <div>
                     <div className="acc-k">Work Hours</div>
                     <div className="acc-v">Mon–Sat (9:30 AM – 6:30 PM)</div>
@@ -236,7 +235,7 @@ export default function About() {
 
             {/* Right side: CTAs */}
             <div className="acc-right">
-              <div className="acc-cta-icon">🚀</div>
+              <div className="acc-cta-icon"><Rocket size={28} /></div>
               <h3>Ready to get started?</h3>
               <p>Find the cheapest lender options for your parameters in 2 minutes.</p>
 

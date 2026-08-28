@@ -1,5 +1,12 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import {
+  Calculator as CalculatorIcon,
+  Zap,
+  BarChart3,
+  Calendar,
+  Landmark
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useEmiCalculator } from "../hooks/useEmiCalculator";
 import { useSliderPaint } from "../hooks/useSliderPaint";
@@ -408,7 +415,7 @@ export default function Calculator() {
               fontWeight: 800,
               letterSpacing: '0.06em'
             }}>
-              ✦ EMI CALCULATOR
+              <CalculatorIcon size={12} /> EMI CALCULATOR
             </div>
             <h1 style={{
               fontFamily: "'Playfair Display', Georgia, serif",
@@ -451,7 +458,7 @@ export default function Calculator() {
                 gap: '4px'
               }}
             >
-              ⚡ Floating
+              <Zap size={13} /> Floating
             </button>
             <button
               type="button"
@@ -494,10 +501,13 @@ export default function Calculator() {
                 fontWeight: 700,
                 fontSize: '0.82rem',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
               }}
             >
-              📊 Schedule Summary
+              <BarChart3 size={15} /> Schedule Summary
             </button>
             <button
               type="button"
@@ -511,10 +521,13 @@ export default function Calculator() {
                 fontWeight: 700,
                 fontSize: '0.82rem',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
               }}
             >
-              📅 Amortization Schedule
+              <Calendar size={15} /> Amortization Schedule
             </button>
           </div>
 
@@ -589,7 +602,7 @@ export default function Calculator() {
                 </div>
                 {/* Floating | Fixed Toggle */}
                 <div style={{ display: 'inline-flex', background: '#F1F5F9', padding: '3px', borderRadius: '20px', border: '1px solid #CBD5E1' }}>
-                  <button
+                    <button
                     type="button"
                     onClick={() => handleRateTypeChange('floating')}
                     style={{
@@ -601,10 +614,13 @@ export default function Calculator() {
                       cursor: 'pointer',
                       background: rateType === 'floating' ? '#0F2942' : 'transparent',
                       color: rateType === 'floating' ? '#FFFFFF' : '#64748B',
-                      transition: 'all 0.2s ease'
+                      transition: 'all 0.2s ease',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
                     }}
                   >
-                    ⚡ Floating
+                    <Zap size={12} /> Floating
                   </button>
                   <button
                     type="button"
@@ -928,7 +944,7 @@ export default function Calculator() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
               <div>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#E0F2FE', color: '#0369A1', padding: '2px 6px', borderRadius: '8px', fontSize: '0.68rem', fontWeight: 800 }}>
-                  ⚡ LIVE {rateType.toUpperCase()} RATES
+                  <Zap size={11} /> LIVE {rateType.toUpperCase()} RATES
                 </div>
                 <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.25rem', fontWeight: 800, color: '#0F2942', margin: '2px 0 0 0' }}>
                   Compare Lenders ({rateType === 'floating' ? 'Floating' : 'Fixed'})
@@ -996,8 +1012,8 @@ export default function Calculator() {
                 flexWrap: 'wrap'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>
-                    🏛️
+                  <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>
+                    <Landmark size={20} className="text-slate-600" />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1073,8 +1089,8 @@ export default function Calculator() {
                         <tr key={rowKey} style={{ borderBottom: '1px solid #F1F5F9' }}>
                           <td style={{ padding: '10px 14px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <div style={{ width: '30px', height: '30px', borderRadius: '6px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.95rem' }}>
-                                🏛️
+                              <div style={{ width: '30px', height: '30px', borderRadius: '6px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Landmark size={16} className="text-slate-600" />
                               </div>
                               <div>
                                 <div style={{ fontWeight: 800, color: '#0F2942' }}>{lender.name}</div>

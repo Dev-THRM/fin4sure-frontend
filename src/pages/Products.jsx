@@ -1,15 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import {
+  Home,
+  Building2,
+  CreditCard,
+  Briefcase,
+  Car,
+  FileText,
+  Landmark,
+  Check,
+  Smartphone,
+  CheckCircle2,
+  UserCheck
+} from 'lucide-react';
 import { LENDERS } from '../utils/loanConstants';
 import './styles/stepper.css';
 
 const LOAN_TYPE_MAPPING = {
-  'Home Loan': { id: 'home', icon: '🏠', desc: 'Buy, build or renovate your home' },
-  'Loan Against Property': { id: 'lap', icon: '🏢', desc: 'Leverage your residential/commercial property' },
-  'Personal Loan': { id: 'personal', icon: '💳', desc: 'Quick funds for personal needs' },
-  'Business Loan': { id: 'business', icon: '📦', desc: 'Working capital and business expansion' },
-  'Vehicle Loan': { id: 'vehicle', icon: '🚗', desc: 'Finance your new or used vehicle' }
+  'Home Loan': { id: 'home', icon: <Home size={24} />, desc: 'Buy, build or renovate your home' },
+  'Loan Against Property': { id: 'lap', icon: <Building2 size={24} />, desc: 'Leverage your residential/commercial property' },
+  'Personal Loan': { id: 'personal', icon: <CreditCard size={24} />, desc: 'Quick funds for personal needs' },
+  'Business Loan': { id: 'business', icon: <Briefcase size={24} />, desc: 'Working capital and business expansion' },
+  'Vehicle Loan': { id: 'vehicle', icon: <Car size={24} />, desc: 'Finance your new or used vehicle' }
 };
 
 export default function Products() {
@@ -30,7 +43,7 @@ export default function Products() {
         
         if (loanTypesRes.data.success) {
           const mappedTypes = loanTypesRes.data.data.map(lt => {
-            const mapping = LOAN_TYPE_MAPPING[lt.name] || { id: lt.short_id || lt.name.toLowerCase().replace(/\s+/g, ''), icon: '📄', desc: 'Apply for ' + lt.name };
+            const mapping = LOAN_TYPE_MAPPING[lt.name] || { id: lt.short_id || lt.name.toLowerCase().replace(/\s+/g, ''), icon: <FileText size={24} />, desc: 'Apply for ' + lt.name };
             return {
               id: mapping.id,
               dbName: lt.name,
@@ -170,7 +183,9 @@ export default function Products() {
   return (
     <div className="page active" style={{ display: 'flex', flexDirection: 'column' }}>
       <div style={{ maxWidth: '480px', margin: '0 auto', padding: '40px 24px', width: '100%' }}>
-        <div className="mode-badge borrower">🏠 Borrower Application</div>
+        <div className="mode-badge borrower" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <UserCheck size={16} /> Borrower Application
+        </div>
         
         <div className="form-card">
           {/* Step Progress Bar */}
@@ -258,13 +273,13 @@ export default function Products() {
                       const catLabel = getLenderCategoryLabel(lender);
                       return (
                         <div key={lender.id} className={`bl-lender ${isSel ? 'sel' : ''}`} onClick={() => toggleLender(lender.id)}>
-                          <div className="bl-check">{isSel ? '✓' : ''}</div>
+                          <div className="bl-check">{isSel ? <Check size={12} strokeWidth={3} /> : ''}</div>
                           <div className="bl-l-info">
                             <div className="bl-l-name" style={{ display: 'flex', alignItems: 'center' }}>
                               {lender.logo ? (
                                 <img src={lender.logo} alt={lender.name} style={{ width: '20px', height: '20px', marginRight: '8px', objectFit: 'contain' }} />
                               ) : (
-                                <span style={{ marginRight: '8px' }}>🏦</span>
+                                <Landmark size={18} className="text-slate-600" style={{ marginRight: '8px' }} />
                               )}
                               {lender.name}
                             </div>
@@ -315,7 +330,7 @@ export default function Products() {
                   <div className="field">
                     <label>Mobile Number</label>
                     <div className="input-wrap">
-                      <span className="icon">📱</span>
+                      <span className="icon"><Smartphone size={16} /></span>
                       <input type="tel" placeholder="10-digit mobile number" maxLength="10" />
                     </div>
                   </div>
@@ -337,7 +352,9 @@ export default function Products() {
               {/* Step 4: Done */}
               {step === 4 && (
                 <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                  <div style={{ fontSize: '3rem', marginBottom: '12px' }}>🎉</div>
+                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', color: '#059669' }}>
+                    <CheckCircle2 size={56} />
+                  </div>
                   <div className="form-title">Applications Submitted!</div>
                   <div className="form-subtitle" style={{ marginBottom: '10px' }}>
                     Your loan requests have been sent. Track everything from your dashboard.

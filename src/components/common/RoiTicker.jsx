@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { Megaphone } from "lucide-react";
 import { LENDERS } from "../../utils/loanConstants";
 import { useAuth } from "../../context/AuthContext";
 import "./roiTicker.css";
@@ -100,7 +101,7 @@ export default function RoiTicker() {
             <div className="news-ticker-track">
               {announcementRepeats.map((text, idx) => (
                 <span key={idx} className="news-ticker-item">
-                  <span className="news-icon">📢</span>
+                  <span className="news-icon" style={{ display: 'inline-flex', alignItems: 'center' }}><Megaphone size={14} /></span>
                   <span className="news-text">{text}</span>
                   <span className="news-diamond">✦</span>
                 </span>

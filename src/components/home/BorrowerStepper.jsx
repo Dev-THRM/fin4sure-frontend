@@ -1,9 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import {
+  Home,
+  Building2,
+  CreditCard,
+  Briefcase,
+  Car,
+  FileText,
+  Check,
+  Landmark,
+  User,
+  Smartphone,
+  Mail,
+  Lock,
+  Key,
+  Calendar,
+  MapPin,
+  IndianRupee,
+  Clock,
+  Target,
+  AlertTriangle,
+  UserCheck
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { LENDERS } from '../../utils/loanConstants';
 import '../../pages/styles/stepper.css';
+
+const getLoanTypeIcon = (name = '') => {
+  const n = name.toLowerCase();
+  if (n.includes('home')) return <Home size={24} />;
+  if (n.includes('property') || n.includes('lap')) return <Building2 size={24} />;
+  if (n.includes('personal')) return <CreditCard size={24} />;
+  if (n.includes('business')) return <Briefcase size={24} />;
+  if (n.includes('vehicle') || n.includes('car') || n.includes('auto')) return <Car size={24} />;
+  return <FileText size={24} />;
+};
 
 export default function BorrowerStepper({ onBack }) {
   const navigate = useNavigate();
@@ -76,7 +108,7 @@ export default function BorrowerStepper({ onBack }) {
             return {
               id: lt.short_id || lt.name.toLowerCase().replace(/\s+/g, ''),
               dbName: lt.name,
-              icon: lt.icon || '📄',
+              icon: getLoanTypeIcon(lt.name),
               title: lt.name,
               desc: lt.description || 'Apply for ' + lt.name
             };
@@ -376,7 +408,9 @@ export default function BorrowerStepper({ onBack }) {
     <div style={{ maxWidth: '480px', margin: '0 auto', width: '100%', animation: 'fadeUp 0.35s ease' }}>
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
         <button className="btn-back" onClick={onBack} style={{ marginRight: '16px' }}>← Back</button>
-        <div className="mode-badge borrower" style={{ margin: 0 }}>🏠 Borrower Application</div>
+        <div className="mode-badge borrower" style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <UserCheck size={15} /> Borrower Application
+        </div>
       </div>
       
       <div className="form-card">
@@ -463,13 +497,13 @@ export default function BorrowerStepper({ onBack }) {
                     
                     return (
                       <div key={lender.id} className={`bl-lender ${isSel ? 'sel' : ''}`} onClick={() => toggleLender(lender.id)}>
-                        <div className="bl-check">{isSel ? '✓' : ''}</div>
+                        <div className="bl-check">{isSel ? <Check size={12} strokeWidth={3} /> : ''}</div>
                         <div className="bl-l-info">
                           <div className="bl-l-name" style={{ display: 'flex', alignItems: 'center' }}>
                             {lender.logo ? (
                               <img src={lender.logo} alt={lender.name} style={{ width: '20px', height: '20px', marginRight: '8px', objectFit: 'contain' }} />
                             ) : (
-                              <span style={{ marginRight: '8px' }}>🏦</span>
+                              <Landmark size={18} className="text-slate-600" style={{ marginRight: '8px' }} />
                             )}
                             {lender.name}
                           </div>
@@ -519,7 +553,7 @@ export default function BorrowerStepper({ onBack }) {
                 <div className="field">
                   <label>Full Name <span style={{color: 'red'}}>*</span></label>
                   <div className="input-wrap">
-                    <span className="icon">👤</span>
+                    <span className="icon"><User size={16} /></span>
                     <input type="text" placeholder="As per PAN card" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
                   </div>
                 </div>
@@ -527,7 +561,7 @@ export default function BorrowerStepper({ onBack }) {
                 <div className="field">
                   <label>Mobile Number <span style={{color: 'red'}}>*</span></label>
                   <div className="input-wrap">
-                    <span className="icon">📱</span>
+                    <span className="icon"><Smartphone size={16} /></span>
                     <input type="tel" placeholder="10-digit mobile number" maxLength="10" value={formData.mob_no} onChange={e => setFormData({...formData, mob_no: e.target.value.replace(/\D/g, '')})} />
                   </div>
                   {formData.mob_no && !isValidMobile(formData.mob_no) && <div style={{ color: 'red', fontSize: '0.75rem', marginTop: '4px' }}>Please enter a valid 10-digit mobile number.</div>}
@@ -536,7 +570,7 @@ export default function BorrowerStepper({ onBack }) {
                 <div className="field">
                   <label>Email Address <span style={{color: 'red'}}>*</span></label>
                   <div className="input-wrap">
-                    <span className="icon">✉️</span>
+                    <span className="icon"><Mail size={16} /></span>
                     <input type="email" placeholder="Email address" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
                   </div>
                   {formData.email && !isValidEmail(formData.email) && <div style={{ color: 'red', fontSize: '0.75rem', marginTop: '4px' }}>Please enter a valid email address.</div>}
@@ -545,7 +579,7 @@ export default function BorrowerStepper({ onBack }) {
                 <div className="field" style={{ marginTop: '20px' }}>
                   <label>Password <span style={{color: 'red'}}>*</span></label>
                   <div className="input-wrap" style={{ position: 'relative' }}>
-                    <span className="icon">🔒</span>
+                    <span className="icon"><Lock size={16} /></span>
                     <input 
                       type={showPassword ? "text" : "password"} 
                       placeholder="Enter password" 
@@ -585,7 +619,7 @@ export default function BorrowerStepper({ onBack }) {
                 <div className="field">
                   <label>Confirm Password <span style={{color: 'red'}}>*</span></label>
                   <div className="input-wrap" style={{ position: 'relative' }}>
-                    <span className="icon">🔒</span>
+                    <span className="icon"><Lock size={16} /></span>
                     <input 
                       type={showConfirmPassword ? "text" : "password"} 
                       placeholder="Confirm password" 
@@ -602,7 +636,7 @@ export default function BorrowerStepper({ onBack }) {
                   </div>
                   {confirmPassword && (
                     <div style={{ color: password === confirmPassword ? "green" : "red", fontSize: '0.75rem', marginTop: '4px', fontWeight: 700 }}>
-                      {password === confirmPassword ? "✓ Passwords match" : "✗ Passwords do not match"}
+                      {password === confirmPassword ? "Passwords match" : "Passwords do not match"}
                     </div>
                   )}
                 </div>
@@ -610,8 +644,8 @@ export default function BorrowerStepper({ onBack }) {
                 {!showOtp ? (
                   <>
                     {otpError && (
-                      <div style={{ color: 'red', fontSize: '.76rem', fontWeight: 700, marginTop: '8px' }}>
-                        ⚠️ {otpError}
+                      <div style={{ color: 'red', fontSize: '.76rem', fontWeight: 700, marginTop: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <AlertTriangle size={14} /> {otpError}
                       </div>
                     )}
                     <button 
@@ -627,7 +661,7 @@ export default function BorrowerStepper({ onBack }) {
                   <div className="field" style={{marginTop: '20px', animation: 'fadeUp 0.3s ease'}}>
                     <label>Enter OTP sent to <strong>{formData.email}</strong> <span style={{color: 'red'}}>*</span></label>
                     <div className="input-wrap">
-                      <span className="icon">🔑</span>
+                      <span className="icon"><Key size={16} /></span>
                       <input 
                         type="text" 
                         placeholder="4-digit OTP" 
@@ -638,8 +672,8 @@ export default function BorrowerStepper({ onBack }) {
                       />
                     </div>
                     {otpError && (
-                      <div style={{ color: 'red', fontSize: '.76rem', fontWeight: 700, marginTop: '6px' }}>
-                        ⚠️ {otpError}
+                      <div style={{ color: 'red', fontSize: '.76rem', fontWeight: 700, marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <AlertTriangle size={14} /> {otpError}
                       </div>
                     )}
                     <button 
@@ -678,7 +712,7 @@ export default function BorrowerStepper({ onBack }) {
                   <div className="field" style={{ flex: 1 }}>
                     <label>Date of Birth <span style={{color: 'red'}}>*</span></label>
                     <div className="input-wrap">
-                      <span className="icon">📅</span>
+                      <span className="icon"><Calendar size={16} /></span>
                       <input type="date" value={formData.dob} onChange={e => setFormData({...formData, dob: e.target.value})} />
                     </div>
                     {formData.dob && !isOver18(formData.dob) && <div style={{ color: 'red', fontSize: '0.75rem', marginTop: '4px' }}>You must be at least 18 years old.</div>}
@@ -686,7 +720,7 @@ export default function BorrowerStepper({ onBack }) {
                   <div className="field" style={{ flex: 1 }}>
                     <label>Gender <span style={{color: 'red'}}>*</span></label>
                     <div className="input-wrap">
-                      <span className="icon">⚧</span>
+                      <span className="icon"><UserCheck size={16} /></span>
                       <select style={{ width: '100%', padding: '12px 12px 12px 40px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '1rem', background: '#fff', color: '#0f172a', appearance: 'none' }} value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})}>
                         <option value="">Select</option>
                         <option value="male">Male</option>
@@ -700,7 +734,7 @@ export default function BorrowerStepper({ onBack }) {
                 <div className="field">
                   <label>Address <span style={{color: 'red'}}>*</span></label>
                   <div className="input-wrap">
-                    <span className="icon">📍</span>
+                    <span className="icon"><MapPin size={16} /></span>
                     <input type="text" placeholder="Current residential address" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
                   </div>
                 </div>
@@ -708,7 +742,7 @@ export default function BorrowerStepper({ onBack }) {
                 <div className="field">
                   <label>Pincode <span style={{color: 'red'}}>*</span></label>
                   <div className="input-wrap">
-                    <span className="icon">📮</span>
+                    <span className="icon"><Mail size={16} /></span>
                     <input type="text" placeholder="6-digit pincode" maxLength="6" value={formData.pincode} onChange={handlePincodeChange} />
                   </div>
                   {formData.pincode && !/^[0-9]{6}$/.test(formData.pincode) && <div style={{ color: 'red', fontSize: '0.75rem', marginTop: '4px' }}>Please enter a valid 6-digit pincode.</div>}
@@ -765,7 +799,7 @@ export default function BorrowerStepper({ onBack }) {
                 <div className="field">
                   <label>Loan Amount <span style={{color: 'red'}}>*</span></label>
                   <div className="input-wrap">
-                    <span className="icon">₹</span>
+                    <span className="icon"><IndianRupee size={16} /></span>
                     <input type="number" placeholder="Enter amount" value={formData.loanAmount} onChange={e => setFormData({...formData, loanAmount: e.target.value})} />
                   </div>
                 </div>
@@ -773,7 +807,7 @@ export default function BorrowerStepper({ onBack }) {
                 <div className="field">
                   <label>Tenure (in months) <span style={{color: 'red'}}>*</span></label>
                   <div className="input-wrap">
-                    <span className="icon">⏳</span>
+                    <span className="icon"><Clock size={16} /></span>
                     <input type="number" placeholder="Enter tenure" value={formData.tenure} onChange={e => setFormData({...formData, tenure: e.target.value})} />
                   </div>
                 </div>
@@ -781,7 +815,7 @@ export default function BorrowerStepper({ onBack }) {
                 <div className="field">
                   <label>Loan Purpose <span style={{color: 'red'}}>*</span></label>
                   <div className="input-wrap">
-                    <span className="icon">🎯</span>
+                    <span className="icon"><Target size={16} /></span>
                     <input type="text" placeholder="E.g., Home Renovation, Business" value={formData.loanPurpose} onChange={e => setFormData({...formData, loanPurpose: e.target.value})} />
                   </div>
                 </div>
@@ -797,7 +831,9 @@ export default function BorrowerStepper({ onBack }) {
 
                 {submitError === 'already_exists' && (
                   <div style={{ marginTop: '14px', padding: '12px 16px', background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '10px', fontSize: '.82rem', color: '#991B1B', textAlign: 'center' }}>
-                    ⚠️ An account with this email or mobile number already exists.<br />
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '4px' }}>
+                      <AlertTriangle size={15} /> An account with this email or mobile number already exists.
+                    </div>
                     <button
                       onClick={() => navigate('/login')}
                       style={{ marginTop: '8px', background: 'none', border: 'none', color: '#1D4ED8', fontWeight: 700, cursor: 'pointer', fontSize: '.82rem', textDecoration: 'underline' }}
@@ -807,8 +843,8 @@ export default function BorrowerStepper({ onBack }) {
                   </div>
                 )}
                 {submitError && submitError !== 'already_exists' && (
-                  <div style={{ marginTop: '14px', padding: '12px 16px', background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '10px', fontSize: '.82rem', color: '#991B1B', textAlign: 'center' }}>
-                    ⚠️ {submitError}
+                  <div style={{ marginTop: '14px', padding: '12px 16px', background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '10px', fontSize: '.82rem', color: '#991B1B', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                    <AlertTriangle size={15} /> {submitError}
                   </div>
                 )}
                 

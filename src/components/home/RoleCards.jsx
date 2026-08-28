@@ -1,4 +1,5 @@
 import React from "react";
+import { Home, Handshake } from "lucide-react";
 
 export default function RoleCards({ onSelectRole }) {
   return (
@@ -8,7 +9,9 @@ export default function RoleCards({ onSelectRole }) {
         className="role-card borrower" 
         onClick={() => onSelectRole("borrower")}
       >
-        <div className="role-icon b-icon">🏠</div>
+        <div className="role-icon b-icon">
+          <Home size={24} />
+        </div>
         <div className="role-body">
           <div className="role-title">Borrower</div>
           <div className="role-desc">Get matched with 30+ lenders for the best rates</div>
@@ -26,7 +29,9 @@ export default function RoleCards({ onSelectRole }) {
         className="role-card partner" 
         onClick={() => onSelectRole("partner")}
       >
-        <div className="role-icon p-icon">🤝</div>
+        <div className="role-icon p-icon">
+          <Handshake size={24} />
+        </div>
         <div className="role-body">
           <div className="role-title">Partner</div>
           <div className="role-desc">Refer clients and grow your financial network</div>
