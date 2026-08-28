@@ -344,15 +344,21 @@
   height: 46px;
   border-radius: 12px;
   flex-shrink: 0;
-  background: #F0F9FF;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.asi-icon.asi-home { background: #E0F2FE; }
+.asi-icon.asi-lap { background: #E0E7FF; }
+.asi-icon.asi-personal { background: #CCFBF1; }
+.asi-icon.asi-business { background: #FEF3C7; }
+.asi-icon.asi-vehicle { background: #FFE4E6; }
+.asi-icon.asi-partner { background: #FEF9C3; }
+
 .about-service-item strong {
   display: block;
-  font-size: 0.94rem;
+  font-size: 0.96rem;
   color: #0F2942;
   font-weight: 700;
   margin-bottom: 3px;
@@ -375,7 +381,7 @@
   background: #FFFFFF;
   border: 1px solid #E6EEF8;
   border-radius: 18px;
-  padding: 28px 26px;
+  padding: 30px 28px;
   box-shadow: 0 4px 18px rgba(15, 23, 42, 0.03);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   position: relative;
@@ -388,13 +394,10 @@
 
 .awc-num {
   font-family: 'Playfair Display', serif;
-  font-size: 1.6rem;
+  font-size: 1.45rem;
   font-weight: 700;
-  background: linear-gradient(120deg, #0284C7, #06B6D4);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 10px;
+  color: #0284C7;
+  margin-bottom: 12px;
 }
 
 .about-why-card h4 {
@@ -407,7 +410,7 @@
 .about-why-card p {
   font-size: 0.86rem;
   color: #64748B;
-  line-height: 1.65;
+  line-height: 1.6;
   margin: 0;
 }
 

@@ -144,53 +144,53 @@ export default function About() {
         {activeTab === "do" && (
           <div className="about-panel active">
             <div className="about-section-head">
-              <h2>Tailored Credit Solutions</h2>
+              <h2>What We Do</h2>
               <p className="about-section-sub">
-                We process applications across multiple credit products, matching parameters against the exact credit policies of over 30 leading banks and NBFCs.
+                Finn4sure acts as your financial advisor — not just a marketplace. We evaluate your profile, match you with the most suitable lenders, and guide you from application to disbursement.
               </p>
             </div>
 
             <div className="about-services-grid">
               <div className="about-service-item">
-                <div className="asi-icon"><Home size={22} color="#0284C7" /></div>
+                <div className="asi-icon asi-home"><Home size={22} color="#0284C7" /></div>
                 <div>
                   <strong>Home Loans</strong>
-                  <span>New properties, builder purchases &amp; balance transfers</span>
+                  <span>From 7.10% · up to ₹30Cr</span>
                 </div>
               </div>
               <div className="about-service-item">
-                <div className="asi-icon"><Building2 size={22} color="#0D9488" /></div>
+                <div className="asi-icon asi-lap"><Building2 size={22} color="#4F46E5" /></div>
                 <div>
                   <strong>Loan Against Property</strong>
-                  <span>Unlock high-value liquidity against residential or commercial properties</span>
+                  <span>From 8.45% · up to ₹30Cr</span>
                 </div>
               </div>
               <div className="about-service-item">
-                <div className="asi-icon"><CreditCard size={22} color="#8B5CF6" /></div>
+                <div className="asi-icon asi-personal"><CreditCard size={22} color="#0D9488" /></div>
                 <div>
                   <strong>Personal Loans</strong>
-                  <span>Instant collateral-free funds for personal emergencies &amp; lifestyle</span>
+                  <span>From 9.99% · up to ₹50L</span>
                 </div>
               </div>
               <div className="about-service-item">
-                <div className="asi-icon"><Briefcase size={22} color="#D97706" /></div>
+                <div className="asi-icon asi-business"><Briefcase size={22} color="#D97706" /></div>
                 <div>
                   <strong>Business Loans</strong>
-                  <span>Working capital, term loans, and MSME machinery financing</span>
+                  <span>From 10.75% · up to ₹2Cr</span>
                 </div>
               </div>
               <div className="about-service-item">
-                <div className="asi-icon"><Car size={22} color="#E11D48" /></div>
+                <div className="asi-icon asi-vehicle"><Car size={22} color="#E11D48" /></div>
                 <div>
                   <strong>Vehicle Loans</strong>
-                  <span>Competitive interest rates on new and pre-owned car financing</span>
+                  <span>From 8.75% · up to 100%</span>
                 </div>
               </div>
               <div className="about-service-item">
-                <div className="asi-icon"><Handshake size={22} color="#2563EB" /></div>
+                <div className="asi-icon asi-partner"><Handshake size={22} color="#CA8A04" /></div>
                 <div>
-                  <strong>Partner Program</strong>
-                  <span>Dedicated broker portal, real-time tracking &amp; instant payouts</span>
+                  <strong>Partner Network</strong>
+                  <span>Earn by referring clients</span>
                 </div>
               </div>
             </div>
@@ -201,39 +201,39 @@ export default function About() {
         {activeTab === "why" && (
           <div className="about-panel active">
             <div className="about-section-head">
-              <h2>Why Choose Finn4sure?</h2>
+              <h2>Why Finn4sure</h2>
               <p className="about-section-sub">
-                We bypass traditional brokerage friction by putting real-time rates and direct matching in your hands.
+                Four reasons borrowers and partners choose us over walking into a single bank.
               </p>
             </div>
 
             <div className="about-why-grid">
               <div className="about-why-card">
                 <div className="awc-num">01</div>
-                <h4>Direct Matchmaking Engine</h4>
+                <h4>30+ Lenders, One Place</h4>
                 <p>
-                  No generic estimates. We calculate exact eligibility based on your financial parameters (CIBIL score, income proof, property location) mapped to live banking policies.
+                  Compare banks, NBFCs and HFCs side by side instead of settling for your current bank's rate.
                 </p>
               </div>
               <div className="about-why-card">
                 <div className="awc-num">02</div>
-                <h4>Absolute Price Transparency</h4>
+                <h4>Always Free</h4>
                 <p>
-                  Floating or fixed, we display verified interest rates side-by-side with zero hidden markups. You choose the lender you prefer, and we apply directly on your behalf.
+                  Zero platform fees for borrowers. We're compensated by lenders, never by you.
                 </p>
               </div>
               <div className="about-why-card">
                 <div className="awc-num">03</div>
-                <h4>Direct Bank Integrations</h4>
+                <h4>Expert Guidance</h4>
                 <p>
-                  Our system routes applications directly to bank sanctioning desks, cutting out sub-agents, safeguarding document security, and accelerating turnaround times.
+                  Dedicated advisors walk you through eligibility, documents and disbursement end to end.
                 </p>
               </div>
               <div className="about-why-card">
                 <div className="awc-num">04</div>
-                <h4>Zero Cost to Borrowers</h4>
+                <h4>RBI Compliant &amp; Secure</h4>
                 <p>
-                  Our advisory and application services are completely free for borrowers. We earn transparently from institutional partners, keeping our advice 100% objective.
+                  Bank-grade data security and full regulatory compliance on every application.
                 </p>
               </div>
             </div>
