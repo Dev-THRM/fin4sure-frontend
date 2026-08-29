@@ -1,6 +1,6 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Info, Home, Calculator, User } from "lucide-react";
+import { Info, Home, Calculator, Banknote, Users, User, Key } from "lucide-react";
 import logo from "../../assets/images/logo.jpeg";
 import { useAuth } from "../../context/AuthContext";
 import "./navbar.css";
