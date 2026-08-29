@@ -15,6 +15,7 @@ import BrokerDashboard from "../pages/Brokerdashboard";
 import AdminDashboard from "../pages/AdminDashboard";  // You'll create this
 import ClientDashboard from "../pages/ClientDashboard"; // You'll create this
 import UploadDocs from "../pages/UploadDocs";
+import AdminLogin from "../pages/AdminLogin";
 import ProtectedRoute from "../components/ProtectedRoute";
 
 export default function AppRoutes() {
@@ -28,6 +29,9 @@ export default function AppRoutes() {
         <Route path="/apply" element={<Apply />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/admin" element={<AdminLogin />} />
+        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/admin-portal" element={<AdminLogin />} />
         <Route path="/EMI-calculator" element={<Calculator />} />
         <Route path="/broker-register" element={<BrokerRegistration />} />
         <Route path="/partner" element={<PartnerInfo />} />
