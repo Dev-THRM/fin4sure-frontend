@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { districtsByState, states } from "../components/Statedata";
 import { fmtINR } from "../utils/formatters";
+import { LOAN_PRODUCTS } from "../utils/constants";
 import "./styles/brokerDashboard.css";
 
 const DEFAULT_CITIES = [
@@ -310,8 +311,13 @@ export default function BrokerDashboard() {
 
   async function fetchClients() {
     try {
+      const token = localStorage.getItem("accessToken");
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res = await fetch("/api/broker/getRefferedClients", {
         credentials: "include",
+        headers,
       });
       if (res.ok) {
         const data = await res.json();
@@ -324,8 +330,13 @@ export default function BrokerDashboard() {
 
   async function fetchLeads() {
     try {
+      const token = localStorage.getItem("accessToken");
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res = await fetch("/api/broker/getBrokerLeads", {
         credentials: "include",
+        headers,
       });
       if (res.ok) {
         const data = await res.json();

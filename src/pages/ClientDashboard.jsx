@@ -125,9 +125,13 @@ export default function ClientDashboard() {
 
   const fetchApplications = async () => {
     try {
+      const token = localStorage.getItem("accessToken");
+      const headers = { "content-type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res = await fetch("/api/client/my-applications", {
         method: "GET",
-        headers: { "content-type": "application/json" },
+        headers,
         credentials: "include",
       });
 

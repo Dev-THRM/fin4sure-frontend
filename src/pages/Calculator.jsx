@@ -20,11 +20,13 @@ export default function Calculator() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Selected state for comparison checklist in the modal
+  // Sub-tabs & Lender filter/sort states for EMI Calculator Dashboard
+  const [subTab, setSubTab] = useState("summary"); // "summary" | "amortization"
   const [selectedLenders, setSelectedLenders] = useState([]);
   const [dbLenders, setDbLenders] = useState([]);
   const [loadingLenders, setLoadingLenders] = useState(false);
   const [lenderFilter, setLenderFilter] = useState("All");
+  const [lenderSort, setLenderSort] = useState("type_order");
 
   // Determine initial loan type from location.state or URL query params
   const resolveLoanType = (input) => {

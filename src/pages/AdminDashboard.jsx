@@ -879,6 +879,51 @@ export default function AdminDashboard() {
     }
   }
 
+  async function handleInlineStageChange(item, newStage) {
+    const nextStatus = newStage === 'Disbursed' ? 'disbursed' : 'in progress';
+    try {
+      const res = await fetch("/api/admin/update-application", {
+        method: "POST",
+        credentials: "include",
+        headers: getAuthHeaders(true),
+        body: JSON.stringify({ id: item.id, stage: newStage, status: nextStatus }),
+      });
+      if (res.ok) {
+        setLeads((prev) =>
+          prev.map((l) => (l.id === item.id ? { ...l, stage: newStage, status: nextStatus } : l))
+        );
+        setCustomAlert({ message: `Stage updated to ${newStage}!`, type: "success" });
+      } else {
+        setCustomAlert({ message: "Failed to update stage", type: "error" });
+      }
+    } catch (e) {
+      console.error(e);
+      setCustomAlert({ message: "Network error. Please try again.", type: "error" });
+    }
+  }
+
+  async function handleInlineLenderChange(item, newLender) {
+    try {
+      const res = await fetch("/api/admin/update-application", {
+        method: "POST",
+        credentials: "include",
+        headers: getAuthHeaders(true),
+        body: JSON.stringify({ id: item.id, lender: newLender }),
+      });
+      if (res.ok) {
+        setLeads((prev) =>
+          prev.map((l) => (l.id === item.id ? { ...l, lender: newLender, active_lender: newLender } : l))
+        );
+        setCustomAlert({ message: `Lender updated to ${newLender}!`, type: "success" });
+      } else {
+        setCustomAlert({ message: "Failed to update lender", type: "error" });
+      }
+    } catch (e) {
+      console.error(e);
+      setCustomAlert({ message: "Network error. Please try again.", type: "error" });
+    }
+  }
+
   function openEditLead(lead) {
     setEditingLead(lead);
     setEditLeadDocs([]);

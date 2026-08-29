@@ -10,8 +10,9 @@ export function AuthProvider({ children }) {
     try {
       const token = localStorage.getItem("accessToken");
       const headers = {};
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
       const res = await fetch("/api/auth/profile", {
         credentials: "include",
         cache: "no-store",
@@ -21,6 +22,8 @@ export function AuthProvider({ children }) {
       if (res.ok) {
         const data = await res.json();
         setUser(data);
+      } else if (res.status === 401) {
+        setUser(null);
       }
     } catch (e) {
       console.warn("Profile fetch network warning:", e.message);
