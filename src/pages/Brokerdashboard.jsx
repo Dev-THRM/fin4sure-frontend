@@ -149,8 +149,13 @@ export default function BrokerDashboard() {
 
   async function fetchProfile() {
     try {
+      const token = localStorage.getItem("accessToken");
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res = await fetch("/api/auth/profile", {
         credentials: "include",
+        headers,
       });
       if (res.status === 429) {
         console.warn("Profile fetch rate-limited (429)");
@@ -306,8 +311,13 @@ export default function BrokerDashboard() {
 
   async function fetchClients() {
     try {
+      const token = localStorage.getItem("accessToken");
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res = await fetch("/api/broker/getRefferedClients", {
         credentials: "include",
+        headers,
       });
       if (res.ok) {
         const data = await res.json();
@@ -320,8 +330,13 @@ export default function BrokerDashboard() {
 
   async function fetchLeads() {
     try {
+      const token = localStorage.getItem("accessToken");
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res = await fetch("/api/broker/getBrokerLeads", {
         credentials: "include",
+        headers,
       });
       if (res.ok) {
         const data = await res.json();

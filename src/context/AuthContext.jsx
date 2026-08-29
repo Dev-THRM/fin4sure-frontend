@@ -8,14 +8,22 @@ export function AuthProvider({ children }) {
 
   const fetchProfile = async () => {
     try {
+      const token = localStorage.getItem("accessToken");
+      const headers = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
       const res = await fetch("/api/auth/profile", {
         credentials: "include",
         cache: "no-store",
+        headers,
       });
 
       if (res.ok) {
         const data = await res.json();
         setUser(data);
+      } else if (res.status === 401) {
+        setUser(null);
       }
     } catch (e) {
       console.warn("Profile fetch network warning:", e.message);
@@ -39,10 +47,11 @@ export function AuthProvider({ children }) {
 
   // Called on logout
   async function logout() {
+    localStorage.removeItem("accessToken");
     await fetch("/api/auth/logout", {
       method: "POST",
       credentials: "include",
-    });
+    }).catch(() => {});
     setUser(null);
   }
 
