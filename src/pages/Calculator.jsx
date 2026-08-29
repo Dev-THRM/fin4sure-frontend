@@ -12,7 +12,7 @@ import { useEmiCalculator } from "../hooks/useEmiCalculator";
 import { useSliderPaint } from "../hooks/useSliderPaint";
 import { fmtINR, fmtINRFull } from "../utils/formatters";
 import { calcEMI } from "../utils/emiCalculator";
-import { LENDERS, getLenderTypePriority } from "../utils/loanConstants";
+import { getLenderTypePriority } from "../utils/loanConstants";
 import "./styles/calculator.css";
 
 export default function Calculator() {
@@ -20,16 +20,33 @@ export default function Calculator() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // Selected state for comparison checklist in the modal
+  const [selectedLenders, setSelectedLenders] = useState([]);
   const [dbLenders, setDbLenders] = useState([]);
   const [loadingLenders, setLoadingLenders] = useState(false);
-
-  // Sub-tabs & Lender filter/sort states for EMI Calculator Dashboard
-  const [subTab, setSubTab] = useState("summary"); // "summary" | "amortization"
   const [lenderFilter, setLenderFilter] = useState("All");
-  const [lenderSort, setLenderSort] = useState("type_order");
 
-  // Derive initial loan type from location.state
-  const initialLoanType = location.state?.loanType || "home";
+  // Determine initial loan type from location.state or URL query params
+  const resolveLoanType = (input) => {
+    if (!input) return "home";
+    const map = {
+      home: "home",
+      "Home Loan": "home",
+      lap: "lap",
+      "Loan Against Property": "lap",
+      personal: "personal",
+      "Personal Loan": "personal",
+      business: "business",
+      "Business Loan": "business",
+      vehicle: "vehicle",
+      "Vehicle Loan": "vehicle",
+      education: "education",
+      "Education Loan": "education"
+    };
+    return map[input] || "home";
+  };
+
+  const initialType = resolveLoanType(location.state?.loanType || location.state?.selectedProduct);
 
   const {
     loanType,
@@ -51,39 +68,34 @@ export default function Calculator() {
     clampTenure,
     snapAmount
   } = useEmiCalculator(
-    initialLoanType,
+    initialType,
     location.state?.amount,
     location.state?.rate,
     location.state?.tenure
   );
 
-  // Fetch real lenders and live admin overrides
+  // Fetch real lenders directly from database matching selected loanType
   useEffect(() => {
     const fetchLenders = async () => {
       try {
         setLoadingLenders(true);
-        const res = await fetch("/api/admin/lender-rates");
+        const catKey = loanType || 'home';
+        const res = await fetch(`/api/lenders/rates?loanTypeShortId=${catKey}`);
         if (res.ok) {
           const json = await res.json();
-          const ratesList = json.rates || json.data || (Array.isArray(json) ? json : []);
-          if (Array.isArray(ratesList) && ratesList.length > 0) {
+          const ratesList = json.data || (Array.isArray(json) ? json : []);
+          if (Array.isArray(ratesList)) {
             setDbLenders(ratesList);
-            return;
           }
         }
-        const fallbackRes = await fetch("/api/lenders");
-        const fallbackJson = await fallbackRes.json();
-        if (fallbackJson.success && Array.isArray(fallbackJson.data)) {
-          setDbLenders(fallbackJson.data);
-        }
       } catch (err) {
-        console.error("Error fetching live rates:", err);
+        console.error("Error fetching live rates from DB:", err);
       } finally {
         setLoadingLenders(false);
       }
     };
     fetchLenders();
-  }, []);
+  }, [loanType]);
 
   // Local state for Amount text inputs
   const [amtInputVal, setAmtInputVal] = useState("50");
@@ -165,83 +177,57 @@ export default function Calculator() {
     }
   };
 
-  // Combine DB lenders or real master list based on loanType & rateType
+  // Derive list directly from real database lenders & rates
   const mergedLendersList = useMemo(() => {
-    const dbMap = new Map();
-    if (Array.isArray(dbLenders) && dbLenders.length > 0) {
-      dbLenders.forEach(dl => {
-        if (dl.name) dbMap.set(dl.name.toLowerCase().trim(), dl);
-        if (dl.short) dbMap.set(dl.short.toLowerCase().trim(), dl);
-      });
+    if (!Array.isArray(dbLenders) || dbLenders.length === 0) {
+      return [];
     }
 
-    const currentCatKey = loanType || 'home';
     const result = [];
 
-    LENDERS.forEach((l, idx) => {
-      const rateObj = l.rates?.[currentCatKey];
-      if (!rateObj) return;
+    dbLenders.forEach((l) => {
+      let minR = null;
+      let maxR = null;
 
-      const flowPair = rateObj.f;
-      const fixPair = rateObj.x;
-
-      // Skip lenders that do not offer this loan category (e.g. Mahindra on Home Loans)
-      if (!flowPair && !fixPair) return;
-
-      let minR = rateType === 'floating'
-        ? (flowPair ? flowPair[0] : fixPair?.[0])
-        : (fixPair ? fixPair[0] : flowPair?.[0]);
-
-      let maxR = rateType === 'floating'
-        ? (flowPair ? flowPair[1] : fixPair?.[1])
-        : (fixPair ? fixPair[1] : flowPair?.[1]);
-
-      if (minR === null || minR === undefined) return;
-
-      let offer = l.offer || "Special competitive rate offer";
-      const dbEntry = dbMap.get(l.name.toLowerCase().trim()) || (l.short ? dbMap.get(l.short.toLowerCase().trim()) : null);
-
-      if (dbEntry) {
-        if (rateType === 'floating') {
-          if (dbEntry.flowLow !== undefined && dbEntry.flowLow !== null && dbEntry.flowLow !== "N/A" && dbEntry.flowLow !== "") {
-            const parsed = parseFloat(dbEntry.flowLow);
-            if (!isNaN(parsed) && parsed > 0) minR = parsed;
-          }
-          if (dbEntry.flowHigh !== undefined && dbEntry.flowHigh !== null && dbEntry.flowHigh !== "N/A" && dbEntry.flowHigh !== "") {
-            const parsed = parseFloat(dbEntry.flowHigh);
-            if (!isNaN(parsed) && parsed > 0) maxR = parsed;
-          }
-        } else {
-          if (dbEntry.fixLow !== undefined && dbEntry.fixLow !== null && dbEntry.fixLow !== "N/A" && dbEntry.fixLow !== "") {
-            const parsed = parseFloat(dbEntry.fixLow);
-            if (!isNaN(parsed) && parsed > 0) minR = parsed;
-          }
-          if (dbEntry.fixHigh !== undefined && dbEntry.fixHigh !== null && dbEntry.fixHigh !== "N/A" && dbEntry.fixHigh !== "") {
-            const parsed = parseFloat(dbEntry.fixHigh);
-            if (!isNaN(parsed) && parsed > 0) maxR = parsed;
-          }
+      if (rateType === 'floating') {
+        if (l.flowLow && l.flowLow !== 'N/A') {
+          minR = parseFloat(l.flowLow);
+          maxR = l.flowHigh && l.flowHigh !== 'N/A' ? parseFloat(l.flowHigh) : minR;
+        } else if (l.fixLow && l.fixLow !== 'N/A') {
+          minR = parseFloat(l.fixLow);
+          maxR = l.fixHigh && l.fixHigh !== 'N/A' ? parseFloat(l.fixHigh) : minR;
         }
-        if (dbEntry.offer) offer = dbEntry.offer;
+      } else {
+        if (l.fixLow && l.fixLow !== 'N/A') {
+          minR = parseFloat(l.fixLow);
+          maxR = l.fixHigh && l.fixHigh !== 'N/A' ? parseFloat(l.fixHigh) : minR;
+        } else if (l.flowLow && l.flowLow !== 'N/A') {
+          minR = parseFloat(l.flowLow);
+          maxR = l.flowHigh && l.flowHigh !== 'N/A' ? parseFloat(l.flowHigh) : minR;
+        }
       }
 
-      const typeUpper = l.type ? (
-        l.type.toUpperCase() === 'PSU' ? 'PSU' :
-        (l.type.toLowerCase().includes('nbfc') || l.type.toLowerCase().includes('hfc')) ? 'NBFC/HFC' :
-        (l.type.toLowerCase().includes('small') || l.type.toLowerCase().includes('sfb')) ? 'SFB' :
-        'PRIVATE'
-      ) : 'PRIVATE';
+      // Only include lenders that have genuine rate records in the database
+      if (minR !== null && !isNaN(minR) && minR > 0) {
+        const typeUpper = l.type ? (
+          l.type.toUpperCase() === 'PSU' ? 'PSU' :
+          (l.type.toLowerCase().includes('nbfc') || l.type.toLowerCase().includes('hfc')) ? 'NBFC/HFC' :
+          (l.type.toLowerCase().includes('small') || l.type.toLowerCase().includes('sfb')) ? 'SFB' :
+          'PRIVATE'
+        ) : 'PRIVATE';
 
-      result.push({
-        id: dbEntry?.id || (idx + 1),
-        name: l.name,
-        short: l.short || l.name,
-        type: typeUpper,
-        emoji: l.emoji || '🏛️',
-        logo: l.logo || null,
-        rate: parseFloat(minR),
-        maxRate: parseFloat(maxR || minR),
-        offer
-      });
+        result.push({
+          id: l.id || l.lenderId,
+          name: l.name,
+          short: l.short || l.name,
+          type: typeUpper,
+          emoji: l.emoji || '🏦',
+          logo: l.logo || null,
+          rate: minR,
+          maxRate: maxR || minR,
+          offer: l.offer || 'Competitive interest rates'
+        });
+      }
     });
 
     return result.sort((a, b) => {
@@ -250,7 +236,7 @@ export default function Calculator() {
       if (pA !== pB) return pA - pB;
       return a.rate - b.rate;
     });
-  }, [dbLenders, loanType, rateType]);
+  }, [dbLenders, rateType]);
 
   // Format Lakhs/Crores for summary cards
   const fmtLakhCr = (val) => {

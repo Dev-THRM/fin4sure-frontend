@@ -41,7 +41,7 @@ export default function Products() {
         const loanTypesRes = await axios.get('/api/loan-types');
         const lendersRes = await axios.get('/api/lenders');
         
-        if (loanTypesRes.data.success) {
+        if (loanTypesRes.data?.success) {
           const mappedTypes = loanTypesRes.data.data.map(lt => {
             const mapping = LOAN_TYPE_MAPPING[lt.name] || { id: lt.short_id || lt.name.toLowerCase().replace(/\s+/g, ''), icon: <FileText size={24} />, desc: 'Apply for ' + lt.name };
             return {
@@ -55,20 +55,7 @@ export default function Products() {
           setLoanTypesData(mappedTypes);
         }
         
-        let apiLenders = (lendersRes.data?.success && Array.isArray(lendersRes.data.data)) ? [...lendersRes.data.data] : [];
-        const existingNames = new Set(apiLenders.map(l => (l.name || '').toLowerCase().trim()));
-        LENDERS.forEach((l, idx) => {
-          if (!existingNames.has((l.name || '').toLowerCase().trim())) {
-            apiLenders.push({
-              id: 100 + idx,
-              name: l.name,
-              short: l.short,
-              type: l.type,
-              emoji: l.emoji,
-              rates: l.rates
-            });
-          }
-        });
+        const apiLenders = (lendersRes.data?.success && Array.isArray(lendersRes.data.data)) ? lendersRes.data.data : [];
         setLendersData(apiLenders);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -105,7 +92,7 @@ export default function Products() {
     if (!lender) return 'N/A';
     const normKey = normalizeTypeKey(selectedTypeId);
     
-    // 1. Check database rates
+    // Check database rates
     if (lender.loanRates && lender.loanRates.length > 0) {
       const rateData = lender.loanRates.find(r => {
         if (!r) return false;
@@ -114,19 +101,6 @@ export default function Products() {
       });
       if (rateData && rateData.min_rate && parseFloat(rateData.min_rate) > 0) {
         return parseFloat(rateData.min_rate).toFixed(2);
-      }
-    }
-    
-    // 2. Check static LENDERS catalog
-    const matchedConstant = LENDERS.find(c => 
-      c.name.toLowerCase() === lender.name?.toLowerCase() ||
-      c.short.toLowerCase() === (lender.short || lender.name)?.toLowerCase()
-    );
-    if (matchedConstant && matchedConstant.rates && matchedConstant.rates[normKey]) {
-      const rateObj = matchedConstant.rates[normKey];
-      const minVal = (rateObj.f && rateObj.f[0]) || (rateObj.x && rateObj.x[0]);
-      if (minVal && minVal > 0) {
-        return minVal.toFixed(2);
       }
     }
 

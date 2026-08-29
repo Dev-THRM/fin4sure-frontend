@@ -7,6 +7,7 @@ import "./roiTicker.css";
 export default function RoiTicker() {
   const [announcementText, setAnnouncementText] = useState("");
   const [isBannerVisible, setIsBannerVisible] = useState(true);
+  const [dbLenders, setDbLenders] = useState([]);
 
   const { role, user } = useAuth();
   const isAdmin = role === "admin" || user?.role === "admin" || (typeof window !== "undefined" && window.location.pathname.includes("admin"));
@@ -17,6 +18,15 @@ export default function RoiTicker() {
       .then((data) => {
         if (data && data.announcement_banner) {
           setAnnouncementText(data.announcement_banner.trim());
+        }
+      })
+      .catch(() => {});
+
+    fetch("/api/lenders")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.success && Array.isArray(data.data)) {
+          setDbLenders(data.data);
         }
       })
       .catch(() => {});
@@ -34,12 +44,14 @@ export default function RoiTicker() {
     let items = [];
 
     TICKER_ORDER.forEach(t => {
-      let perType = LENDERS.map(l => {
-        const rt = l.rates && l.rates[t];
-        if (!rt) return null;
-        const r = rt.f && rt.f[0] != null ? rt.f[0] : (rt.x && rt.x[0] != null ? rt.x[0] : null);
-        if (r === null || r === undefined) return null;
-        return { name: l.short || l.name, loanLabel: typeLabels[t], rate: r };
+      let perType = dbLenders.map(l => {
+        if (!l.loanRates || !Array.isArray(l.loanRates)) return null;
+        const matchedRate = l.loanRates.find(r => {
+          const typeKey = (r.type?.short_id || r.type?.name || '').toLowerCase();
+          return typeKey.includes(t);
+        });
+        if (!matchedRate || !matchedRate.min_rate || parseFloat(matchedRate.min_rate) <= 0) return null;
+        return { name: l.short || l.name, loanLabel: typeLabels[t], rate: parseFloat(matchedRate.min_rate) };
       }).filter(Boolean);
 
       perType.sort((a, b) => a.rate - b.rate);
@@ -55,7 +67,7 @@ export default function RoiTicker() {
       ...it,
       down: it.rate < median
     }));
-  }, []);
+  }, [dbLenders]);
 
   if (tickerItems.length === 0 && !announcementText) return null;
 
