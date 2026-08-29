@@ -138,11 +138,12 @@ export default function Login() {
       const res = await fetch(`${API_BASE}/send-email-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: cleanEmail, purpose: 'login' }),
+        body: JSON.stringify({ email: cleanEmail, purpose: loginMode === 'forgot' ? 'reset' : 'login' }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to send OTP.");
       setOtpStep("verify");
+      setForgotStep("verify");
       setOtpTimer(60);
       setOtp(["", "", "", ""]);
       setTimeout(() => otpRefs[0].current?.focus(), 100);
@@ -219,7 +220,7 @@ export default function Login() {
       const res = await fetch(`${API_BASE}/send-email-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: otpEmail.trim().toLowerCase(), purpose: 'login' }),
+        body: JSON.stringify({ email: otpEmail.trim().toLowerCase(), purpose: loginMode === 'forgot' ? 'reset' : 'login' }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to resend OTP.");
@@ -336,7 +337,10 @@ export default function Login() {
               <div style={{ textAlign: "right", marginTop: "-4px" }}>
                 <button
                   type="button"
-                  onClick={() => switchMode("forgot")}
+                  onClick={() => {
+                    if (email.trim()) setOtpEmail(email.trim());
+                    switchMode("forgot");
+                  }}
                   style={{ background: "none", border: "none", color: "var(--teal)", fontSize: ".78rem", cursor: "pointer", padding: 0 }}
                 >
                   Forgot Password?
@@ -377,7 +381,7 @@ export default function Login() {
                     id="send-otp-btn"
                     type="submit"
                     disabled={otpSending}
-                    className="btn-primary"
+                    className={`btn-primary ${activeTab === "partner" ? "partner-btn" : ""}`}
                     style={{ height: "44px", marginTop: "4px" }}
                   >
                     {otpSending ? "Sending OTP…" : "Send OTP to Email →"}
@@ -430,7 +434,7 @@ export default function Login() {
                     id="verify-otp-btn"
                     type="submit"
                     disabled={loading || otp.join("").length !== 4}
-                    className="btn-primary"
+                    className={`btn-primary ${activeTab === "partner" ? "partner-btn" : ""}`}
                     style={{ height: "44px" }}
                   >
                     {loading ? "Verifying…" : "Verify & Sign In"}
@@ -470,19 +474,24 @@ export default function Login() {
               {forgotStep === "email" && (
                 <form onSubmit={handleSendOTP} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   <p style={{ margin: "0 0 4px", fontSize: ".83rem", color: "var(--text2)", lineHeight: 1.6 }}>
-                    Enter your registered email address and we'll send you an OTP to reset your password.
+                    Enter your registered email address and we'll send you an OTP to verify and access your account.
                   </p>
                   <div className="input-wrap">
                     <span className="icon"><Mail size={16} /></span>
                     <input
                       id="forgot-email"
                       type="email"
-                      placeholder="Enter your email address"
+                      placeholder={activeTab === "borrower" ? "Enter your email address" : "Enter registered partner email"}
                       value={otpEmail}
                       onChange={(e) => setOtpEmail(e.target.value)}
                     />
                   </div>
-                  <button type="submit" disabled={otpSending} className="btn-primary" style={{ height: "44px", marginTop: "4px" }}>
+                  <button
+                    type="submit"
+                    disabled={otpSending}
+                    className={`btn-primary ${activeTab === "partner" ? "partner-btn" : ""}`}
+                    style={{ height: "44px", marginTop: "4px" }}
+                  >
                     {otpSending ? "Sending OTP…" : "Send Reset OTP →"}
                   </button>
                   <div style={{ textAlign: "center", marginTop: "8px" }}>
@@ -494,29 +503,117 @@ export default function Login() {
               )}
 
               {forgotStep === "verify" && (
-                <form onSubmit={(e) => { e.preventDefault(); if (otp.join("").length === 4) setForgotStep("reset"); }} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <form onSubmit={handleOTPLogin} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                   <div style={{ textAlign: "center" }}>
+                    <div style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      background: "#F0FDF4",
+                      border: "1px solid #BBF7D0",
+                      color: "#15803D",
+                      padding: "6px 12px",
+                      borderRadius: "8px",
+                      fontSize: ".78rem",
+                      fontWeight: 600,
+                      marginBottom: "10px",
+                      lineHeight: 1.4
+                    }}>
+                      <Mail size={14} style={{ flexShrink: 0 }} /> If you are registered, an OTP has been sent to your email.
+                    </div>
                     <p style={{ margin: "0 0 4px", fontSize: ".83rem", color: "var(--text2)" }}>
-                      OTP sent to <strong style={{ color: "var(--navy)" }}>{otpEmail}</strong>
+                      Check your mail <strong style={{ color: "var(--navy)" }}>{otpEmail}</strong> to verify OTP.
                     </p>
+                    <button
+                      type="button"
+                      onClick={() => { setForgotStep("email"); setError(""); setOtp(["", "", "", ""]); }}
+                      style={{ background: "none", border: "none", color: "var(--teal)", fontSize: ".75rem", cursor: "pointer", textDecoration: "underline" }}
+                    >
+                      Change email
+                    </button>
                   </div>
+
+                  {/* 4-box OTP input */}
                   <div style={{ display: "flex", gap: "12px", justifyContent: "center" }} onPaste={handleOtpPaste}>
                     {otp.map((digit, i) => (
                       <input
-                        key={i} ref={otpRefs[i]} type="text" inputMode="numeric" maxLength={1} value={digit}
+                        key={i}
+                        id={`forgot-otp-box-${i}`}
+                        ref={otpRefs[i]}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
                         onChange={(e) => handleOtpChange(i, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(i, e)}
                         style={{
-                          width: "58px", height: "64px", textAlign: "center", fontSize: "1.8rem", fontWeight: 700, fontFamily: "monospace",
-                          border: `2px solid ${digit ? "var(--teal)" : "#C8DCF5"}`, borderRadius: "12px", background: digit ? "#f0fdf4" : "#F0F7FF",
-                          color: "var(--navy)", outline: "none", transition: "border-color .2s, background .2s",
+                          width: "58px",
+                          height: "64px",
+                          textAlign: "center",
+                          fontSize: "1.8rem",
+                          fontWeight: 700,
+                          fontFamily: "monospace",
+                          border: `2px solid ${digit ? "var(--teal)" : "#C8DCF5"}`,
+                          borderRadius: "12px",
+                          background: digit ? "#f0fdf4" : "#F0F7FF",
+                          color: "var(--navy)",
+                          outline: "none",
+                          transition: "border-color .2s, background .2s",
+                          caretColor: "transparent",
                         }}
                       />
                     ))}
                   </div>
-                  <button type="submit" disabled={otp.join("").length !== 4} className="btn-primary" style={{ height: "44px" }}>
-                    Verify OTP →
+
+                  <button
+                    id="verify-forgot-otp-btn"
+                    type="submit"
+                    disabled={loading || otp.join("").length !== 4}
+                    className={`btn-primary ${activeTab === "partner" ? "partner-btn" : ""}`}
+                    style={{ height: "44px" }}
+                  >
+                    {loading ? "Verifying…" : activeTab === "partner" ? "Verify & Sign In to Partner Dashboard" : "Verify & Sign In to Borrower Dashboard"}
                   </button>
+
+                  {/* Option to reset password */}
+                  <div style={{ textAlign: "center", marginTop: "-4px" }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (otp.join("").length !== 4) {
+                          setError("Please enter the 4-digit OTP from your email first.");
+                          return;
+                        }
+                        setError("");
+                        setForgotStep("reset");
+                      }}
+                      style={{ background: "none", border: "none", color: "var(--teal)", fontSize: ".78rem", cursor: "pointer", textDecoration: "underline" }}
+                    >
+                      Or set a new password →
+                    </button>
+                  </div>
+
+                  {/* Resend */}
+                  <div style={{ textAlign: "center", fontSize: ".78rem", color: "var(--text2)" }}>
+                    {otpTimer > 0 ? (
+                      <>Resend OTP in <strong style={{ color: "var(--navy)" }}>{otpTimer}s</strong></>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleResendOTP}
+                        disabled={otpSending}
+                        style={{ background: "none", border: "none", color: "var(--teal)", cursor: "pointer", fontWeight: 600, textDecoration: "underline", fontSize: ".78rem" }}
+                      >
+                        {otpSending ? "Sending…" : "Resend OTP"}
+                      </button>
+                    )}
+                  </div>
+
+                  <div style={{ textAlign: "center", marginTop: "4px" }}>
+                    <button type="button" onClick={() => switchMode("password")} style={{ background: "none", border: "none", color: "var(--slate)", fontSize: ".8rem", cursor: "pointer", textDecoration: "underline" }}>
+                      Back to Login
+                    </button>
+                  </div>
                 </form>
               )}
 
@@ -529,28 +626,34 @@ export default function Login() {
                   try {
                     const res = await fetch(`${API_BASE}/reset-password`, {
                       method: "POST", headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ email: otpEmail, otp: otp.join(""), newPassword })
+                      body: JSON.stringify({ email: otpEmail.trim().toLowerCase(), otp: otp.join(""), newPassword })
                     });
                     if (!res.ok) throw new Error((await res.json()).message || "Failed to reset password");
                     switchMode("password"); // Back to normal login
-                    setOtpEmail(""); // Reset
+                    setEmail(otpEmail.trim().toLowerCase());
+                    setPassword(newPassword);
                     alert("Password reset successfully! Please log in with your new password.");
                   } catch (err) { setError(err.message); } finally { setLoading(false); }
                 }} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   <p style={{ margin: "0 0 4px", fontSize: ".83rem", color: "var(--text2)", lineHeight: 1.6 }}>
-                    Create a new secure password.
+                    Create a new secure password for <strong style={{ color: "var(--navy)" }}>{otpEmail}</strong>.
                   </p>
                   <div className="input-wrap">
                     <span className="icon"><Lock size={16} /></span>
-                    <input type="password" placeholder="New Password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                    <input type="password" placeholder="New Password (min 6 chars)" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
                   </div>
                   <div className="input-wrap">
                     <span className="icon"><Lock size={16} /></span>
-                    <input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                    <input type="password" placeholder="Confirm New Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
                   </div>
-                  <button type="submit" disabled={loading} className="btn-primary" style={{ height: "44px", marginTop: "4px" }}>
-                    {loading ? "Resetting…" : "Reset Password"}
+                  <button type="submit" disabled={loading} className={`btn-primary ${activeTab === "partner" ? "partner-btn" : ""}`} style={{ height: "44px", marginTop: "4px" }}>
+                    {loading ? "Resetting…" : "Save New Password"}
                   </button>
+                  <div style={{ textAlign: "center", marginTop: "8px" }}>
+                    <button type="button" onClick={() => setForgotStep("verify")} style={{ background: "none", border: "none", color: "var(--teal)", fontSize: ".8rem", cursor: "pointer", textDecoration: "underline" }}>
+                      ← Back to OTP verification
+                    </button>
+                  </div>
                 </form>
               )}
             </>
