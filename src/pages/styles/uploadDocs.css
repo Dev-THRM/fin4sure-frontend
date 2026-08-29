@@ -179,6 +179,69 @@
   text-decoration: underline;
 }
 
+/* Aadhaar Upload Tab Controls */
+.aadhar-option-box {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.aadhar-option-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.aadhar-option-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--navy, #0D2B6B);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.aadhar-tab-pills {
+  display: inline-flex;
+  background: #E2E8F0;
+  padding: 4px;
+  border-radius: 12px;
+  gap: 4px;
+}
+
+.aadhar-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.aadhar-tab-btn.active {
+  background: #FFFFFF;
+  color: var(--navy, #0D2B6B);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  font-weight: 700;
+}
+
+.aadhar-tab-btn:hover:not(.active) {
+  color: #1E293B;
+}
+
 .upd-footer-actions {
   display: flex;
   justify-content: flex-end;
@@ -193,5 +256,16 @@
   }
   .upd-container {
     padding: 24px;
+  }
+  .aadhar-option-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .aadhar-tab-pills {
+    width: 100%;
+    flex-direction: column;
+  }
+  .aadhar-tab-btn {
+    justify-content: center;
   }
 }
