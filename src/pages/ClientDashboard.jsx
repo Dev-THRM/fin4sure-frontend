@@ -392,12 +392,12 @@ export default function ClientDashboard() {
 
                       if (app.has_rejected_docs) {
                         currentStepIndex = 1; // Stay in Docs stage if docs rejected
+                      } else if (app.has_all_docs || statusId === 3 || rawStatus.includes("credit") || rawStatus.includes("under review")) {
+                        currentStepIndex = 2;
                       } else if (statusId === 1 || rawStatus.includes("applied") || rawStatus.includes("new")) {
                         currentStepIndex = 0;
                       } else if (statusId === 2 || rawStatus.includes("doc")) {
                         currentStepIndex = 1;
-                      } else if (statusId === 3 || rawStatus.includes("credit") || rawStatus.includes("under review")) {
-                        currentStepIndex = 2;
                       } else if (statusId === 4 || rawStatus.includes("submit")) {
                         currentStepIndex = 3;
                       } else if (statusId === 5 || rawStatus.includes("sanction")) {
