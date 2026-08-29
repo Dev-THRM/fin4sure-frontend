@@ -436,6 +436,7 @@ export default function UploadDocs() {
                           id="file-aadharCombined" 
                           className="upd-file-input" 
                           accept=".pdf,image/*"
+                          onClick={(e) => { e.target.value = null; }}
                           onChange={(e) => handleFileChange("aadharCombined", e.target.files[0], e.target)} 
                         />
                         <span className="upd-drop-lbl">Single PDF with both sides (Max 1 MB)</span>
@@ -471,6 +472,7 @@ export default function UploadDocs() {
                               id="file-aadharFront" 
                               className="upd-file-input" 
                               accept=".pdf,image/*"
+                              onClick={(e) => { e.target.value = null; }}
                               onChange={(e) => handleFileChange("aadharFront", e.target.files[0], e.target)} 
                             />
                           </>
@@ -504,6 +506,7 @@ export default function UploadDocs() {
                               id="file-aadharBack" 
                               className="upd-file-input" 
                               accept=".pdf,image/*"
+                              onClick={(e) => { e.target.value = null; }}
                               onChange={(e) => handleFileChange("aadharBack", e.target.files[0], e.target)} 
                             />
                           </>
