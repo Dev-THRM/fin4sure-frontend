@@ -640,9 +640,18 @@ export default function BrokerDashboard() {
                     </div>
                   ) : (
                     filteredLeads.map((lead) => {
-                      const statusName = lead.status?.toLowerCase() || 'applied';
+                      const rawSt = (lead.statusName || lead.status || lead.stage || '').toLowerCase();
+                      const sId = Number(lead.status_id || 1);
+                      let currentStepIndex = 0;
+                      if (sId === 7 || rawSt.includes('disburs') || rawSt.includes('complet')) currentStepIndex = 6;
+                      else if (sId === 6 || rawSt.includes('legal')) currentStepIndex = 5;
+                      else if (sId === 5 || rawSt.includes('sanction')) currentStepIndex = 4;
+                      else if (sId === 4 || rawSt.includes('submit')) currentStepIndex = 3;
+                      else if (sId === 3 || rawSt.includes('credit') || rawSt.includes('review')) currentStepIndex = 2;
+                      else if (sId === 2 || rawSt.includes('doc')) currentStepIndex = 1;
+                      else currentStepIndex = 0;
+
                       const steps = ['applied' , 'docs', 'credit', 'submitted', 'sanction', 'legal', 'disbursed'];
-                      const currentStepIndex = steps.indexOf(statusName) !== -1 ? steps.indexOf(statusName) : 0;
 
                       return (
                       <div key={lead.id || lead._id} className="cdl-card">

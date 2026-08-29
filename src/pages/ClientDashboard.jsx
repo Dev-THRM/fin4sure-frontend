@@ -385,29 +385,27 @@ export default function ClientDashboard() {
                     </div>
                   ) : (
                     applications.map((app) => {
-                      const rawStatus = (app.Status?.name || "").toLowerCase();
+                      const rawStatus = (app.Status?.name || app.stage || "").toLowerCase();
                       const statusId = Number(app.status_id || 1);
 
                       let currentStepIndex = 0; // 0: applied, 1: docs, 2: credit, 3: submitted, 4: sanction, 5: legal, 6: disbursed
 
                       if (app.has_rejected_docs) {
                         currentStepIndex = 1; // Stay in Docs stage if docs rejected
-                      } else if (app.has_all_docs || statusId === 3 || rawStatus.includes("credit") || rawStatus.includes("under review")) {
-                        currentStepIndex = 2;
-                      } else if (statusId === 1 || rawStatus.includes("applied") || rawStatus.includes("new")) {
-                        currentStepIndex = 0;
-                      } else if (statusId === 2 || rawStatus.includes("doc")) {
-                        currentStepIndex = 1;
-                      } else if (statusId === 4 || rawStatus.includes("submit")) {
-                        currentStepIndex = 3;
-                      } else if (statusId === 5 || rawStatus.includes("sanction")) {
-                        currentStepIndex = 4;
+                      } else if (statusId === 7 || rawStatus.includes("disburs") || rawStatus.includes("complet")) {
+                        currentStepIndex = 6;
                       } else if (statusId === 6 || rawStatus.includes("legal")) {
                         currentStepIndex = 5;
-                      } else if (statusId === 7 || rawStatus.includes("disburs")) {
-                        currentStepIndex = 6;
+                      } else if (statusId === 5 || rawStatus.includes("sanction")) {
+                        currentStepIndex = 4;
+                      } else if (statusId === 4 || rawStatus.includes("submit")) {
+                        currentStepIndex = 3;
+                      } else if (statusId === 3 || rawStatus.includes("credit") || rawStatus.includes("under review") || app.has_all_docs) {
+                        currentStepIndex = 2;
+                      } else if (statusId === 2 || rawStatus.includes("doc")) {
+                        currentStepIndex = 1;
                       } else {
-                        currentStepIndex = Math.min(Math.max(statusId - 1, 0), 6);
+                        currentStepIndex = 0;
                       }
 
                       const steps = ['applied' , 'docs', 'credit', 'submitted', 'sanction', 'legal', 'disbursed'];
