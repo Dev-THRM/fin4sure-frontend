@@ -179,67 +179,80 @@
   text-decoration: underline;
 }
 
-/* Aadhaar Upload Tab Controls */
-.aadhar-option-box {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  border-radius: 16px;
-  padding: 16px 20px;
-  margin-bottom: 24px;
+/* Aadhaar Card Internal Tabs inside square card */
+.aadhar-card-tab-wrap {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.aadhar-option-header {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
-.aadhar-option-title {
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: var(--navy, #0D2B6B);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.aadhar-tab-pills {
+.aadhar-internal-pills {
   display: inline-flex;
   background: #E2E8F0;
-  padding: 4px;
-  border-radius: 12px;
-  gap: 4px;
+  padding: 3px;
+  border-radius: 10px;
+  gap: 3px;
+  margin-bottom: 6px;
+  max-width: 100%;
 }
 
-.aadhar-tab-btn {
+.aadhar-internal-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: 8px;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 7px;
   border: none;
   background: transparent;
-  color: #475569;
-  font-size: 0.8rem;
+  color: #64748B;
+  font-size: 0.74rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
-.aadhar-tab-btn.active {
+.aadhar-internal-btn.active {
   background: #FFFFFF;
   color: var(--navy, #0D2B6B);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
   font-weight: 700;
 }
 
-.aadhar-tab-btn:hover:not(.active) {
-  color: #1E293B;
+.aadhar-dual-picker-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.aadhar-dual-box {
+  background: #FFFFFF;
+  border: 1px dashed #CBD5E1;
+  border-radius: 12px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  min-height: 110px;
+  box-sizing: border-box;
+}
+
+.aadhar-dual-box.has-file {
+  border: 1px solid #22C55E;
+  background: #F0FDF4;
+}
+
+.aadhar-dual-box-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--navy, #0D2B6B);
 }
 
 .upd-footer-actions {
@@ -257,15 +270,7 @@
   .upd-container {
     padding: 24px;
   }
-  .aadhar-option-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .aadhar-tab-pills {
-    width: 100%;
-    flex-direction: column;
-  }
-  .aadhar-tab-btn {
-    justify-content: center;
+  .aadhar-dual-picker-grid {
+    grid-template-columns: 1fr;
   }
 }
