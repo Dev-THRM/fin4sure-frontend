@@ -103,7 +103,11 @@ export default function UploadDocs() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isAll4Ready || !hasNewFileToUpload) return;
+    if (!isAll4Ready) return;
+    if (!hasNewFileToUpload && isAll4Ready) {
+      navigate(targetDashboard);
+      return;
+    }
 
     // Check size limit before sending network request
     for (const [docKey, file] of Object.entries(docs)) {
@@ -571,18 +575,20 @@ export default function UploadDocs() {
             </button>
             <button 
               type="submit" 
-              className={`upd-submit-btn ${!isAll4Ready || !hasNewFileToUpload || loading ? 'disabled' : ''}`}
-              disabled={!isAll4Ready || !hasNewFileToUpload || loading}
+              className={`upd-submit-btn ${!isAll4Ready || loading ? 'disabled' : ''}`}
+              disabled={!isAll4Ready || loading}
               style={{
-                cursor: !isAll4Ready || !hasNewFileToUpload || loading ? 'not-allowed' : 'pointer',
-                opacity: !isAll4Ready || !hasNewFileToUpload || loading ? 0.65 : 1
+                cursor: !isAll4Ready || loading ? 'not-allowed' : 'pointer',
+                opacity: !isAll4Ready || loading ? 0.65 : 1
               }}
             >
               {loading 
                 ? "Uploading..." 
-                : isAll4Ready 
-                  ? "Submit All Documents (Proceed to Credit)" 
-                  : `Upload All 4 Documents to Submit (${completedCount}/4 Completed)`}
+                : hasNewFileToUpload && isAll4Ready
+                  ? "Submit All Documents (Proceed to Credit)"
+                  : isAll4Ready
+                    ? "Proceed to Dashboard (Credit Stage) →"
+                    : `Upload All 4 Documents to Submit (${completedCount}/4 Completed)`}
             </button>
           </div>
         </form>
@@ -607,7 +613,7 @@ export default function UploadDocs() {
               onClick={() => navigate(targetDashboard)}
               style={{ width: "100%", height: "44px" }}
             >
-              Back to Dashboard
+              Go to Dashboard
             </button>
           </div>
         </div>
