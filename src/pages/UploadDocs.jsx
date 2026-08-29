@@ -208,10 +208,23 @@ export default function UploadDocs() {
   // Helper to normalize and check existing upload status
   const normStr = (str) => String(str || '').toLowerCase().replace(/[\s_-]+/g, '').trim();
 
+  const getDocType = (d) => {
+    const dt = normStr(d?.document_type || d?.type);
+    if (dt && dt !== 'other') return dt;
+    const fn = normStr(d?.file_name || d?.name);
+    if (fn.includes('front')) return 'aadharfront';
+    if (fn.includes('back')) return 'aadharback';
+    if (fn.includes('aadhar') || fn.includes('aadhaar')) return 'aadhar';
+    if (fn.includes('pan')) return 'pan';
+    if (fn.includes('salary')) return 'salaryslip';
+    if (fn.includes('bank')) return 'bankstatement';
+    return dt || 'other';
+  };
+
   const getExistingDoc = (docType) => {
     const targetNorm = normStr(docType);
     return existingDocs.find(d => {
-      const dNorm = normStr(d.document_type || d.type || d.name);
+      const dNorm = getDocType(d);
       return dNorm === targetNorm || 
              (targetNorm === 'aadhar' && (dNorm === 'aadhaar' || dNorm === 'aadharcombined' || dNorm === 'aadhaarcombined')) ||
              (targetNorm === 'aadharfront' && (dNorm === 'aadhaarfront' || dNorm === 'aadharcardfront')) ||
