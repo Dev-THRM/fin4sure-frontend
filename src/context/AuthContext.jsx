@@ -8,9 +8,14 @@ export function AuthProvider({ children }) {
 
   const fetchProfile = async () => {
     try {
+      const token = localStorage.getItem("accessToken");
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res = await fetch("/api/auth/profile", {
         credentials: "include",
         cache: "no-store",
+        headers,
       });
 
       if (res.ok) {
@@ -39,10 +44,17 @@ export function AuthProvider({ children }) {
 
   // Called on logout
   async function logout() {
-    await fetch("/api/auth/logout", {
-      method: "POST",
-      credentials: "include",
-    });
+    try {
+      const token = localStorage.getItem("accessToken");
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+        headers,
+      });
+    } catch (_) {}
+    localStorage.removeItem("accessToken");
     setUser(null);
   }
 

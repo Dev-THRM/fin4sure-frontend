@@ -148,8 +148,13 @@ export default function BrokerDashboard() {
 
   async function fetchProfile() {
     try {
+      const token = localStorage.getItem("accessToken");
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res = await fetch("/api/auth/profile", {
         credentials: "include",
+        headers,
       });
       if (res.status === 429) {
         console.warn("Profile fetch rate-limited (429)");
