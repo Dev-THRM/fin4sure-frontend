@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { districtsByState, states } from "../components/Statedata";
 import { fmtINR } from "../utils/formatters";
+import { LOAN_PRODUCTS } from "../utils/constants";
 import "./styles/brokerDashboard.css";
 
 const DEFAULT_CITIES = [
