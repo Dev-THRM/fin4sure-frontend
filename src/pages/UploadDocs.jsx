@@ -103,7 +103,7 @@ export default function UploadDocs() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!hasNewFileToUpload) return;
+    if (!isAll4Ready || !hasNewFileToUpload) return;
 
     // Check size limit before sending network request
     for (const [docKey, file] of Object.entries(docs)) {
@@ -583,10 +583,18 @@ export default function UploadDocs() {
             </button>
             <button 
               type="submit" 
-              className={`upd-submit-btn ${!hasNewFileToUpload || loading ? 'disabled' : ''}`}
-              disabled={!hasNewFileToUpload || loading}
+              className={`upd-submit-btn ${!isAll4Ready || !hasNewFileToUpload || loading ? 'disabled' : ''}`}
+              disabled={!isAll4Ready || !hasNewFileToUpload || loading}
+              style={{
+                cursor: !isAll4Ready || !hasNewFileToUpload || loading ? 'not-allowed' : 'pointer',
+                opacity: !isAll4Ready || !hasNewFileToUpload || loading ? 0.65 : 1
+              }}
             >
-              {loading ? "Uploading..." : isAll4Ready ? "Submit All Documents (Proceed to Credit)" : "Save Uploaded Documents"}
+              {loading 
+                ? "Uploading..." 
+                : isAll4Ready 
+                  ? "Submit All Documents (Proceed to Credit)" 
+                  : `Upload All 4 Documents to Submit (${completedCount}/4 Completed)`}
             </button>
           </div>
         </form>
