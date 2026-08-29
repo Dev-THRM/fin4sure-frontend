@@ -205,9 +205,20 @@ export default function UploadDocs() {
     }
   };
 
-  // Helper to check existing upload status
+  // Helper to normalize and check existing upload status
+  const normStr = (str) => String(str || '').toLowerCase().replace(/[\s_-]+/g, '').trim();
+
   const getExistingDoc = (docType) => {
-    return existingDocs.find(d => d.document_type === docType);
+    const targetNorm = normStr(docType);
+    return existingDocs.find(d => {
+      const dNorm = normStr(d.document_type || d.type || d.name);
+      return dNorm === targetNorm || 
+             (targetNorm === 'aadhar' && (dNorm === 'aadhaar' || dNorm === 'aadharcombined' || dNorm === 'aadhaarcombined')) ||
+             (targetNorm === 'aadharfront' && (dNorm === 'aadhaarfront' || dNorm === 'aadharcardfront')) ||
+             (targetNorm === 'aadharback' && (dNorm === 'aadhaarback' || dNorm === 'aadharcardback')) ||
+             (targetNorm === 'salaryslip' && (dNorm === 'salary' || dNorm === 'salaryslips')) ||
+             (targetNorm === 'bankstatement' && (dNorm === 'bank' || dNorm === 'bankstatements'));
+    });
   };
 
   // ── Validation: Check if each compulsory document category is completed ──
