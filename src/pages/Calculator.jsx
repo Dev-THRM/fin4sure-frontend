@@ -25,6 +25,7 @@ export default function Calculator() {
   const [dbLenders, setDbLenders] = useState([]);
   const [loadingLenders, setLoadingLenders] = useState(false);
   const [lenderFilter, setLenderFilter] = useState("All");
+  const [lenderSort, setLenderSort] = useState("type_order");
 
   // Determine initial loan type from location.state or URL query params
   const resolveLoanType = (input) => {
