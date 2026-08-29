@@ -53,9 +53,12 @@ export default function UploadDocs() {
       const data = await res.json();
       if (Array.isArray(data)) {
         setExistingDocs(data);
-        const hasFrontOrBack = data.some(d => d.document_type === 'aadhar_front' || d.document_type === 'aadhar_back');
+        const hasCombined = data.some(d => (d.document_type === 'aadhar' || d.document_type === 'aadhar_combined') && d.status !== 'rejected');
+        const hasFrontOrBack = data.some(d => (d.document_type === 'aadhar_front' || d.document_type === 'aadhar_back') && d.status !== 'rejected');
         if (hasFrontOrBack) {
           setAadharMode("separate");
+        } else if (hasCombined) {
+          setAadharMode("combined");
         }
       }
     } catch (err) {
@@ -205,13 +208,18 @@ export default function UploadDocs() {
   };
 
   // ── Validation: Check if each compulsory document category is completed ──
-  const hasAadhaar = aadharMode === "combined" 
-    ? Boolean(docs.aadharCombined || (getExistingDoc("aadhar") && getExistingDoc("aadhar")?.status !== "rejected") || (getExistingDoc("aadhar_combined") && getExistingDoc("aadhar_combined")?.status !== "rejected"))
-    : Boolean(
-        (docs.aadharFront || (getExistingDoc("aadhar_front") && getExistingDoc("aadhar_front")?.status !== "rejected")) &&
-        (docs.aadharBack || (getExistingDoc("aadhar_back") && getExistingDoc("aadhar_back")?.status !== "rejected"))
-      );
+  const isAadhaarCombinedUploaded = Boolean(
+    docs.aadharCombined || 
+    (getExistingDoc("aadhar") && getExistingDoc("aadhar")?.status !== "rejected") || 
+    (getExistingDoc("aadhar_combined") && getExistingDoc("aadhar_combined")?.status !== "rejected")
+  );
 
+  const isAadhaarSeparateUploaded = Boolean(
+    (docs.aadharFront || (getExistingDoc("aadhar_front") && getExistingDoc("aadhar_front")?.status !== "rejected")) &&
+    (docs.aadharBack || (getExistingDoc("aadhar_back") && getExistingDoc("aadhar_back")?.status !== "rejected"))
+  );
+
+  const hasAadhaar = isAadhaarCombinedUploaded || isAadhaarSeparateUploaded;
   const hasPan = Boolean(docs.pan || (getExistingDoc("pan") && getExistingDoc("pan")?.status !== "rejected"));
   const hasSalary = Boolean(docs.salarySlip || (getExistingDoc("salary slip") && getExistingDoc("salary slip")?.status !== "rejected"));
   const hasBank = Boolean(docs.bankStatement || (getExistingDoc("bank statement") && getExistingDoc("bank statement")?.status !== "rejected"));
@@ -219,9 +227,6 @@ export default function UploadDocs() {
   const completedCount = (hasAadhaar ? 1 : 0) + (hasPan ? 1 : 0) + (hasSalary ? 1 : 0) + (hasBank ? 1 : 0);
   const isAll4Ready = completedCount === 4;
   const hasNewFileToUpload = Object.values(docs).some((f) => f !== null);
-
-  // Can submit if all 4 categories are fulfilled AND there is at least one new file, or saving partial files
-  const canSubmit = isAll4Ready && hasNewFileToUpload;
 
   // Render a document card
   const renderCard = (key, title, desc, icon, docType) => {
@@ -343,11 +348,7 @@ export default function UploadDocs() {
             
             {/* ── CARD 1: AADHAAR CARD (ALL OPTIONS CONTAINED INSIDE) ── */}
             <div 
-              className={`upd-card ${
-                aadharMode === "combined" 
-                  ? (docs.aadharCombined || (getExistingDoc("aadhar") && getExistingDoc("aadhar")?.status !== "rejected") ? "has-file" : "")
-                  : ((docs.aadharFront || getExistingDoc("aadhar_front")) && (docs.aadharBack || getExistingDoc("aadhar_back")) ? "has-file" : "")
-              }`}
+              className={`upd-card ${hasAadhaar ? "has-file" : ""}`}
               style={{ minHeight: "260px" }}
             >
               <div className="upd-card-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '6px' }}>
@@ -379,6 +380,14 @@ export default function UploadDocs() {
                   const existing = getExistingDoc("aadhar") || getExistingDoc("aadhar_combined");
                   const isRejected = existing?.status === 'rejected';
                   const isUploaded = existing && !isRejected;
+
+                  if (!isUploaded && isAadhaarSeparateUploaded) {
+                    return (
+                      <div style={{ marginTop: '12px', padding: '10px', background: '#F0F9FF', color: '#0369A1', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600, textAlign: 'center' }}>
+                        ✓ Uploaded as Separate (Front + Back) files. Switch to Separate tab to view.
+                      </div>
+                    );
+                  }
 
                   return (
                     <>
@@ -427,103 +436,110 @@ export default function UploadDocs() {
                 })()
               ) : (
                 /* SEPARATE 2 FILES OPTION (Inside the same card) */
-                <div className="aadhar-dual-picker-grid">
-                  {/* FRONT SIDE */}
-                  {(() => {
-                    const existingFront = getExistingDoc("aadhar_front");
-                    const isRejectedFront = existingFront?.status === 'rejected';
-                    const isUploadedFront = existingFront && !isRejectedFront;
+                <>
+                  {isAadhaarCombinedUploaded && !docs.aadharFront && !docs.aadharBack && !getExistingDoc("aadhar_front") && (
+                    <div style={{ marginBottom: '8px', padding: '6px 10px', background: '#D1FAE5', color: '#065F46', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <CheckCircle2 size={13} color="#059669" /> Uploaded as Combined File
+                    </div>
+                  )}
+                  <div className="aadhar-dual-picker-grid">
+                    {/* FRONT SIDE */}
+                    {(() => {
+                      const existingFront = getExistingDoc("aadhar_front");
+                      const isRejectedFront = existingFront?.status === 'rejected';
+                      const isUploadedFront = existingFront && !isRejectedFront;
 
-                    return (
-                      <div className={`aadhar-dual-box ${docs.aadharFront || isUploadedFront ? "has-file" : ""}`}>
-                        <span className="aadhar-dual-box-title">Front Side</span>
-                        {isUploadedFront ? (
-                          <div style={{ padding: '4px 8px', background: '#D1FAE5', color: '#065F46', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <CheckCircle2 size={13} color="#059669" /> Uploaded
-                          </div>
-                        ) : docs.aadharFront ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', width: '100%' }}>
-                            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#1E293B', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                              {docs.aadharFront.name}
-                            </span>
-                            <button 
-                              type="button" 
-                              className="upd-remove-btn" 
-                              style={{ fontSize: '0.7rem' }}
-                              onClick={() => setDocs(prev => ({ ...prev, aadharFront: null }))}
-                            >
-                              &times; Remove
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            {isRejectedFront && (
-                              <span style={{ color: '#DC2626', fontSize: '0.68rem', fontWeight: 600 }}>Re-upload</span>
-                            )}
-                            <label htmlFor="file-aadharFront" className="upd-select-lbl" style={{ padding: "4px 10px", fontSize: "0.74rem" }}>
-                              Choose
-                            </label>
-                            <input 
-                              type="file" 
-                              id="file-aadharFront" 
-                              className="upd-file-input" 
-                              accept=".pdf,image/*"
-                              onChange={(e) => handleFileChange("aadharFront", e.target.files[0], e.target)} 
-                            />
-                          </>
-                        )}
-                      </div>
-                    );
-                  })()}
+                      return (
+                        <div className={`aadhar-dual-box ${docs.aadharFront || isUploadedFront ? "has-file" : ""}`}>
+                          <span className="aadhar-dual-box-title">Front Side</span>
+                          {isUploadedFront ? (
+                            <div style={{ padding: '4px 8px', background: '#D1FAE5', color: '#065F46', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <CheckCircle2 size={13} color="#059669" /> Uploaded
+                            </div>
+                          ) : docs.aadharFront ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', width: '100%' }}>
+                              <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#1E293B', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {docs.aadharFront.name}
+                              </span>
+                              <button 
+                                type="button" 
+                                className="upd-remove-btn" 
+                                style={{ fontSize: '0.7rem' }}
+                                onClick={() => setDocs(prev => ({ ...prev, aadharFront: null }))}
+                              >
+                                &times; Remove
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              {isRejectedFront && (
+                                <span style={{ color: '#DC2626', fontSize: '0.68rem', fontWeight: 600 }}>Re-upload</span>
+                              )}
+                              <label htmlFor="file-aadharFront" className="upd-select-lbl" style={{ padding: "4px 10px", fontSize: "0.74rem" }}>
+                                Choose
+                              </label>
+                              <input 
+                                type="file" 
+                                id="file-aadharFront" 
+                                className="upd-file-input" 
+                                accept=".pdf,image/*"
+                                onChange={(e) => handleFileChange("aadharFront", e.target.files[0], e.target)} 
+                              />
+                            </>
+                          )}
+                        </div>
+                      );
+                    })()}
 
-                  {/* BACK SIDE */}
-                  {(() => {
-                    const existingBack = getExistingDoc("aadhar_back");
-                    const isRejectedBack = existingBack?.status === 'rejected';
-                    const isUploadedBack = existingBack && !isRejectedBack;
+                    {/* BACK SIDE */}
+                    {(() => {
+                      const existingBack = getExistingDoc("aadhar_back");
+                      const isRejectedBack = existingBack?.status === 'rejected';
+                      const isUploadedBack = existingBack && !isRejectedBack;
 
-                    return (
-                      <div className={`aadhar-dual-box ${docs.aadharBack || isUploadedBack ? "has-file" : ""}`}>
-                        <span className="aadhar-dual-box-title">Back Side</span>
-                        {isUploadedBack ? (
-                          <div style={{ padding: '4px 8px', background: '#D1FAE5', color: '#065F46', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <CheckCircle2 size={13} color="#059669" /> Uploaded
-                          </div>
-                        ) : docs.aadharBack ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', width: '100%' }}>
-                            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#1E293B', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                              {docs.aadharBack.name}
-                            </span>
-                            <button 
-                              type="button" 
-                              className="upd-remove-btn" 
-                              style={{ fontSize: '0.7rem' }}
-                              onClick={() => setDocs(prev => ({ ...prev, aadharBack: null }))}
-                            >
-                              &times; Remove
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            {isRejectedBack && (
-                              <span style={{ color: '#DC2626', fontSize: '0.68rem', fontWeight: 600 }}>Re-upload</span>
-                            )}
-                            <label htmlFor="file-aadharBack" className="upd-select-lbl" style={{ padding: "4px 10px", fontSize: "0.74rem" }}>
-                              Choose
-                            </label>
-                            <input 
-                              type="file" 
-                              id="file-aadharBack" 
-                              className="upd-file-input" 
-                              accept=".pdf,image/*"
-                              onChange={(e) => handleFileChange("aadharBack", e.target.files[0], e.target)} 
-                            />
-                          </>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
+                      return (
+                        <div className={`aadhar-dual-box ${docs.aadharBack || isUploadedBack ? "has-file" : ""}`}>
+                          <span className="aadhar-dual-box-title">Back Side</span>
+                          {isUploadedBack ? (
+                            <div style={{ padding: '4px 8px', background: '#D1FAE5', color: '#065F46', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <CheckCircle2 size={13} color="#059669" /> Uploaded
+                            </div>
+                          ) : docs.aadharBack ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', width: '100%' }}>
+                              <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#1E293B', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {docs.aadharBack.name}
+                              </span>
+                              <button 
+                                type="button" 
+                                className="upd-remove-btn" 
+                                style={{ fontSize: '0.7rem' }}
+                                onClick={() => setDocs(prev => ({ ...prev, aadharBack: null }))}
+                              >
+                                &times; Remove
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              {isRejectedBack && (
+                                <span style={{ color: '#DC2626', fontSize: '0.68rem', fontWeight: 600 }}>Re-upload</span>
+                              )}
+                              <label htmlFor="file-aadharBack" className="upd-select-lbl" style={{ padding: "4px 10px", fontSize: "0.74rem" }}>
+                                Choose
+                              </label>
+                              <input 
+                                type="file" 
+                                id="file-aadharBack" 
+                                className="upd-file-input" 
+                                accept=".pdf,image/*"
+                                onChange={(e) => handleFileChange("aadharBack", e.target.files[0], e.target)} 
+                              />
+                            </>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </>
               )}
             </div>
 
