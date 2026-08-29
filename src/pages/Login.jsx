@@ -6,7 +6,10 @@ import {
   Lock,
   Mail,
   AlertTriangle,
-  Key
+  Key,
+  Eye,
+  EyeOff,
+  CheckCircle2
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import "./styles/login.css";
@@ -36,12 +39,13 @@ export default function Login() {
   // ── Tab state: "borrower" | "partner"
   const [activeTab, setActiveTab] = useState("borrower");
 
-  // ── Login mode: "password" | "otp"
+  // ── Login mode: "password" | "otp" | "forgot"
   const [loginMode, setLoginMode] = useState("password");
 
   // ── Password login state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   // ── OTP login state
   const [otpEmail, setOtpEmail] = useState("");
@@ -55,6 +59,9 @@ export default function Login() {
   const [forgotStep, setForgotStep] = useState("email"); // "email" | "verify" | "reset"
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordResetSuccess, setPasswordResetSuccess] = useState(false);
 
   // ── Shared state
   const [error, setError] = useState("");
@@ -81,6 +88,9 @@ export default function Login() {
     setOtpTimer(0);
     setNewPassword("");
     setConfirmPassword("");
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+    setPasswordResetSuccess(false);
   };
 
   // ── PASSWORD LOGIN ──────────────────────────────────────────────────────────
@@ -211,6 +221,82 @@ export default function Login() {
     }
   }
 
+  // ── FORGOT PASSWORD STEP 2: VERIFY OTP ──────────────────────────────────────
+  async function handleVerifyForgotOTP(e) {
+    e.preventDefault();
+    if (loading) return;
+    const otpCode = otp.join("");
+    if (otpCode.length !== 4) {
+      setError("Please enter the 4-digit OTP.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/verify-email-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: otpEmail.trim().toLowerCase(), otp: otpCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "OTP verification failed.");
+      setForgotStep("reset");
+      setError("");
+    } catch (err) {
+      setError(err.message || "Invalid OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ── FORGOT PASSWORD STEP 3: RESET PASSWORD & SIGN IN ────────────────────────
+  async function handleResetPassword(e) {
+    e.preventDefault();
+    if (loading) return;
+    if (newPassword.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/reset-password`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: otpEmail.trim().toLowerCase(),
+          otp: otp.join(""),
+          newPassword
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to reset password.");
+
+      if (data.accessToken) localStorage.setItem("accessToken", data.accessToken);
+      const userPayload = data.user;
+      setPasswordResetSuccess(true);
+      setTimeout(() => {
+        if (userPayload) {
+          login(userPayload);
+          roleRedirect(userPayload, navigate, redirectTarget);
+        } else {
+          switchMode("password");
+          setEmail(otpEmail.trim().toLowerCase());
+          setPassword(newPassword);
+        }
+      }, 1200);
+    } catch (err) {
+      setError(err.message || "Failed to reset password.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleResendOTP() {
     if (otpTimer > 0 || otpSending) return;
     setOtp(["", "", "", ""]);
@@ -314,16 +400,36 @@ export default function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
-              <div className="input-wrap">
+              <div className="input-wrap" style={{ position: "relative" }}>
                 <span className="icon"><Lock size={16} /></span>
                 <input
                   id="login-password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  style={{ paddingRight: "40px" }}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: "absolute",
+                    right: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "none",
+                    border: "none",
+                    color: "#94A3B8",
+                    cursor: "pointer",
+                    padding: 0,
+                    display: "flex",
+                    alignItems: "center"
+                  }}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
               <button
                 type="submit"
@@ -502,8 +608,9 @@ export default function Login() {
                 </form>
               )}
 
+              {/* ── STEP 2: VERIFY OTP ── */}
               {forgotStep === "verify" && (
-                <form onSubmit={handleOTPLogin} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <form onSubmit={handleVerifyForgotOTP} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                   <div style={{ textAlign: "center" }}>
                     <div style={{
                       display: "inline-flex",
@@ -572,26 +679,8 @@ export default function Login() {
                     className={`btn-primary ${activeTab === "partner" ? "partner-btn" : ""}`}
                     style={{ height: "44px" }}
                   >
-                    {loading ? "Verifying…" : activeTab === "partner" ? "Verify & Sign In to Partner Dashboard" : "Verify & Sign In to Borrower Dashboard"}
+                    {loading ? "Verifying OTP…" : "Verify OTP & Continue →"}
                   </button>
-
-                  {/* Option to reset password */}
-                  <div style={{ textAlign: "center", marginTop: "-4px" }}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (otp.join("").length !== 4) {
-                          setError("Please enter the 4-digit OTP from your email first.");
-                          return;
-                        }
-                        setError("");
-                        setForgotStep("reset");
-                      }}
-                      style={{ background: "none", border: "none", color: "var(--teal)", fontSize: ".78rem", cursor: "pointer", textDecoration: "underline" }}
-                    >
-                      Or set a new password →
-                    </button>
-                  </div>
 
                   {/* Resend */}
                   <div style={{ textAlign: "center", fontSize: ".78rem", color: "var(--text2)" }}>
@@ -617,43 +706,115 @@ export default function Login() {
                 </form>
               )}
 
+              {/* ── STEP 3: RESET PASSWORD ── */}
               {forgotStep === "reset" && (
-                <form onSubmit={async (e) => {
-                  e.preventDefault();
-                  if (newPassword !== confirmPassword) { setError("Passwords do not match"); return; }
-                  if (newPassword.length < 6) { setError("Password must be at least 6 characters"); return; }
-                  setError(""); setLoading(true);
-                  try {
-                    const res = await fetch(`${API_BASE}/reset-password`, {
-                      method: "POST", headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ email: otpEmail.trim().toLowerCase(), otp: otp.join(""), newPassword })
-                    });
-                    if (!res.ok) throw new Error((await res.json()).message || "Failed to reset password");
-                    switchMode("password"); // Back to normal login
-                    setEmail(otpEmail.trim().toLowerCase());
-                    setPassword(newPassword);
-                    alert("Password reset successfully! Please log in with your new password.");
-                  } catch (err) { setError(err.message); } finally { setLoading(false); }
-                }} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <p style={{ margin: "0 0 4px", fontSize: ".83rem", color: "var(--text2)", lineHeight: 1.6 }}>
-                    Create a new secure password for <strong style={{ color: "var(--navy)" }}>{otpEmail}</strong>.
-                  </p>
-                  <div className="input-wrap">
-                    <span className="icon"><Lock size={16} /></span>
-                    <input type="password" placeholder="New Password (min 6 chars)" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-                  </div>
-                  <div className="input-wrap">
-                    <span className="icon"><Lock size={16} /></span>
-                    <input type="password" placeholder="Confirm New Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-                  </div>
-                  <button type="submit" disabled={loading} className={`btn-primary ${activeTab === "partner" ? "partner-btn" : ""}`} style={{ height: "44px", marginTop: "4px" }}>
-                    {loading ? "Resetting…" : "Save New Password"}
-                  </button>
-                  <div style={{ textAlign: "center", marginTop: "8px" }}>
-                    <button type="button" onClick={() => setForgotStep("verify")} style={{ background: "none", border: "none", color: "var(--teal)", fontSize: ".8rem", cursor: "pointer", textDecoration: "underline" }}>
-                      ← Back to OTP verification
-                    </button>
-                  </div>
+                <form onSubmit={handleResetPassword} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {passwordResetSuccess ? (
+                    <div style={{
+                      padding: "16px",
+                      background: "#F0FDF4",
+                      border: "1px solid #BBF7D0",
+                      borderRadius: "12px",
+                      textAlign: "center",
+                      color: "#15803D"
+                    }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontWeight: 800, fontSize: "1rem", marginBottom: "4px" }}>
+                        <CheckCircle2 size={20} /> Password Changed Successfully!
+                      </div>
+                      <div style={{ fontSize: ".82rem", color: "#166534" }}>
+                        Redirecting to your {activeTab === "partner" ? "Partner" : "Borrower"} dashboard…
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ textAlign: "center", marginBottom: "4px" }}>
+                        <div style={{ fontWeight: 800, fontSize: "1.1rem", color: "var(--navy)", marginBottom: "4px" }}>
+                          Set New Password
+                        </div>
+                        <p style={{ margin: 0, fontSize: ".82rem", color: "var(--text2)" }}>
+                          Create a new password for <strong style={{ color: "var(--navy)" }}>{otpEmail}</strong>
+                        </p>
+                      </div>
+
+                      <div className="input-wrap" style={{ position: "relative" }}>
+                        <span className="icon"><Lock size={16} /></span>
+                        <input
+                          id="new-password-input"
+                          type={showNewPassword ? "text" : "password"}
+                          placeholder="New Password (min 6 characters)"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          style={{ paddingRight: "40px" }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          style={{
+                            position: "absolute",
+                            right: "12px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            background: "none",
+                            border: "none",
+                            color: "#94A3B8",
+                            cursor: "pointer",
+                            padding: 0,
+                            display: "flex",
+                            alignItems: "center"
+                          }}
+                        >
+                          {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+
+                      <div className="input-wrap" style={{ position: "relative" }}>
+                        <span className="icon"><Lock size={16} /></span>
+                        <input
+                          id="confirm-password-input"
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="Confirm New Password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          style={{ paddingRight: "40px" }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          style={{
+                            position: "absolute",
+                            right: "12px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            background: "none",
+                            border: "none",
+                            color: "#94A3B8",
+                            cursor: "pointer",
+                            padding: 0,
+                            display: "flex",
+                            alignItems: "center"
+                          }}
+                        >
+                          {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+
+                      <button
+                        id="change-password-btn"
+                        type="submit"
+                        disabled={loading}
+                        className={`btn-primary ${activeTab === "partner" ? "partner-btn" : ""}`}
+                        style={{ height: "44px", marginTop: "4px" }}
+                      >
+                        {loading ? "Updating Password…" : "Change Password & Sign In"}
+                      </button>
+
+                      <div style={{ textAlign: "center", marginTop: "4px" }}>
+                        <button type="button" onClick={() => setForgotStep("verify")} style={{ background: "none", border: "none", color: "var(--teal)", fontSize: ".8rem", cursor: "pointer", textDecoration: "underline" }}>
+                          ← Back to OTP verification
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </form>
               )}
             </>
