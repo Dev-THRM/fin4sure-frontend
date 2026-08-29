@@ -23,7 +23,8 @@ export default function UploadDocs() {
 
   // Document states
   const [docs, setDocs] = useState({
-    aadhar: null,
+    aadharFront: null,
+    aadharBack: null,
     pan: null,
     salarySlip: null,
     bankStatement: null,
@@ -56,7 +57,8 @@ export default function UploadDocs() {
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
   const docConfig = [
-    { key: "aadhar", title: "Aadhaar Card", icon: <IdCard size={28} />, desc: "Front & back scanned copy in single PDF/Image", type: "aadhar" },
+    { key: "aadharFront", title: "Aadhaar Card (Front)", icon: <IdCard size={28} />, desc: "Front side copy showing photo & Aadhaar number", type: "aadhar_front" },
+    { key: "aadharBack", title: "Aadhaar Card (Back)", icon: <IdCard size={28} />, desc: "Back side copy showing address", type: "aadhar_back" },
     { key: "pan", title: "PAN Card", icon: <CreditCard size={28} />, desc: "Clear scanned copy of your PAN card", type: "pan" },
     { key: "salarySlip", title: "Salary Slips", icon: <FileText size={28} />, desc: "Latest 3 months salary slips merged in one PDF", type: "salary slip" },
     { key: "bankStatement", title: "Bank Statement", icon: <Landmark size={28} />, desc: "Latest 6 months bank account statements in PDF", type: "bank statement" },
@@ -107,7 +109,8 @@ export default function UploadDocs() {
     const formData = new FormData();
     formData.append("application_id", applicationId);
 
-    if (docs.aadhar) formData.append("aadhar", docs.aadhar);
+    if (docs.aadharFront) formData.append("aadharFront", docs.aadharFront);
+    if (docs.aadharBack) formData.append("aadharBack", docs.aadharBack);
     if (docs.pan) formData.append("pan", docs.pan);
     if (docs.salarySlip) formData.append("salarySlip", docs.salarySlip);
     if (docs.bankStatement) formData.append("bankStatement", docs.bankStatement);
@@ -173,7 +176,10 @@ export default function UploadDocs() {
         <form onSubmit={handleSubmit} className="upd-form">
           <div className="upd-grid">
             {docConfig.map((item) => {
-              const existing = existingDocs.find(d => d.document_type === item.type);
+              const existing = existingDocs.find(d => 
+                d.document_type === item.type || 
+                (item.type === 'aadhar_front' && d.document_type === 'aadhar')
+              );
               const isRejected = existing?.status === 'rejected';
               const isUploaded = existing && !isRejected;
               

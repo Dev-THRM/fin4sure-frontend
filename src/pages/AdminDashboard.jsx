@@ -3845,10 +3845,20 @@ export default function AdminDashboard() {
                   <div style={{ fontSize: '0.85rem', color: '#64748B' }}>No documents uploaded yet.</div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {editLeadDocs.map(doc => (
+                    {editLeadDocs.map(doc => {
+                      const docTypeLabel = {
+                        'aadhar_front': 'Aadhaar Card (Front)',
+                        'aadhar_back': 'Aadhaar Card (Back)',
+                        'aadhar': 'Aadhaar Card',
+                        'pan': 'PAN Card',
+                        'salary slip': 'Salary Slip',
+                        'bank statement': 'Bank Statement'
+                      }[String(doc.document_type || '').toLowerCase().trim()] || doc.document_type;
+
+                      return (
                       <div key={doc.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#FFFFFF', padding: '8px 12px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '0.85rem' }}>
                         <div>
-                          <strong style={{ color: '#0F172A', textTransform: 'capitalize' }}>{doc.document_type}</strong>
+                          <strong style={{ color: '#0F172A' }}>{docTypeLabel}</strong>
                           <div style={{ color: '#64748B', fontSize: '0.75rem', marginTop: '2px' }}>
                             Status: <span style={{ 
                               color: doc.status === 'verified' ? '#059669' : doc.status === 'rejected' ? '#DC2626' : '#D97706', 
@@ -3866,7 +3876,7 @@ export default function AdminDashboard() {
                                 type: 'verify',
                                 doc,
                                 title: 'Verify Document',
-                                desc: `Are you sure you want to verify the "${doc.document_type}"? Once verified, this document will be locked and approved.`,
+                                desc: `Are you sure you want to verify the "${docTypeLabel}"? Once verified, this document will be locked and approved.`,
                                 btnText: 'Yes, Verify Document',
                                 btnColor: '#10B981',
                                 onConfirm: async () => {
@@ -3892,7 +3902,7 @@ export default function AdminDashboard() {
                                 type: 'reject',
                                 doc,
                                 title: 'Reject Document',
-                                desc: `Are you sure you want to reject this "${doc.document_type}"? The customer will be prompted on their dashboard to re-upload a clean copy.`,
+                                desc: `Are you sure you want to reject this "${docTypeLabel}"? The customer will be prompted on their dashboard to re-upload a clean copy.`,
                                 btnText: 'Reject & Request Re-upload',
                                 btnColor: '#EF4444',
                                 onConfirm: async () => {
@@ -3915,7 +3925,7 @@ export default function AdminDashboard() {
                           )}
                         </div>
                       </div>
-                    ))}
+                    )})}
                   </div>
                 )}
               </div>
