@@ -30,8 +30,6 @@ export default function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/admin" element={<AdminLogin />} />
-        <Route path="/admin-login" element={<AdminLogin />} />
-        <Route path="/admin-portal" element={<AdminLogin />} />
         <Route path="/EMI-calculator" element={<Calculator />} />
         <Route path="/broker-register" element={<BrokerRegistration />} />
         <Route path="/partner" element={<PartnerInfo />} />
