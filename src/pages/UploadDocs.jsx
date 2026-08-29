@@ -121,18 +121,18 @@ export default function UploadDocs() {
     const formData = new FormData();
     formData.append("application_id", applicationId);
 
-    if (aadharMode === "combined" && docs.aadharCombined) {
+    // Unconditionally append any selected Aadhaar files
+    if (docs.aadharCombined) {
       formData.append("aadharCombined", docs.aadharCombined);
       formData.append("types", "aadhar");
-    } else if (aadharMode === "separate") {
-      if (docs.aadharFront) {
-        formData.append("aadharFront", docs.aadharFront);
-        formData.append("types", "aadhar_front");
-      }
-      if (docs.aadharBack) {
-        formData.append("aadharBack", docs.aadharBack);
-        formData.append("types", "aadhar_back");
-      }
+    }
+    if (docs.aadharFront) {
+      formData.append("aadharFront", docs.aadharFront);
+      formData.append("types", "aadhar_front");
+    }
+    if (docs.aadharBack) {
+      formData.append("aadharBack", docs.aadharBack);
+      formData.append("types", "aadhar_back");
     }
 
     if (docs.pan) {
@@ -192,6 +192,9 @@ export default function UploadDocs() {
 
       if (resData.allUploaded) {
         setSuccess(true);
+        setTimeout(() => {
+          navigate(targetDashboard);
+        }, 1800);
       } else {
         setSavedMsg(resData.message || "Document(s) saved successfully! Please upload the remaining documents to progress to Credit.");
       }
