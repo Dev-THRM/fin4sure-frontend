@@ -38,29 +38,35 @@ export default function UploadDocs() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [savedMsg, setSavedMsg] = useState("");
   
   const [existingDocs, setExistingDocs] = useState([]);
   const [loadingExisting, setLoadingExisting] = useState(true);
 
-  React.useEffect(() => {
+  const fetchExistingDocs = async () => {
     const token = localStorage.getItem("accessToken");
     const headers = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    fetch(`/api/client/application-documents/${applicationId}`, { credentials: 'include', headers })
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setExistingDocs(data);
-          // If already uploaded separate front/back, set mode to separate
-          const hasFrontOrBack = data.some(d => d.document_type === 'aadhar_front' || d.document_type === 'aadhar_back');
-          if (hasFrontOrBack) {
-            setAadharMode("separate");
-          }
+    try {
+      const res = await fetch(`/api/client/application-documents/${applicationId}`, { credentials: 'include', headers });
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setExistingDocs(data);
+        const hasFrontOrBack = data.some(d => d.document_type === 'aadhar_front' || d.document_type === 'aadhar_back');
+        if (hasFrontOrBack) {
+          setAadharMode("separate");
         }
-      })
-      .catch(console.error)
-      .finally(() => setLoadingExisting(false));
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingExisting(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchExistingDocs();
   }, [applicationId]);
 
   const MAX_FILE_SIZE_MB = 1;
@@ -94,7 +100,7 @@ export default function UploadDocs() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isFormValid) return;
+    if (!hasNewFileToUpload) return;
 
     // Check size limit before sending network request
     for (const [docKey, file] of Object.entries(docs)) {
@@ -106,6 +112,7 @@ export default function UploadDocs() {
     }
 
     setErrorMsg("");
+    setSavedMsg("");
     setLoading(true);
 
     const formData = new FormData();
@@ -153,8 +160,8 @@ export default function UploadDocs() {
       if (!res.ok) {
         let errorText = "Failed to upload documents";
         try {
-          const data = await res.json();
-          errorText = data.message || errorText;
+          const errData = await res.json();
+          errorText = errData.message || errorText;
         } catch (_) {
           if (res.status === 413) {
             errorText = "The uploaded files exceed the server limit. Please ensure each file is under 1 MB.";
@@ -165,7 +172,26 @@ export default function UploadDocs() {
         throw new Error(errorText);
       }
 
-      setSuccess(true);
+      const resData = await res.json();
+
+      // Reset local file inputs
+      setDocs({
+        aadharCombined: null,
+        aadharFront: null,
+        aadharBack: null,
+        pan: null,
+        salarySlip: null,
+        bankStatement: null,
+      });
+
+      // Reload updated documents from database
+      await fetchExistingDocs();
+
+      if (resData.allUploaded) {
+        setSuccess(true);
+      } else {
+        setSavedMsg(resData.message || "Document(s) saved successfully! Please upload the remaining documents to progress to Credit.");
+      }
     } catch (err) {
       setErrorMsg(err.message || "An unexpected error occurred.");
     } finally {
@@ -178,13 +204,24 @@ export default function UploadDocs() {
     return existingDocs.find(d => d.document_type === docType);
   };
 
-  // Validation
-  const isAadharValid = aadharMode === "combined" 
-    ? (docs.aadharCombined || getExistingDoc("aadhar")?.status !== "rejected" && getExistingDoc("aadhar"))
-    : ((docs.aadharFront || getExistingDoc("aadhar_front")?.status !== "rejected" && getExistingDoc("aadhar_front")) &&
-       (docs.aadharBack || getExistingDoc("aadhar_back")?.status !== "rejected" && getExistingDoc("aadhar_back")));
+  // ── Validation: Check if each compulsory document category is completed ──
+  const hasAadhaar = aadharMode === "combined" 
+    ? Boolean(docs.aadharCombined || (getExistingDoc("aadhar") && getExistingDoc("aadhar")?.status !== "rejected") || (getExistingDoc("aadhar_combined") && getExistingDoc("aadhar_combined")?.status !== "rejected"))
+    : Boolean(
+        (docs.aadharFront || (getExistingDoc("aadhar_front") && getExistingDoc("aadhar_front")?.status !== "rejected")) &&
+        (docs.aadharBack || (getExistingDoc("aadhar_back") && getExistingDoc("aadhar_back")?.status !== "rejected"))
+      );
 
-  const isFormValid = Object.values(docs).some((f) => f !== null);
+  const hasPan = Boolean(docs.pan || (getExistingDoc("pan") && getExistingDoc("pan")?.status !== "rejected"));
+  const hasSalary = Boolean(docs.salarySlip || (getExistingDoc("salary slip") && getExistingDoc("salary slip")?.status !== "rejected"));
+  const hasBank = Boolean(docs.bankStatement || (getExistingDoc("bank statement") && getExistingDoc("bank statement")?.status !== "rejected"));
+
+  const completedCount = (hasAadhaar ? 1 : 0) + (hasPan ? 1 : 0) + (hasSalary ? 1 : 0) + (hasBank ? 1 : 0);
+  const isAll4Ready = completedCount === 4;
+  const hasNewFileToUpload = Object.values(docs).some((f) => f !== null);
+
+  // Can submit if all 4 categories are fulfilled AND there is at least one new file, or saving partial files
+  const canSubmit = isAll4Ready && hasNewFileToUpload;
 
   // Render a document card
   const renderCard = (key, title, desc, icon, docType) => {
@@ -260,6 +297,39 @@ export default function UploadDocs() {
             <Info size={15} /> Maximum allowed file size: <strong>1 MB per document</strong> (PDF, PNG, JPG, JPEG)
           </div>
         </div>
+
+        {/* Progress & 4-Document Compulsory Requirement Banner */}
+        <div style={{
+          margin: '16px 0 20px 0',
+          padding: '12px 18px',
+          borderRadius: '12px',
+          background: isAll4Ready ? '#F0FDF4' : '#FFFBEB',
+          border: `1px solid ${isAll4Ready ? '#BBF7D0' : '#FDE68A'}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '10px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {isAll4Ready ? <CheckCircle2 size={18} color="#16A34A" /> : <AlertTriangle size={18} color="#D97706" />}
+            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: isAll4Ready ? '#15803D' : '#B45309' }}>
+              {isAll4Ready 
+                ? "All 4 compulsory documents are ready. Click below to submit and proceed to Credit evaluation!" 
+                : "All 4 documents (Aadhaar, PAN, Salary Slips, Bank Statement) are compulsory to progress your loan to Credit."}
+            </span>
+          </div>
+          <div style={{ fontSize: '0.82rem', fontWeight: 700, color: isAll4Ready ? '#16A34A' : '#D97706', background: isAll4Ready ? '#DCFCE7' : '#FEF3C7', padding: '4px 10px', borderRadius: '6px' }}>
+            {completedCount} of 4 Complete
+          </div>
+        </div>
+
+        {savedMsg && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#F0FDF4', border: '1px solid #86EFAC', color: '#15803D', padding: '12px 16px', borderRadius: '12px', marginBottom: '20px', fontSize: '0.88rem', fontWeight: 600 }}>
+            <CheckCircle2 size={18} className="shrink-0" />
+            <span>{savedMsg}</span>
+          </div>
+        )}
 
         {errorMsg && (
           <div className="upd-alert-error" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -497,10 +567,10 @@ export default function UploadDocs() {
             </button>
             <button 
               type="submit" 
-              className={`upd-submit-btn ${!isFormValid || loading ? 'disabled' : ''}`}
-              disabled={!isFormValid || loading}
+              className={`upd-submit-btn ${!hasNewFileToUpload || loading ? 'disabled' : ''}`}
+              disabled={!hasNewFileToUpload || loading}
             >
-              {loading ? "Uploading..." : existingDocs.length > 0 ? "Upload Missing Documents" : "Submit Documents"}
+              {loading ? "Uploading..." : isAll4Ready ? "Submit All Documents (Proceed to Credit)" : "Save Uploaded Documents"}
             </button>
           </div>
         </form>
