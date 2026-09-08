@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   BookOpen,
@@ -23,6 +23,20 @@ import "./styles/about.css";
 
 export default function About() {
   const [activeTab, setActiveTab] = useState("story");
+  const [lenderCount, setLenderCount] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/lenders')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.success && Array.isArray(data.data) && data.data.length > 0) {
+          setLenderCount(data.data.length);
+        }
+      })
+      .catch(err => console.error("Error fetching lenders count:", err));
+  }, []);
+
+  const lenderDisplay = lenderCount !== null ? `${lenderCount}+` : "30+";
 
   return (
     <div className="about-wrap">
@@ -51,7 +65,7 @@ export default function About() {
               <div className="ahs-l">PARTNERS</div>
             </div>
             <div className="ahs">
-              <div className="ahs-v">30+</div>
+              <div className="ahs-v">{lenderDisplay}</div>
               <div className="ahs-l">LENDERS</div>
             </div>
           </div>
@@ -115,7 +129,7 @@ export default function About() {
                 </div>
                 <h3>Our Mission</h3>
                 <p>
-                  Simplify access to credit by leveraging technology, expert advisory, and a curated network of 30+ lending partners across India.
+                  Simplify access to credit by leveraging technology, expert advisory, and a curated network of {lenderDisplay} lending partners across India.
                 </p>
               </div>
 
@@ -210,7 +224,7 @@ export default function About() {
             <div className="about-why-grid">
               <div className="about-why-card">
                 <div className="awc-num">01</div>
-                <h4>30+ Lenders, One Place</h4>
+                <h4>{lenderDisplay} Lenders, One Place</h4>
                 <p>
                   Compare banks, NBFCs and HFCs side by side instead of settling for your current bank's rate.
                 </p>
@@ -280,7 +294,7 @@ export default function About() {
                   <Rocket size={36} color="#A5F3FC" />
                 </div>
                 <h3>Ready to get started?</h3>
-                <p>Compare pre-qualified offers from 30+ top banks in under 2 minutes.</p>
+                <p>Compare pre-qualified offers from {lenderDisplay} top banks in under 2 minutes.</p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', maxWidth: '240px', position: 'relative', zIndex: 2 }}>
                   <Link to="/" className="acc-cta-btn">

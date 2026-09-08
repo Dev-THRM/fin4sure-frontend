@@ -1,9 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./styles/partner.css";
 
 export default function PartnerInfo() {
   const [openFaq, setOpenFaq] = useState(null);
+  const [lenderCount, setLenderCount] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/lenders')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.success && Array.isArray(data.data) && data.data.length > 0) {
+          setLenderCount(data.data.length);
+        }
+      })
+      .catch(err => console.error("Error fetching lenders count:", err));
+  }, []);
+
+  const lenderDisplay = lenderCount !== null ? `${lenderCount}+` : "30+";
 
   const toggleFaq = (index) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -32,7 +46,7 @@ export default function PartnerInfo() {
           Grow <em>together</em> with Finn4sure
         </h2>
         <p>
-          Join India's fastest-growing loan distribution network. Get dedicated support and help your clients access competitive financing from 30+ lenders.
+          Join India's fastest-growing loan distribution network. Get dedicated support and help your clients access competitive financing from {lenderDisplay} lenders.
         </p>
 
         <div className="partner-perks">
@@ -45,7 +59,7 @@ export default function PartnerInfo() {
             <div className="pl">Loans Disbursed</div>
           </div>
           <div className="perk-box">
-            <div className="pv">30+</div>
+            <div className="pv">{lenderDisplay}</div>
             <div className="pl">Lending Partners</div>
           </div>
           <div className="perk-box">

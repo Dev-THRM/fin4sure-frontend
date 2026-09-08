@@ -12,6 +12,20 @@ export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeView, setActiveView] = useState("roles");
+  const [lenderCount, setLenderCount] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/lenders')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.success && Array.isArray(data.data) && data.data.length > 0) {
+          setLenderCount(data.data.length);
+        }
+      })
+      .catch(err => console.error("Error fetching lenders count:", err));
+  }, []);
+
+  const lenderDisplay = lenderCount !== null ? `${lenderCount}+` : "30+";
 
   useEffect(() => {
     if (location.state?.activeView) {
@@ -73,7 +87,7 @@ export default function Home() {
                   <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
-                  30+ Lenders
+                  {lenderDisplay} Lenders
                 </span>
               </div>
             </>
