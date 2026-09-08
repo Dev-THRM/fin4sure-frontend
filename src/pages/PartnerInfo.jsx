@@ -17,7 +17,9 @@ export default function PartnerInfo() {
       .catch(err => console.error("Error fetching lenders count:", err));
   }, []);
 
-  const lenderDisplay = lenderCount !== null ? `${lenderCount}+` : "30+";
+  const lenderDisplay = lenderCount !== null 
+    ? (lenderCount >= 10 ? `${Math.floor(lenderCount / 10) * 10}+` : `${lenderCount}+`)
+    : "80+";
 
   const toggleFaq = (index) => {
     setOpenFaq(openFaq === index ? null : index);
