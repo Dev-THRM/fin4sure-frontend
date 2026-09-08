@@ -103,8 +103,8 @@ export default function UploadDocs() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isAll4Ready) return;
-    if (!hasNewFileToUpload && isAll4Ready) {
+    if (!isMandatoryReady) return;
+    if (!hasNewFileToUpload && isMandatoryReady) {
       navigate(targetDashboard);
       return;
     }
@@ -200,7 +200,7 @@ export default function UploadDocs() {
           navigate(targetDashboard);
         }, 1800);
       } else {
-        setSavedMsg(resData.message || "Document(s) saved successfully! Please upload the remaining documents to progress to Credit.");
+        setSavedMsg(resData.message || "Document(s) saved successfully! Please upload the remaining mandatory documents to progress to Credit.");
       }
     } catch (err) {
       setErrorMsg(err.message || "An unexpected error occurred.");
@@ -238,7 +238,7 @@ export default function UploadDocs() {
     });
   };
 
-  // ── Validation: Check if each compulsory document category is completed ──
+  // ── Validation: Check if each mandatory document category is completed ──
   const isAadhaarCombinedUploaded = Boolean(
     docs.aadharCombined || 
     (getExistingDoc("aadhar") && getExistingDoc("aadhar")?.status !== "rejected") || 
@@ -255,12 +255,13 @@ export default function UploadDocs() {
   const hasSalary = Boolean(docs.salarySlip || (getExistingDoc("salary slip") && getExistingDoc("salary slip")?.status !== "rejected"));
   const hasBank = Boolean(docs.bankStatement || (getExistingDoc("bank statement") && getExistingDoc("bank statement")?.status !== "rejected"));
 
-  const completedCount = (hasAadhaar ? 1 : 0) + (hasPan ? 1 : 0) + (hasSalary ? 1 : 0) + (hasBank ? 1 : 0);
-  const isAll4Ready = completedCount === 4;
+  // Mandatory: Aadhaar, PAN, Bank Statement (3 total)
+  const mandatoryCompletedCount = (hasAadhaar ? 1 : 0) + (hasPan ? 1 : 0) + (hasBank ? 1 : 0);
+  const isMandatoryReady = mandatoryCompletedCount === 3;
   const hasNewFileToUpload = Object.values(docs).some((f) => f !== null);
 
   // Render a document card
-  const renderCard = (key, title, desc, icon, docType) => {
+  const renderCard = (key, title, desc, icon, docType, isOptional = false) => {
     const existing = getExistingDoc(docType);
     const isRejected = existing?.status === 'rejected';
     const isUploaded = existing && !isRejected;
@@ -275,7 +276,22 @@ export default function UploadDocs() {
         <div className="upd-card-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {icon}
         </div>
-        <h4>{title}</h4>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '6px' }}>
+          <h4 style={{ margin: 0 }}>{title}</h4>
+          {isOptional && (
+            <span style={{
+              fontSize: '0.70rem',
+              fontWeight: 700,
+              background: '#F1F5F9',
+              color: '#475569',
+              border: '1px solid #CBD5E1',
+              padding: '2px 8px',
+              borderRadius: '12px'
+            }}>
+              Optional
+            </span>
+          )}
+        </div>
         <p className="upd-card-desc">{desc}</p>
 
         {isUploaded ? (
@@ -327,20 +343,20 @@ export default function UploadDocs() {
           <span className="upd-tag" style={{ display: 'inline-block', marginBottom: '8px', padding: '4px 12px', background: '#EFF6FF', color: '#1E40AF', borderRadius: '6px', fontSize: '.8rem', fontWeight: 700 }}>
             Application #{applicationId}
           </span>
-          <h2>Upload Compulsory Documents</h2>
-          <p>Please upload all the required documents to progress your loan application to credit evaluation.</p>
+          <h2>Upload Application Documents</h2>
+          <p>Please upload the mandatory documents (Aadhaar, PAN, Bank Statement) to progress your loan application to Credit evaluation. Salary slips are optional.</p>
           <div style={{ marginTop: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#F0F9FF', border: '1px solid #BAE6FD', color: '#0369A1', padding: '6px 14px', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 600 }}>
             <Info size={15} /> Maximum allowed file size: <strong>1 MB per document</strong> (PDF, PNG, JPG, JPEG)
           </div>
         </div>
 
-        {/* Progress & 4-Document Compulsory Requirement Banner */}
+        {/* Progress & Mandatory Document Requirement Banner */}
         <div style={{
           margin: '16px 0 20px 0',
           padding: '12px 18px',
           borderRadius: '12px',
-          background: isAll4Ready ? '#F0FDF4' : '#FFFBEB',
-          border: `1px solid ${isAll4Ready ? '#BBF7D0' : '#FDE68A'}`,
+          background: isMandatoryReady ? '#F0FDF4' : '#FFFBEB',
+          border: `1px solid ${isMandatoryReady ? '#BBF7D0' : '#FDE68A'}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -348,15 +364,15 @@ export default function UploadDocs() {
           gap: '10px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {isAll4Ready ? <CheckCircle2 size={18} color="#16A34A" /> : <AlertTriangle size={18} color="#D97706" />}
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: isAll4Ready ? '#15803D' : '#B45309' }}>
-              {isAll4Ready 
-                ? "All 4 compulsory documents are ready. Click below to submit and proceed to Credit evaluation!" 
-                : "All 4 documents (Aadhaar, PAN, Salary Slips, Bank Statement) are compulsory to progress your loan to Credit."}
+            {isMandatoryReady ? <CheckCircle2 size={18} color="#16A34A" /> : <AlertTriangle size={18} color="#D97706" />}
+            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: isMandatoryReady ? '#15803D' : '#B45309' }}>
+              {isMandatoryReady 
+                ? "All mandatory documents (Aadhaar, PAN, Bank Statement) are ready. Click below to submit and proceed to Credit evaluation!" 
+                : "Aadhaar, PAN, and Bank Statement are mandatory to progress your loan to Credit. Salary Slips are optional."}
             </span>
           </div>
-          <div style={{ fontSize: '0.82rem', fontWeight: 700, color: isAll4Ready ? '#16A34A' : '#D97706', background: isAll4Ready ? '#DCFCE7' : '#FEF3C7', padding: '4px 10px', borderRadius: '6px' }}>
-            {completedCount} of 4 Complete
+          <div style={{ fontSize: '0.82rem', fontWeight: 700, color: isMandatoryReady ? '#16A34A' : '#D97706', background: isMandatoryReady ? '#DCFCE7' : '#FEF3C7', padding: '4px 10px', borderRadius: '6px' }}>
+            {mandatoryCompletedCount} of 3 Mandatory Complete {hasSalary ? " • Salary Slips Added" : ""}
           </div>
         </div>
 
@@ -544,13 +560,14 @@ export default function UploadDocs() {
               "pan"
             )}
 
-            {/* ── CARD 3: SALARY SLIPS ── */}
+            {/* ── CARD 3: SALARY SLIPS (OPTIONAL) ── */}
             {renderCard(
               "salarySlip",
               "Salary Slips",
-              "Latest 3 months salary slips merged in one PDF",
+              "Latest 3 months salary slips merged in one PDF (Optional)",
               <FileText size={28} />,
-              "salary slip"
+              "salary slip",
+              true
             )}
 
             {/* ── CARD 4: BANK STATEMENT ── */}
@@ -575,20 +592,20 @@ export default function UploadDocs() {
             </button>
             <button 
               type="submit" 
-              className={`upd-submit-btn ${!isAll4Ready || loading ? 'disabled' : ''}`}
-              disabled={!isAll4Ready || loading}
+              className={`upd-submit-btn ${!isMandatoryReady || loading ? 'disabled' : ''}`}
+              disabled={!isMandatoryReady || loading}
               style={{
-                cursor: !isAll4Ready || loading ? 'not-allowed' : 'pointer',
-                opacity: !isAll4Ready || loading ? 0.65 : 1
+                cursor: !isMandatoryReady || loading ? 'not-allowed' : 'pointer',
+                opacity: !isMandatoryReady || loading ? 0.65 : 1
               }}
             >
               {loading 
                 ? "Uploading..." 
-                : hasNewFileToUpload && isAll4Ready
-                  ? "Submit All Documents (Proceed to Credit)"
-                  : isAll4Ready
+                : hasNewFileToUpload && isMandatoryReady
+                  ? "Submit Documents (Proceed to Credit)"
+                  : isMandatoryReady
                     ? "Proceed to Dashboard (Credit Stage) →"
-                    : `Upload All 4 Documents to Submit (${completedCount}/4 Completed)`}
+                    : `Upload Mandatory Documents to Submit (${mandatoryCompletedCount}/3 Completed)`}
             </button>
           </div>
         </form>
@@ -605,7 +622,7 @@ export default function UploadDocs() {
               Documents Submitted!
             </h3>
             <p style={{ fontSize: ".85rem", color: "var(--text2)", lineHeight: "1.6", marginBottom: "24px" }}>
-              All compulsory documents have been successfully uploaded. Your application has now progressed to the <strong>Credit</strong> stage.
+              Your documents have been successfully uploaded. Your application has now progressed to the <strong>Credit</strong> stage.
             </p>
             <button 
               type="button" 
