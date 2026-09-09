@@ -216,6 +216,7 @@ export default function AdminDashboard() {
   const [disbursedStat, setDisbursedStat] = useState("");
   const [borrowersStat, setBorrowersStat] = useState("");
   const [partnersStat, setPartnersStat] = useState("");
+  const [lendersStat, setLendersStat] = useState("");
   const [ratingStat, setRatingStat] = useState("");
 
   const [adminUsername, setAdminUsername] = useState("");
@@ -658,6 +659,7 @@ export default function AdminDashboard() {
         setDisbursedStat(data.disbursed_stat || "");
         setBorrowersStat(data.borrowers_stat || "");
         setPartnersStat(data.partners_stat || "");
+        setLendersStat(data.lenders_stat || "");
         setRatingStat(data.rating_stat || "");
       }
     } catch (e) {
@@ -734,6 +736,7 @@ export default function AdminDashboard() {
           disbursed_stat: disbursedStat,
           borrowers_stat: borrowersStat,
           partners_stat: partnersStat,
+          lenders_stat: lendersStat,
           rating_stat: ratingStat
         }),
       });
@@ -3699,6 +3702,10 @@ export default function AdminDashboard() {
                       <div className="settings-field-group">
                         <label className="settings-field-label">PARTNERS COUNT</label>
                         <input type="text" className="settings-field-input" value={partnersStat} onChange={(e) => setPartnersStat(e.target.value)} />
+                      </div>
+                      <div className="settings-field-group">
+                        <label className="settings-field-label">LENDERS COUNT</label>
+                        <input type="text" className="settings-field-input" value={lendersStat} onChange={(e) => setLendersStat(e.target.value)} />
                       </div>
                       <div className="settings-field-group">
                         <label className="settings-field-label">RATING</label>

@@ -53,20 +53,20 @@ export default function PartnerInfo() {
 
         <div className="partner-perks">
           <div className="perk-box">
-            <div className="pv">100+</div>
-            <div className="pl">Active Partners</div>
+            <div className="pv">₹100Cr+</div>
+            <div className="pl">DISBURSED</div>
           </div>
           <div className="perk-box">
-            <div className="pv">₹100Cr+</div>
-            <div className="pl">Loans Disbursed</div>
+            <div className="pv">350+</div>
+            <div className="pl">BORROWERS</div>
+          </div>
+          <div className="perk-box">
+            <div className="pv">100+</div>
+            <div className="pl">PARTNERS</div>
           </div>
           <div className="perk-box">
             <div className="pv">{lenderDisplay}</div>
-            <div className="pl">Lending Partners</div>
-          </div>
-          <div className="perk-box">
-            <div className="pv">4.8★</div>
-            <div className="pl">Partner Rating</div>
+            <div className="pl">LENDERS</div>
           </div>
         </div>
       </div>

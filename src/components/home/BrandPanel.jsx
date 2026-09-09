@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Handshake,
@@ -8,13 +8,28 @@ import {
   Landmark,
   ShieldCheck,
   Lightbulb,
-  RefreshCw,
-  Star
+  RefreshCw
 } from "lucide-react";
 import logo from "../../assets/images/brandlogo.png";
 
 export default function BrandPanel({ mode = "borrower" }) {
   const isPartner = mode === "partner";
+  const [lenderCount, setLenderCount] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/lenders')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.success && Array.isArray(data.data) && data.data.length > 0) {
+          setLenderCount(data.data.length);
+        }
+      })
+      .catch(err => console.error("Error fetching lenders count in BrandPanel:", err));
+  }, []);
+
+  const lenderDisplay = lenderCount !== null 
+    ? (lenderCount >= 10 ? `${Math.floor(lenderCount / 10) * 10}+` : `${lenderCount}+`)
+    : "80+";
 
   return (
     <aside className={`brand-panel ${isPartner ? "partner-mode" : ""}`} id="brandPanel">
@@ -88,28 +103,20 @@ export default function BrandPanel({ mode = "borrower" }) {
       {/* Brand statistics card */}
       <div className="b-stats">
         <div className="stat">
-          <div className="stat-val" id="sv1">
-            {isPartner ? "₹50Cr+" : "₹100Cr+"}
-          </div>
-          <div className="stat-lbl" id="sl1">
-            Disbursed
-          </div>
+          <div className="stat-val" id="sv1">₹100Cr+</div>
+          <div className="stat-lbl" id="sl1">DISBURSED</div>
         </div>
         <div className="stat">
-          <div className="stat-val" id="sv2">
-            {isPartner ? "100+" : "350+"}
-          </div>
-          <div className="stat-lbl" id="sl2">
-            {isPartner ? "Partners" : "Borrowers"}
-          </div>
+          <div className="stat-val" id="sv2">350+</div>
+          <div className="stat-lbl" id="sl2">BORROWERS</div>
         </div>
         <div className="stat">
-          <div className="stat-val" id="sv3" style={{ display: "inline-flex", alignItems: "center", gap: "2px", justifyContent: "center" }}>
-            4.8<Star size={14} fill="currentColor" />
-          </div>
-          <div className="stat-lbl" id="sl3">
-            Rating
-          </div>
+          <div className="stat-val" id="sv3">100+</div>
+          <div className="stat-lbl" id="sl3">PARTNERS</div>
+        </div>
+        <div className="stat">
+          <div className="stat-val" id="sv4">{lenderDisplay}</div>
+          <div className="stat-lbl" id="sl4">LENDERS</div>
         </div>
       </div>
       <div className="vault-arc"></div>

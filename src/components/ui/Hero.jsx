@@ -56,7 +56,7 @@ export default function Hero() {
 
           {/* Trust Badges */}
           <div className="mt-10 flex items-center gap-6 text-sm text-slate-500">
-            <span>✔ 25+ Banking Partners</span>
+            <span>✔ 80+ Lending Partners</span>
             <span>✔ Instant Eligibility Check</span>
             <span>✔ 100% Transparent</span>
           </div>

@@ -2896,9 +2896,10 @@ a.acc-row:hover{background:var(--teal-lt);border-color:#7DD3FC;transform:transla
       </div>
     </div>
     <div class="b-stats">
-      <div class="stat"><div class="stat-val" id="sv1">₹100Cr+</div><div class="stat-lbl" id="sl1">Disbursed</div></div>
-      <div class="stat"><div class="stat-val" id="sv2">350+</div><div class="stat-lbl" id="sl2">Borrowers</div></div>
-      <div class="stat"><div class="stat-val" id="sv3">4.8★</div><div class="stat-lbl" id="sl3">Rating</div></div>
+      <div class="stat"><div class="stat-val" id="sv1">₹100Cr+</div><div class="stat-lbl" id="sl1">DISBURSED</div></div>
+      <div class="stat"><div class="stat-val" id="sv2">350+</div><div class="stat-lbl" id="sl2">BORROWERS</div></div>
+      <div class="stat"><div class="stat-val" id="sv3">100+</div><div class="stat-lbl" id="sl3">PARTNERS</div></div>
+      <div class="stat"><div class="stat-val" id="sv4">80+</div><div class="stat-lbl" id="sl4">LENDERS</div></div>
     </div>
     <div class="vault-arc"></div>
   </aside>
@@ -3810,10 +3811,10 @@ a.acc-row:hover{background:var(--teal-lt);border-color:#7DD3FC;transform:transla
         <h1 class="about-h1">The loan market, <span>unlocked.</span></h1>
         <p class="about-tagline">India's smart loan distribution network — connecting borrowers with the right lenders, and partners with the right opportunities.</p>
         <div class="about-hero-stats">
-          <div class="ahs"><div class="ahs-v">₹100Cr+</div><div class="ahs-l">Disbursed</div></div>
-          <div class="ahs"><div class="ahs-v">350+</div><div class="ahs-l">Borrowers</div></div>
-          <div class="ahs"><div class="ahs-v">100+</div><div class="ahs-l">Partners</div></div>
-          <div class="ahs"><div class="ahs-v">30+</div><div class="ahs-l">Lenders</div></div>
+          <div class="ahs"><div class="ahs-v">₹100Cr+</div><div class="ahs-l">DISBURSED</div></div>
+          <div class="ahs"><div class="ahs-v">350+</div><div class="ahs-l">BORROWERS</div></div>
+          <div class="ahs"><div class="ahs-v">100+</div><div class="ahs-l">PARTNERS</div></div>
+          <div class="ahs"><div class="ahs-v">80+</div><div class="ahs-l">LENDERS</div></div>
         </div>
       </div>
     </div>
@@ -4733,8 +4734,10 @@ function startJourney(type){
     document.getElementById('brandPanel').classList.remove('partner-mode');
     document.getElementById('brandEm').textContent='certain.';
     document.getElementById('brandDesc').textContent='Verify your identity and get matched with the best loan offers tailored to your needs.';
-    document.getElementById('sv1').textContent='₹100Cr+';document.getElementById('sl1').textContent='Disbursed';
-    document.getElementById('sv2').textContent='350+';document.getElementById('sl2').textContent='Borrowers';
+    document.getElementById('sv1').textContent='₹100Cr+';document.getElementById('sl1').textContent='DISBURSED';
+    document.getElementById('sv2').textContent='350+';document.getElementById('sl2').textContent='BORROWERS';
+    document.getElementById('sv3').textContent='100+';document.getElementById('sl3').textContent='PARTNERS';
+    document.getElementById('sv4').textContent='80+';document.getElementById('sl4').textContent='LENDERS';
     buildBLTypeGrid();
     showBStep(1);
   } else {
@@ -4742,8 +4745,10 @@ function startJourney(type){
     document.getElementById('brandPanel').classList.add('partner-mode');
     document.getElementById('brandEm').textContent='together.';
     document.getElementById('brandDesc').textContent='Join our growing network of 100+ distribution partners helping clients access the best loan products.';
-    document.getElementById('sv1').textContent='₹50Cr+';document.getElementById('sl1').textContent='Disbursed';
-    document.getElementById('sv2').textContent='100+';document.getElementById('sl2').textContent='Partners';
+    document.getElementById('sv1').textContent='₹100Cr+';document.getElementById('sl1').textContent='DISBURSED';
+    document.getElementById('sv2').textContent='350+';document.getElementById('sl2').textContent='BORROWERS';
+    document.getElementById('sv3').textContent='100+';document.getElementById('sl3').textContent='PARTNERS';
+    document.getElementById('sv4').textContent='80+';document.getElementById('sl4').textContent='LENDERS';
     showPRStep(1);
   }
 }
@@ -6878,6 +6883,7 @@ document.addEventListener('DOMContentLoaded',()=>{
             <div class="adm-setting-row"><label>Disbursed (show on homepage)</label><input class="adm-inp" id="setStatDisb" value="₹100Cr+"/></div>
             <div class="adm-setting-row"><label>Borrowers Count</label><input class="adm-inp" id="setStatBorr" value="350+"/></div>
             <div class="adm-setting-row"><label>Partners Count</label><input class="adm-inp" id="setStatPart" value="100+"/></div>
+            <div class="adm-setting-row"><label>Lenders Count</label><input class="adm-inp" id="setStatLend" value="80+"/></div>
             <div class="adm-setting-row"><label>Rating</label><input class="adm-inp" id="setStatRate" value="4.8★"/></div>
             <button class="adm-btn-primary" style="margin-top:14px" onclick="admSaveStats()">Apply Stats</button>
           </div>

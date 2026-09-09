@@ -164,7 +164,7 @@ export default function LoansRedirect() {
         </div>
         <h1 className="loans-main-heading">Find the right loan for every need</h1>
         <p className="loans-sub-heading">
-          Competitive interest rates from 60+ partner banks & NBFCs · Doorstep assistance · Sign in to apply in minutes
+          Competitive interest rates from 80+ partner banks & NBFCs · Doorstep assistance · Sign in to apply in minutes
         </p>
 
         {/* Feature quick badges */}
