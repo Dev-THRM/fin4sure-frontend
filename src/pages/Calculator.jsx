@@ -369,7 +369,7 @@ export default function Calculator() {
   return (
     <div className="calc-full-page animate-fade-up">
       {/* ═══ STANDALONE EMI CALCULATOR HERO BANNER (COMPACT) ═══ */}
-      <div style={{
+      <div className="calc-standalone-banner" style={{
         maxWidth: '1600px',
         width: '96%',
         margin: '12px auto 8px',
