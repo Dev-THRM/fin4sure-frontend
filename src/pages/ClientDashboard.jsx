@@ -44,7 +44,6 @@ export default function ClientDashboard() {
   const [applications, setApplications] = useState([]);
   const [activeTab, setActiveTab] = useState("loans");
   const [showSupportModal, setShowSupportModal] = useState(false);
-  const [rewardTcOpen, setRewardTcOpen] = useState(false);
   const [notification, setNotification] = useState(null); // { type, title, message, onClose }
 
   const showNotification = (title, message, type = "info", onClose = null) => {
@@ -556,114 +555,6 @@ export default function ClientDashboard() {
                   )}
                 </div>
               </div>
-
-              {/* Reward Almirah Panel - Only show if there's a disbursed loan */}
-              {applications.some(app => {
-                const sId = Number(app.status_id || 1);
-                const rawSt = (app.Status?.name || "").toLowerCase();
-                return sId === 7 || rawSt.includes("disburs");
-              }) && (
-              <div className="cdash-section">
-                <div className="cdash-sec-head">
-                  <h3 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                    <Trophy size={18} /> Finn4sure Reward Cabinet
-                  </h3>
-                  <span className="cd-reward-live-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <Sparkles size={12} /> Live Rewards
-                  </span>
-                </div>
-
-                <div className="reward-almirah">
-                  <div className="almirah-arch">
-                    <div className="aa-logo" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Gift size={28} />
-                    </div>
-                    <div className="aa-title">Your Reward Cabinet</div>
-                    <div className="aa-sub">Earn vouchers & exclusive perks after disbursals</div>
-                  </div>
-
-                  <div className="almirah-tiles">
-                    <div className="almirah-tile tile-gold">
-                      <div className="at-glow"></div>
-                      <div className="at-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <CircleDollarSign size={26} />
-                      </div>
-                      <div className="at-badge">Locked</div>
-                      <div className="at-title">Disbursal Reward</div>
-                      <div className="at-amount">—</div>
-                      <div className="at-desc">Complete your loan disbursement to unlock</div>
-                      <div className="at-status">
-                        <span className="ats-pill ats-pending" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                          <Clock size={11} /> Pending
-                        </span>
-                      </div>
-                    </div>
-
-                    <Link to="/partner" className="almirah-tile tile-teal" style={{ textDecoration: "none" }}>
-                      <div className="at-glow"></div>
-                      <div className="at-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Handshake size={26} />
-                      </div>
-                      <div className="at-badge at-badge-earn">Earn Now</div>
-                      <div className="at-title">Referral Reward</div>
-                      <div className="at-amount">₹2k – ₹10k</div>
-                      <div className="at-desc">Refer a friend or join as a partner.</div>
-                      <div className="at-status">
-                        <button className="ats-cta">Partner →</button>
-                      </div>
-                    </Link>
-
-                    <div className="almirah-tile tile-purple">
-                      <div className="at-glow"></div>
-                      <div className="at-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Star size={26} />
-                      </div>
-                      <div className="at-badge at-badge-soon">Soon</div>
-                      <div className="at-title">Loyalty Reward</div>
-                      <div className="at-amount">Up to ₹5k</div>
-                      <div className="at-desc">Vouchers after 12 on-time EMI repayments.</div>
-                      <div className="at-status">
-                        <span className="ats-pill ats-soon" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                          <Lock size={11} /> Locked
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Terms Accordion */}
-                  <div className="almirah-tc" style={{ marginTop: "20px" }}>
-                    <div className="atc-head" onClick={() => setRewardTcOpen(!rewardTcOpen)}>
-                      <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path d="M9 12l2 2 4-4" />
-                        <path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.5C16.5 22.15 20 17.25 20 12V6z" />
-                      </svg>
-                      Terms & Conditions
-                      <svg
-                        className={`atc-chevron ${rewardTcOpen ? "open" : ""}`}
-                        width="13"
-                        height="13"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                        style={{ marginLeft: "auto", transition: "transform .3s", transform: rewardTcOpen ? "rotate(180deg)" : "none" }}
-                      >
-                        <path d="M6 9l6 6 6-6" />
-                      </svg>
-                    </div>
-                    {rewardTcOpen && (
-                      <div className="atc-body open" style={{ padding: "0 16px 16px 32px" }}>
-                        <ul className="atc-list" style={{ listStyleType: "disc", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "8px" }}>
-                          <li style={{ fontSize: ".74rem", color: "rgba(255,255,255,.65)" }}>Rewards credited as Amazon/Flipkart vouchers.</li>
-                          <li style={{ fontSize: ".74rem", color: "rgba(255,255,255,.65)" }}>Determined by final disbursed amount.</li>
-                          <li style={{ fontSize: ".74rem", color: "rgba(255,255,255,.65)" }}>Sent to registered email and mobile number.</li>
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-              )}
             </div>
 
             {/* Right Column */}
@@ -682,11 +573,7 @@ export default function ClientDashboard() {
                   <span>Rejected Loans</span>
                   <span className="cdsc-val cdsc-amber" style={{ color: "#DC2626" }}>{rejectedCount}</span>
                 </div>
-                <div className="cdsc-divider"></div>
-                <div className="cdsc-row">
-                  <span>Rewards Earned</span>
-                  <span className="cdsc-val cdsc-gold">₹0</span>
-                </div>
+
               </div>
 
               {/* Dedicated Support advisor */}
