@@ -275,7 +275,14 @@
 
 @media (max-width: 480px) {
   .partner-perks {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .perk-box {
+    padding: 14px 10px;
+  }
+  .perk-box .pv {
+    font-size: 1.35rem;
   }
   .steps-row {
     grid-template-columns: 1fr;
