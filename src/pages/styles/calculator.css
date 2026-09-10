@@ -776,6 +776,27 @@
   align-items: start;
 }
 
+.calc-compare-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  padding: 18px 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.calc-table-scroll-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.calc-table-scroll-wrap::-webkit-scrollbar {
+  display: none;
+}
+
 @media (max-width: 992px) {
   .calc-main-side-grid {
     grid-template-columns: 1fr;
@@ -790,6 +811,10 @@
   }
   .calc-main-split, .calc-form-grid, .calc-summary-grid {
     grid-template-columns: 1fr;
+  }
+  .calc-compare-card {
+    padding: 14px 10px;
+    border-radius: 12px;
   }
 }
 

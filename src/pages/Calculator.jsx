@@ -637,15 +637,15 @@ export default function Calculator() {
                   <div
                     className="rf-input-wrap"
                     style={{
-                      display: "flex",
+                      display: "inline-flex",
                       alignItems: "center",
-                      gap: "4px",
+                      gap: "2px",
                       background: "#F8FAFC",
                       border: "1px solid #CBD5E1",
                       borderRadius: "8px",
-                      padding: "2px 8px",
-                      width: "auto",
-                      minWidth: "150px",
+                      padding: "2px 6px",
+                      minWidth: "148px",
+                      maxWidth: "160px",
                       boxSizing: "border-box",
                       overflow: "visible"
                     }}
@@ -675,12 +675,12 @@ export default function Calculator() {
                         background: "transparent",
                         outline: "none",
                         fontWeight: 800,
-                        fontSize: "0.92rem",
+                        fontSize: "0.95rem",
                         color: "#0F2942",
-                        width: "56px",
-                        minWidth: "45px",
+                        width: "50px",
+                        minWidth: "42px",
                         textAlign: "right",
-                        padding: "2px 4px"
+                        padding: "0"
                       }}
                     />
 
@@ -691,18 +691,29 @@ export default function Calculator() {
                       style={{
                         border: "none",
                         borderLeft: "1px solid #CBD5E1",
-                        background: "#E0F2FE",
+                        backgroundColor: "#E0F2FE",
+                        backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230369A1' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "right 6px center",
+                        backgroundSize: "10px 10px",
                         outline: "none",
                         fontWeight: 700,
                         fontSize: "0.82rem",
                         color: "#0369A1",
                         cursor: "pointer",
-                        padding: "4px 8px",
+                        padding: "4px 20px 4px 8px",
                         borderRadius: "6px",
-                        marginLeft: "6px",
-                        minWidth: "68px",
-                        textAlign: "center",
-                        flexShrink: 0
+                        marginLeft: "4px",
+                        minWidth: "72px",
+                        maxWidth: "82px",
+                        height: "28px",
+                        lineHeight: 1,
+                        textAlign: "left",
+                        flexShrink: 0,
+                        WebkitAppearance: "none",
+                        MozAppearance: "none",
+                        appearance: "none",
+                        boxSizing: "border-box"
                       }}
                     >
                       <option value={100000}>Lakh</option>
@@ -934,8 +945,8 @@ export default function Calculator() {
           </div>
 
           {/* ═══ RIGHT PANEL: COMPARE LENDERS TABLE ═══ */}
-          <div id="compare-lenders-section" style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '18px 20px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
+          <div id="compare-lenders-section" className="calc-compare-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
               <div>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#E0F2FE', color: '#0369A1', padding: '2px 6px', borderRadius: '8px', fontSize: '0.68rem', fontWeight: 800 }}>
                   <Zap size={11} /> LIVE {rateType.toUpperCase()} RATES
@@ -946,8 +957,8 @@ export default function Calculator() {
               </div>
 
               {/* Filter Pills & Sort Dropdown */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', gap: '4px', background: '#F8FAFC', padding: '3px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', width: '100%', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', gap: '3px', background: '#F8FAFC', padding: '3px', borderRadius: '10px', border: '1px solid #E2E8F0', flexWrap: 'wrap' }}>
                   {["All", "PSU", "Private", "NBFC/HFC", "SFB"].map((fl) => (
                     <button
                       key={fl}
@@ -997,15 +1008,15 @@ export default function Calculator() {
                 background: 'linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%)',
                 border: '1.5px solid #BFDBFE',
                 borderRadius: '12px',
-                padding: '12px 16px',
+                padding: '12px 14px',
                 marginBottom: '14px',
                 display: 'flex',
                 alignItems: 'center',
-                justify: 'space-between',
-                gap: '12px',
+                justifyContent: 'space-between',
+                gap: '10px',
                 flexWrap: 'wrap'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>
                     <Landmark size={20} className="text-slate-600" />
                   </div>
@@ -1019,14 +1030,14 @@ export default function Calculator() {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '1rem', fontWeight: 900, color: '#0F2942' }}>{filteredAndSortedLenders[0].rate.toFixed(2)}%</div>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 900, color: '#0F2942' }}>{filteredAndSortedLenders[0].rate.toFixed(2)}%</div>
                     <div style={{ fontSize: '0.68rem', color: '#64748B', fontWeight: 600 }}>{filteredAndSortedLenders[0].rate.toFixed(2)}–{filteredAndSortedLenders[0].maxRate.toFixed(2)}</div>
                   </div>
 
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '1rem', fontWeight: 900, color: '#0284C7' }}>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 900, color: '#0284C7' }}>
                       {fmtINRFull(calcEMI(amount, filteredAndSortedLenders[0].rate, tenure))}<span style={{ fontSize: '0.7rem', fontWeight: 600 }}>/mo</span>
                     </div>
                     <div style={{ fontSize: '0.68rem', color: '#64748B', fontWeight: 600 }}>Est. EMI</div>
@@ -1036,7 +1047,7 @@ export default function Calculator() {
                     type="button"
                     onClick={() => handleApplyToLender(filteredAndSortedLenders[0].id)}
                     style={{
-                      padding: '8px 16px',
+                      padding: '8px 14px',
                       borderRadius: '8px',
                       background: '#0F2942',
                       color: '#FFFFFF',
@@ -1054,8 +1065,8 @@ export default function Calculator() {
             )}
 
             {/* Lenders Table */}
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+            <div className="calc-table-scroll-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
+              <table style={{ minWidth: '420px', width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
                 <thead>
                   <tr style={{ background: '#0F2942', color: '#FFFFFF', textAlign: 'left' }}>
                     <th style={{ padding: '10px 14px', borderRadius: '8px 0 0 0', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.05em' }}>LENDER</th>

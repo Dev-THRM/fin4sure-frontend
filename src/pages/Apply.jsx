@@ -545,7 +545,7 @@ export default function Apply() {
                           onChange={handleAmtInputChange}
                           onBlur={handleAmtBlur}
                           step="0.01"
-                          style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.92rem', color: '#0F2942', width: '56px', minWidth: '45px', textAlign: 'right', padding: '2px 4px' }}
+                          style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 800, fontSize: '0.95rem', color: '#0F2942', width: '50px', minWidth: '42px', textAlign: 'right', padding: '0' }}
                         />
                         <select
                           className="rf-unit"
@@ -554,18 +554,29 @@ export default function Apply() {
                           style={{
                             border: 'none',
                             borderLeft: '1px solid #CBD5E1',
-                            background: '#E0F2FE',
+                            backgroundColor: '#E0F2FE',
+                            backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230369A1' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 6px center',
+                            backgroundSize: '10px 10px',
                             outline: 'none',
                             fontWeight: 700,
                             fontSize: '0.82rem',
                             color: '#0369A1',
                             cursor: 'pointer',
-                            padding: '4px 8px',
+                            padding: '4px 20px 4px 8px',
                             borderRadius: '6px',
-                            marginLeft: '6px',
-                            minWidth: '68px',
-                            textAlign: 'center',
-                            flexShrink: 0
+                            marginLeft: '4px',
+                            minWidth: '72px',
+                            maxWidth: '82px',
+                            height: '28px',
+                            lineHeight: 1,
+                            textAlign: 'left',
+                            flexShrink: 0,
+                            WebkitAppearance: 'none',
+                            MozAppearance: 'none',
+                            appearance: 'none',
+                            boxSizing: 'border-box'
                           }}
                         >
                           <option value={100000}>Lakh</option>

@@ -705,21 +705,30 @@
 .rf-unit {
   border: none;
   border-left: 1px solid #BAE6FD;
-  background: #E0F2FE;
+  background-color: #E0F2FE;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230369A1' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 10px 10px;
   outline: none;
   font-family: 'DM Sans', sans-serif;
-  font-size: .8rem;
+  font-size: .82rem !important;
   font-weight: 700;
   color: #0369A1;
-  margin-left: 6px;
-  padding: 4px 8px;
+  margin-left: 4px;
+  padding: 4px 20px 4px 8px !important;
   border-radius: 6px;
   cursor: pointer;
-  min-width: 66px;
-  text-align: center;
+  min-width: 72px;
+  max-width: 82px;
+  height: 28px;
+  line-height: 1;
+  text-align: left;
   flex-shrink: 0;
-  appearance: auto;
-  -webkit-appearance: auto;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  box-sizing: border-box;
 }
 
 .rf-suffix {

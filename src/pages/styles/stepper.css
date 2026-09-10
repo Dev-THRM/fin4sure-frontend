@@ -673,13 +673,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);min-height:100vh;d
 .rf-prefix,.rf-suffix{font-size:.78rem;font-weight:600;color:var(--text2);padding:0 8px;flex-shrink:0}
 .rf-unit{
   border:none;border-left:1.5px solid #C8DCF5;outline:none;cursor:pointer;
-  background:#E0F2FE;color:var(--navy);
-  font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:700;
-  padding:7px 10px;height:100%;align-self:stretch;
-  min-width:66px;flex-shrink:0;text-align:center;
+  background-color:#E0F2FE;
+  background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230369A1' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat:no-repeat;
+  background-position:right 6px center;
+  background-size:10px 10px;
+  color:var(--navy);
+  font-family:'DM Sans',sans-serif;font-size:.82rem !important;font-weight:700;
+  padding:4px 20px 4px 8px !important;height:28px;
+  min-width:72px;max-width:82px;flex-shrink:0;text-align:left;
   transition:background .2s;
-  appearance:auto;
-  -webkit-appearance:auto;
+  -webkit-appearance:none !important;
+  -moz-appearance:none !important;
+  appearance:none !important;
+  box-sizing:border-box;
 }
 .rf-unit:hover{background-color:#BAE6FD}
 .rf-input{border:none;outline:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:700;color:var(--navy);width:52px;min-width:44px;padding:8px 2px;text-align:right;flex-shrink:0}
