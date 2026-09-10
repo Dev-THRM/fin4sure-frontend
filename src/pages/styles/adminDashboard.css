@@ -521,6 +521,10 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .adm-wcard-header {
@@ -559,6 +563,27 @@
 .adm-wcard-body {
   padding: 20px;
   flex: 1;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.adm-wcard-body::-webkit-scrollbar {
+  height: 6px;
+}
+.adm-wcard-body::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+.adm-wcard-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.adm-wcard-body::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .adm-wcard-body.empty-placeholder {
@@ -640,12 +665,14 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-bottom: 1.5px solid #f1f5f9;
+  white-space: nowrap;
 }
 
 .lenders-table td {
   padding: 14px 16px;
   border-bottom: 1px solid #f1f5f9;
   color: #334155;
+  white-space: nowrap;
 }
 
 .no-data-cell {
@@ -1282,17 +1309,26 @@
   .adm-table-wrap,
   .adm-table-container,
   .rates-table-container,
+  .adm-wcard-body,
+  .adm-subtab-container .adm-wcard-body,
   .adm-subtab-container .adm-table-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
     border-radius: 12px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   /* Ensure table itself doesn't shrink */
   .adm-table,
-  .rates-editable-table,
-  .lenders-table {
+  .rates-editable-table {
     min-width: 600px;
+  }
+
+  .lenders-table {
+    min-width: 900px !important;
   }
 
   /* Dash row */
@@ -1317,6 +1353,9 @@
   .adm-controls-row {
     flex-wrap: wrap;
     gap: 8px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .adm-filter-dropdown {
@@ -1355,10 +1394,14 @@
 
   /* Tables still scrollable */
   .adm-table,
-  .rates-editable-table,
-  .lenders-table {
+  .rates-editable-table {
     min-width: 520px;
     font-size: 0.73rem;
+  }
+
+  .lenders-table {
+    min-width: 850px !important;
+    font-size: 0.75rem;
   }
 
   .adm-table td,

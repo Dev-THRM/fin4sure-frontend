@@ -2219,7 +2219,7 @@ export default function AdminDashboard() {
                   </div>
                   <span style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>Real-time aggregated portfolio share</span>
                 </div>
-                <div className="adm-wcard-body" style={{ padding: 0 }}>
+                <div className="adm-wcard-body" style={{ padding: 0, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                   <table className="lenders-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
@@ -2391,7 +2391,7 @@ export default function AdminDashboard() {
               </div>
 
               <div className="adm-workspace-card">
-                <div className="adm-wcard-body" style={{ padding: 0 }}>
+                <div className="adm-wcard-body" style={{ padding: 0, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                   <table className="lenders-table">
                     <thead>
                       <tr>
@@ -4477,40 +4477,42 @@ export default function AdminDashboard() {
                   No loan applications found for this borrower.
                 </div>
               ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem' }}>
-                  <thead>
-                    <tr style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0' }}>
-                      {['APP NO', 'LOAN TYPE', 'AMOUNT', 'LENDER', 'STATUS', 'DATE'].map(h => (
-                        <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 700, color: '#64748B', fontSize: '0.75rem', letterSpacing: '0.05em' }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {borrowerLoansModal.loans.map((loan, i) => {
-                      const stLower = (loan.status || '').toLowerCase();
-                      const stBg = ['disbursed', 'completed'].includes(stLower) ? '#DCFCE7' : stLower === 'rejected' ? '#FEE2E2' : '#DBEAFE';
-                      const stColor = ['disbursed', 'completed'].includes(stLower) ? '#166534' : stLower === 'rejected' ? '#991B1B' : '#1E40AF';
-                      return (
-                        <tr key={loan.id} style={{ borderBottom: '1px solid #F1F5F9', background: i % 2 === 0 ? '#FFFFFF' : '#FAFBFC' }}>
-                          <td style={{ padding: '12px 16px', fontWeight: 700, color: '#0F2942' }}>{loan.application_no}</td>
-                          <td style={{ padding: '12px 16px', color: '#334155' }}>{loan.loanType}</td>
-                          <td style={{ padding: '12px 16px', fontWeight: 700, color: '#1E293B' }}>
-                            {loan.loanAmount ? `₹${Number(loan.loanAmount).toLocaleString('en-IN')}` : '—'}
-                          </td>
-                          <td style={{ padding: '12px 16px', color: '#475569' }}>{loan.lender && loan.lender !== '-' ? loan.lender : '—'}</td>
-                          <td style={{ padding: '12px 16px' }}>
-                            <span style={{ padding: '3px 10px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', background: stBg, color: stColor }}>
-                              {(loan.status || 'APPLIED').toUpperCase()}
-                            </span>
-                          </td>
-                          <td style={{ padding: '12px 16px', color: '#64748B' }}>
-                            {loan.createdAt ? new Date(loan.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
+                  <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', fontSize: '0.84rem' }}>
+                    <thead>
+                      <tr style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0' }}>
+                        {['APP NO', 'LOAN TYPE', 'AMOUNT', 'LENDER', 'STATUS', 'DATE'].map(h => (
+                          <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 700, color: '#64748B', fontSize: '0.75rem', letterSpacing: '0.05em' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {borrowerLoansModal.loans.map((loan, i) => {
+                        const stLower = (loan.status || '').toLowerCase();
+                        const stBg = ['disbursed', 'completed'].includes(stLower) ? '#DCFCE7' : stLower === 'rejected' ? '#FEE2E2' : '#DBEAFE';
+                        const stColor = ['disbursed', 'completed'].includes(stLower) ? '#166534' : stLower === 'rejected' ? '#991B1B' : '#1E40AF';
+                        return (
+                          <tr key={loan.id} style={{ borderBottom: '1px solid #F1F5F9', background: i % 2 === 0 ? '#FFFFFF' : '#FAFBFC' }}>
+                            <td style={{ padding: '12px 16px', fontWeight: 700, color: '#0F2942' }}>{loan.application_no}</td>
+                            <td style={{ padding: '12px 16px', color: '#334155' }}>{loan.loanType}</td>
+                            <td style={{ padding: '12px 16px', fontWeight: 700, color: '#1E293B' }}>
+                              {loan.loanAmount ? `₹${Number(loan.loanAmount).toLocaleString('en-IN')}` : '—'}
+                            </td>
+                            <td style={{ padding: '12px 16px', color: '#475569' }}>{loan.lender && loan.lender !== '-' ? loan.lender : '—'}</td>
+                            <td style={{ padding: '12px 16px' }}>
+                              <span style={{ padding: '3px 10px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', background: stBg, color: stColor }}>
+                                {(loan.status || 'APPLIED').toUpperCase()}
+                              </span>
+                            </td>
+                            <td style={{ padding: '12px 16px', color: '#64748B' }}>
+                              {loan.createdAt ? new Date(loan.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           </div>
