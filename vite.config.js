@@ -6,8 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
-    // Build directly into the backend's `client/` folder so Express can serve it
-    outDir: "../fin4sure-backend/client",
+    outDir: "dist",
     emptyOutDir: true,
   },
   server: {
