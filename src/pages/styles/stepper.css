@@ -2381,7 +2381,7 @@ a.acc-row:hover{background:var(--teal-lt);border-color:#7DD3FC;transform:transla
   .form-panel{padding:0 14px 32px;gap:16px;overflow-x:hidden}
   .form-container,.home-emi-widget{max-width:100%;width:100%}
   .top-header-stack{width:calc(100% + 28px);margin:0 -14px 10px}
-  .roi-ticker-global{top:102px}
+  .roi-ticker-global{top:62px}
   .company-ribbon{padding:10px 16px;gap:8px}
   .company-ribbon-name{font-size:1.2rem}
   .company-ribbon-tag{font-size:.64rem;padding-left:10px}
