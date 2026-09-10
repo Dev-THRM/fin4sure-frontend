@@ -18,7 +18,10 @@
   color: #fff;
   flex-shrink: 0;
   box-shadow: 4px 0 16px rgba(10, 31, 77, 0.15);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
+
 
 .adm-logo {
   padding: 24px;
@@ -347,7 +350,7 @@
 /* Responsive adjustments */
 @media (max-width: 992px) {
   .adm-sidebar {
-    display: none; /* Can be toggled on mobile if hamburger button added */
+    display: none; /* hidden by default on mobile — toggled by JS */
   }
   .adm-kpi-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -1114,133 +1117,256 @@
   border: 1px solid #bbf7d0;
 }
 
-@media (max-width: 900px) {
-  .adm-wrap {
-    flex-direction: row;
-    height: calc(100vh - var(--nav-h));
-    overflow: hidden;
-  }
-  .adm-sidebar {
-    width: 200px;
-    min-width: 200px;
-    height: 100%;
-    flex-shrink: 0;
-    overflow-y: auto;
-    box-shadow: 4px 0 12px rgba(10, 31, 77, 0.12);
+/* (old 900px sidebar block removed — sidebar is now a mobile drawer at \u2264768px) */
+
+/* (old 480px block removed — replaced by new mobile CSS below) */
+
+
+/* ═══════════════════════════════════════════
+   MOBILE HAMBURGER & SIDEBAR OVERLAY
+   ═══════════════════════════════════════════ */
+
+/* Hamburger button — hidden on desktop, shown on mobile */
+.adm-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 6px;
+  flex-shrink: 0;
+  margin-right: 10px;
+  transition: border-color 0.2s;
+}
+
+.adm-hamburger:hover {
+  border-color: #0284C7;
+}
+
+.adm-hamburger span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: #0F2942;
+  border-radius: 2px;
+  transition: all 0.25s ease;
+}
+
+/* Overlay backdrop when sidebar is open on mobile */
+.adm-sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 31, 77, 0.45);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 1000;
+  animation: fadeInOverlay 0.2s ease;
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════
+   MOBILE BREAKPOINT ≤ 768px
+   ═══════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Show hamburger */
+  .adm-hamburger {
     display: flex;
+  }
+
+  /* Show overlay when active */
+  .adm-sidebar-overlay {
+    display: block;
+  }
+
+  /* Sidebar: fixed overlay drawer, hidden off-screen by default */
+  .adm-sidebar {
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 240px;
+    z-index: 1100;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 6px 0 24px rgba(10, 31, 77, 0.22);
+  }
+
+  /* Sidebar open state */
+  .adm-sidebar--open {
+    transform: translateX(0);
+  }
+
+  /* Main area: full width, no shrink from sidebar */
+  .adm-wrap {
     flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
   }
-  .adm-logo {
-    padding: 14px 12px;
-  }
-  .adm-logo-name {
-    font-size: 0.9rem;
-  }
-  .adm-nav {
-    flex-direction: column;
-    overflow-x: unset;
-    overflow-y: auto;
-    padding: 10px 8px;
-    gap: 3px;
-    white-space: normal;
-  }
-  .adm-nav-item {
-    padding: 9px 10px;
-    font-size: 0.78rem;
-    flex-shrink: unset;
+
+  .adm-main {
     width: 100%;
-    border-radius: 8px;
+    flex: 1;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  /* Top bar */
+  .adm-topbar {
+    padding: 10px 14px;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #fff;
+  }
+
+  .adm-topbar-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .adm-section-title {
+    font-size: 1rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .adm-sidebar-foot {
-    display: block;
-    padding: 10px 8px;
-  }
-  .adm-main {
-    flex: 1;
-    width: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-  .adm-topbar {
-    padding: 10px 12px;
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
+
   .adm-topbar-right {
-    width: auto;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-shrink: 0;
+    gap: 6px;
   }
-  .adm-search-wrap input {
-    width: 120px;
+
+  .adm-search-wrap {
+    display: none; /* hide search on very small mobile to save space */
   }
-  .adm-content {
-    padding: 12px 10px 40px;
-    width: 100%;
-    box-sizing: border-box;
-    overflow-x: hidden;
-  }
+
+  /* Panel padding */
   .adm-panel {
-    padding: 14px 12px 40px;
+    padding: 14px 12px 60px;
+    box-sizing: border-box;
   }
-  .adm-overview-grid,
-  .adm-kpi-grid,
-  .adm-kpi-grid-redesigned,
-  .adm-stats-grid {
+
+  /* KPI grid */
+  .adm-kpi-grid-redesigned {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 8px !important;
   }
+
   .adm-kpi-card-new {
-    padding: 14px 12px 12px;
+    padding: 12px 10px 10px;
   }
+
   .adm-kpi-card-value {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
   }
+
+  /* All tables: scrollable horizontally */
+  .adm-table-wrap,
+  .adm-table-container,
+  .rates-table-container,
+  .adm-subtab-container .adm-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+  }
+
+  /* Ensure table itself doesn't shrink */
+  .adm-table,
+  .rates-editable-table,
+  .lenders-table {
+    min-width: 600px;
+  }
+
+  /* Dash row */
   .adm-dash-row {
     flex-direction: column;
   }
+
   .w-65, .w-35 {
     width: 100%;
   }
-  .adm-table-wrap,
-  .adm-table-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+
+  /* Settings columns stack */
   .adm-settings-columns {
     flex-direction: column;
+  }
+
+  .adm-settings-column {
+    min-width: unset;
+  }
+
+  /* Controls row for mobile */
+  .adm-controls-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .adm-filter-dropdown {
+    min-width: 120px;
+    font-size: 0.78rem;
+  }
+
+  .adm-search-input-wrapper {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .adm-ctrl-btn {
+    padding: 8px 12px;
+    font-size: 0.78rem;
   }
 }
 
 @media (max-width: 480px) {
-  .adm-sidebar {
-    width: 180px;
-    min-width: 180px;
-  }
-  .adm-logo-name {
-    font-size: 0.82rem;
-  }
-  .adm-nav-item {
-    padding: 8px 8px;
-    font-size: 0.74rem;
-  }
-  .adm-overview-grid,
-  .adm-kpi-grid,
-  .adm-kpi-grid-redesigned,
-  .adm-stats-grid {
+  .adm-kpi-grid-redesigned {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 6px !important;
   }
+
   .adm-kpi-card-value {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
   }
-  .adm-search-wrap input {
-    width: 80px;
+
+  .adm-kpi-card-label {
+    font-size: 0.62rem;
+  }
+
+  .adm-panel {
+    padding: 10px 8px 60px;
+  }
+
+  /* Tables still scrollable */
+  .adm-table,
+  .rates-editable-table,
+  .lenders-table {
+    min-width: 520px;
+    font-size: 0.73rem;
+  }
+
+  .adm-table td,
+  .adm-table th {
+    padding: 8px 10px;
+  }
+
+  .adm-topbar {
+    padding: 8px 10px;
   }
 }

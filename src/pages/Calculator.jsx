@@ -961,8 +961,9 @@ export default function Calculator() {
               </div>
 
               {/* Filter Pills & Sort Dropdown */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', justifyContent: 'space-between', flexWrap: 'nowrap', overflowX: 'auto', paddingBottom: '2px', WebkitOverflowScrolling: 'touch' }}>
-                <div style={{ display: 'flex', gap: '3px', background: '#F8FAFC', padding: '3px', borderRadius: '10px', border: '1px solid #E2E8F0', flexShrink: 0, flexWrap: 'nowrap' }}>
+              <div className="lender-filter-sort-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', justifyContent: 'space-between', flexWrap: 'wrap', paddingBottom: '2px' }}>
+                <div className="lender-filter-row" style={{ display: 'flex', gap: '3px', background: '#F8FAFC', padding: '3px', borderRadius: '10px', border: '1px solid #E2E8F0', flexShrink: 0, flexWrap: 'nowrap', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+
                   {["All", "PSU", "Private", "NBFC/HFC", "SFB"].map((fl) => (
                     <button
                       key={fl}
