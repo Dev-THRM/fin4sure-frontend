@@ -1343,8 +1343,9 @@
   }
 
   .adm-partner-card-row {
-    min-width: 850px !important;
-    box-sizing: border-box;
+    min-width: max-content !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   /* Panel padding */
@@ -1480,6 +1481,8 @@
   }
 
   .adm-partner-card-row {
-    min-width: 820px !important;
+    min-width: max-content !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 }

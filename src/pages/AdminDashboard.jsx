@@ -2636,7 +2636,7 @@ export default function AdminDashboard() {
 
               {/* Partner Cards Container — horizontally scrollable on mobile */}
               <div className="adm-partner-cards-scroll-wrap" style={{ width: '100%', maxWidth: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                <div style={{ minWidth: '850px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ width: 'max-content', minWidth: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {filteredBrokers.length === 0 ? (
                     <div className="adm-workspace-card" style={{ padding: '40px 20px', textAlign: 'center', borderRadius: '16px' }}>
                       <p className="no-data-text">No partners match</p>
@@ -2667,15 +2667,18 @@ export default function AdminDashboard() {
                           borderRadius: '14px',
                           border: '1px solid #E2E8F0',
                           padding: '14px 20px',
-                          display: 'grid',
-                          gridTemplateColumns: 'minmax(240px, 300px) 1fr auto',
+                          display: 'flex',
                           alignItems: 'center',
-                          gap: '16px',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+                          justifyContent: 'space-between',
+                          gap: '24px',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                          width: '100%',
+                          minWidth: 'max-content',
+                          boxSizing: 'border-box'
                         }}
                       >
                         {/* 1. Avatar & Partner Details */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0, overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: '240px', flexShrink: 0 }}>
                           <div
                             style={{
                               width: '44px',
@@ -2695,7 +2698,7 @@ export default function AdminDashboard() {
                           </div>
                           <div style={{ minWidth: 0 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px', flexWrap: 'wrap' }}>
-                              <span style={{ fontWeight: 800, color: '#0F2942', fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.name}</span>
+                              <span style={{ fontWeight: 800, color: '#0F2942', fontSize: '1rem', whiteSpace: 'nowrap' }}>{b.name}</span>
                               <span
                                 style={{
                                   padding: '2px 7px',
@@ -2711,7 +2714,7 @@ export default function AdminDashboard() {
                                 {isLive ? 'ACTIVE' : (b.status || 'INACTIVE').toUpperCase()}
                               </span>
                             </div>
-                            <div style={{ fontSize: '0.78rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <div style={{ fontSize: '0.78rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap' }}>
                               <span>{partnerCode}</span>
                               <span>·</span>
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}><MapPin size={11} /> {locationStr}</span>
@@ -2721,36 +2724,34 @@ export default function AdminDashboard() {
                           </div>
                         </div>
 
-                        {/* 2. Metric Counters Grid - Compact & Centered with controlled spacing */}
+                        {/* 2. Metric Counters Grid - Compact & Centered */}
                         <div style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(5, 78px)',
+                          display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '10px',
-                          margin: '0 auto'
+                          gap: '20px',
+                          flexShrink: 0
                         }}>
-                          <div style={{ textAlign: 'center' }}>
+                          <div style={{ textAlign: 'center', minWidth: '55px' }}>
                             <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#0F2942' }}>{clientsCount}</div>
                             <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>CLIENTS</div>
                           </div>
 
-                          <div style={{ textAlign: 'center' }}>
+                          <div style={{ textAlign: 'center', minWidth: '65px' }}>
                             <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#10B981' }}>{disbursedCount}</div>
                             <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>DISBURSED</div>
                           </div>
 
-                          <div style={{ textAlign: 'center' }}>
+                          <div style={{ textAlign: 'center', minWidth: '75px' }}>
                             <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#3B82F6' }}>{inProgressCount}</div>
                             <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>IN PROGRESS</div>
                           </div>
 
-                          <div style={{ textAlign: 'center' }}>
+                          <div style={{ textAlign: 'center', minWidth: '55px' }}>
                             <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#F59E0B' }}>{pendingCount}</div>
                             <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>PENDING</div>
                           </div>
 
-                          <div style={{ textAlign: 'center' }}>
+                          <div style={{ textAlign: 'center', minWidth: '65px' }}>
                             <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#8B5CF6' }}>{volFormatted}</div>
                             <div style={{ fontSize: '0.62rem', fontWeight: 700, color: '#64748B', letterSpacing: '0.04em' }}>VOLUME</div>
                           </div>
