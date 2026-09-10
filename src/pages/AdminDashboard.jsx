@@ -948,6 +948,7 @@ export default function AdminDashboard() {
       status: lead.status || "in progress",
       stage: lead.stage || "Applied",
       remark: lead.loan_purpose || "",
+      finalized_rate: lead.finalized_rate !== null && lead.finalized_rate !== undefined ? lead.finalized_rate : "",
     });
   }
 
@@ -961,13 +962,21 @@ export default function AdminDashboard() {
         payload.stage = 'Disbursed';
       }
 
-      // Validation: Disbursed loans must have exactly ONE approving bank specified
+      // Validation: Disbursed loans must have exactly ONE approving bank AND a finalized interest rate
       if (payload.status === 'disbursed' || payload.stage === 'Disbursed') {
         const lenders = (payload.lender || "").split(",").map(s => s.trim()).filter(Boolean);
         if (lenders.length !== 1) {
           setCustomAlert({ 
             message: "You must specify exactly ONE approving bank in the Lender field before marking this loan as disbursed.", 
             type: "warning" 
+          });
+          return;
+        }
+        const rateVal = parseFloat(payload.finalized_rate);
+        if (!payload.finalized_rate || isNaN(rateVal) || rateVal <= 0) {
+          setCustomAlert({
+            message: "You must enter the Finalized Interest Rate (%) before marking this loan as disbursed.",
+            type: "warning"
           });
           return;
         }
@@ -2366,6 +2375,7 @@ export default function AdminDashboard() {
                         <th>LOAN TYPE</th>
                         <th>AMOUNT</th>
                         <th>LENDER</th>
+                        <th>RATE</th>
                         <th>STAGE</th>
                         <th>STATUS</th>
                         <th>ACTION</th>
@@ -2374,7 +2384,7 @@ export default function AdminDashboard() {
                     <tbody>
                       {filteredLeads.length === 0 ? (
                         <tr>
-                          <td colSpan="8" className="no-data-cell" style={{ padding: '40px 20px' }}>No applications match</td>
+                        <td colSpan="9" className="no-data-cell" style={{ padding: '40px 20px' }}>No applications match</td>
                         </tr>
                       ) : (
                         pagedLeads.map((l) => {
@@ -2409,7 +2419,7 @@ export default function AdminDashboard() {
                               <td style={{ fontWeight: 800, color: '#1E293B', fontSize: '0.85rem' }}>
                                 {l.loan_amount ? Number(l.loan_amount).toLocaleString('en-IN') : "-"}
                               </td>
-                              <td style={{ fontWeight: 600, color: '#0F2942', fontSize: '0.82rem', maxWidth: '240px', lineHeight: '1.4' }}>
+                              <td style={{ fontWeight: 600, color: '#0F2942', fontSize: '0.82rem', maxWidth: '200px', lineHeight: '1.4' }}>
                                 {(() => {
                                   let lendersList = [];
                                   if (Array.isArray(l.lenders) && l.lenders.length > 0) {
@@ -2433,6 +2443,13 @@ export default function AdminDashboard() {
 
                                   return lendersList.join(', ');
                                 })()}
+                              </td>
+                              {/* Finalized Rate column */}
+                              <td style={{ fontSize: '0.82rem', fontWeight: 700, textAlign: 'center' }}>
+                                {l.finalized_rate !== null && l.finalized_rate !== undefined
+                                  ? <span style={{ color: '#15803D', background: '#DCFCE7', padding: '2px 8px', borderRadius: '10px' }}>{parseFloat(l.finalized_rate).toFixed(2)}%</span>
+                                  : <span style={{ color: '#9CA3AF', fontSize: '0.75rem' }}>N/A</span>
+                                }
                               </td>
                               <td>
                                 <button
@@ -4054,6 +4071,29 @@ export default function AdminDashboard() {
                     onChange={(e) => setEditForm(f => ({ ...f, remark: e.target.value }))}
                     style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', outline: 'none', resize: 'vertical' }}
                   />
+                </div>
+
+                {/* Finalized Interest Rate */}
+                <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', padding: '14px 16px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: 700, color: '#92400E', marginBottom: '8px' }}>
+                    <span>💰</span> Finalized Interest Rate (%)
+                    {(editForm.finalized_rate === '' || editForm.finalized_rate === null || editForm.finalized_rate === undefined) && (
+                      <span style={{ fontSize: '0.72rem', background: '#FEF3C7', color: '#B45309', border: '1px solid #FDE68A', padding: '1px 8px', borderRadius: '12px', fontWeight: 600 }}>N/A</span>
+                    )}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    placeholder="e.g. 8.75"
+                    value={editForm.finalized_rate ?? ''}
+                    onChange={(e) => setEditForm(f => ({ ...f, finalized_rate: e.target.value }))}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #FCD34D', fontSize: '0.9rem', outline: 'none', background: '#FEFCE8' }}
+                  />
+                  <p style={{ margin: '6px 0 0', fontSize: '0.74rem', color: '#92400E' }}>
+                    The rate at which the loan is actually sanctioned (within the lender's min–max range). <strong>Required before marking Disbursed.</strong>
+                  </p>
                 </div>
               </div>
 
