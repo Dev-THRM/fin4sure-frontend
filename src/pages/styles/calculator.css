@@ -7,6 +7,9 @@
   min-height: 100vh;
   padding-bottom: 90px;
   box-sizing: border-box;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
 }
 
 /* Top Gradient Header Area */
@@ -816,6 +819,12 @@
     padding: 14px 10px;
     border-radius: 12px;
   }
+  /* Prevent compare card from overflowing its container */
+  .calc-compare-card {
+    overflow: hidden;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
 }
 
 @media (max-width: 768px) {
@@ -911,6 +920,20 @@
     border-radius: 10px;
     white-space: nowrap;
     flex-shrink: 0;
+  }
+  /* Scrollable chip rows — hide scrollbar */
+  .calc-chip-row {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .calc-chip-row::-webkit-scrollbar {
+    display: none;
+  }
+  /* Ensure amortization table scrolls cleanly */
+  .calc-body-wrap > div {
+    max-width: 100%;
+    box-sizing: border-box;
   }
 }
 

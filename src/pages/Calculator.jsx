@@ -722,7 +722,7 @@ export default function Calculator() {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', gap: '4px', flexWrap: 'nowrap', overflowX: 'auto', marginBottom: '6px', paddingBottom: '2px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   {[1000000, 2500000, 5000000, 10000000, 25000000].map((presetAmt) => {
                     const isSel = amount === presetAmt;
                     const label = presetAmt >= 10000000 ? `₹${(presetAmt / 10000000).toFixed(2)} Cr` : `₹${(presetAmt / 100000).toFixed(2)} L`;
@@ -732,14 +732,16 @@ export default function Calculator() {
                         type="button"
                         onClick={() => setAmount(presetAmt)}
                         style={{
-                          padding: '2px 8px',
+                          padding: '2px 10px',
                           borderRadius: '12px',
                           border: isSel ? '1px solid #0284C7' : '1px solid #E2E8F0',
                           background: isSel ? '#E0F2FE' : '#F8FAFC',
                           color: isSel ? '#0369A1' : '#475569',
                           fontSize: '0.72rem',
                           fontWeight: 700,
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          flexShrink: 0,
+                          whiteSpace: 'nowrap'
                         }}
                       >
                         {label}
@@ -820,7 +822,7 @@ export default function Calculator() {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', gap: '4px', flexWrap: 'nowrap', overflowX: 'auto', marginBottom: '6px', paddingBottom: '2px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   {[5, 10, 15, 20, 25, 30].map((yr) => {
                     const mo = yr * 12;
                     const isSel = tenure === mo;
@@ -830,14 +832,16 @@ export default function Calculator() {
                         type="button"
                         onClick={() => setTenure(mo)}
                         style={{
-                          padding: '2px 8px',
+                          padding: '2px 10px',
                           borderRadius: '12px',
                           border: isSel ? '1px solid #0284C7' : '1px solid #E2E8F0',
                           background: isSel ? '#E0F2FE' : '#F8FAFC',
                           color: isSel ? '#0369A1' : '#475569',
                           fontSize: '0.72rem',
                           fontWeight: 700,
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          flexShrink: 0,
+                          whiteSpace: 'nowrap'
                         }}
                       >
                         {yr} yr
@@ -957,8 +961,8 @@ export default function Calculator() {
               </div>
 
               {/* Filter Pills & Sort Dropdown */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', width: '100%', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', gap: '3px', background: '#F8FAFC', padding: '3px', borderRadius: '10px', border: '1px solid #E2E8F0', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', justifyContent: 'space-between', flexWrap: 'nowrap', overflowX: 'auto', paddingBottom: '2px', WebkitOverflowScrolling: 'touch' }}>
+                <div style={{ display: 'flex', gap: '3px', background: '#F8FAFC', padding: '3px', borderRadius: '10px', border: '1px solid #E2E8F0', flexShrink: 0, flexWrap: 'nowrap' }}>
                   {["All", "PSU", "Private", "NBFC/HFC", "SFB"].map((fl) => (
                     <button
                       key={fl}
@@ -973,7 +977,8 @@ export default function Calculator() {
                         cursor: 'pointer',
                         background: lenderFilter === fl ? '#0F2942' : 'transparent',
                         color: lenderFilter === fl ? '#FFFFFF' : '#64748B',
-                        transition: 'all 0.2s ease'
+                        transition: 'all 0.2s ease',
+                        whiteSpace: 'nowrap'
                       }}
                     >
                       {fl}
@@ -992,13 +997,23 @@ export default function Calculator() {
                     fontSize: '0.76rem',
                     fontWeight: 700,
                     color: '#0F2942',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    whiteSpace: 'nowrap',
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'none',
+                    appearance: 'none',
+                    paddingRight: '24px',
+                    backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230F2942' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 6px center',
+                    backgroundSize: '10px 10px'
                   }}
                 >
-                  <option value="type_order">Type Order ▾</option>
-                  <option value="rate_asc">Lowest Rate ▾</option>
-                  <option value="rate_desc">Highest Rate ▾</option>
-                  <option value="emi_asc">Lowest EMI ▾</option>
+                  <option value="type_order">Type Order</option>
+                  <option value="rate_asc">Lowest Rate</option>
+                  <option value="rate_desc">Highest Rate</option>
+                  <option value="emi_asc">Lowest EMI</option>
                 </select>
               </div>
             </div>
@@ -1065,8 +1080,8 @@ export default function Calculator() {
             )}
 
             {/* Lenders Table */}
-            <div className="calc-table-scroll-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
-              <table style={{ minWidth: '420px', width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+            <div className="calc-table-scroll-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <table style={{ minWidth: '580px', width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
                 <thead>
                   <tr style={{ background: '#0F2942', color: '#FFFFFF', textAlign: 'left' }}>
                     <th style={{ padding: '10px 14px', borderRadius: '8px 0 0 0', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.05em' }}>LENDER</th>
