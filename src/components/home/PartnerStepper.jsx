@@ -114,7 +114,7 @@ export default function PartnerStepper({ onBack }) {
             const res = await fetch("/api/auth/send-email-otp", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: cleanEmail }),
+                body: JSON.stringify({ email: cleanEmail, purpose: 'registration' }),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || "Failed to send OTP.");

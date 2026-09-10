@@ -223,7 +223,7 @@ export default function BorrowerStepper({ onBack }) {
     setOtpSending(true);
     setOtpError('');
     try {
-      const res = await axios.post('/api/auth/send-email-otp', { email: formData.email });
+      const res = await axios.post('/api/auth/send-email-otp', { email: formData.email, purpose: 'registration' });
       if (res.data?.success) {
         setShowOtp(true);
       } else {
