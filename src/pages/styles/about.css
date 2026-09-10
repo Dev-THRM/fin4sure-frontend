@@ -589,22 +589,66 @@ a.acc-row:hover {
 
 @media (max-width: 768px) {
   .about-h1 {
-    font-size: 2.3rem;
+    font-size: 1.85rem;
   }
   .about-hero {
-    padding: 48px 16px 40px;
+    padding: 36px 16px 32px;
   }
   .about-hero-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
   }
   .ahs {
-    padding: 10px 16px;
-    min-width: 90px;
+    padding: 10px 12px;
+    min-width: 0;
+  }
+  .ahs-v {
+    font-size: 1.25rem;
   }
   .about-content {
-    padding: 0 16px 48px;
+    padding: 0 14px 48px;
+  }
+  .about-tabs-container {
+    width: 100%;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding-bottom: 8px;
+    margin-top: 24px;
+    margin-bottom: 24px;
+  }
+  .about-tabs {
+    width: max-content;
+  }
+  .about-tab {
+    padding: 8px 14px;
+    font-size: 0.82rem;
   }
   .about-services-grid {
+    grid-template-columns: 1fr;
+  }
+  .about-vm-card {
+    padding: 24px 20px;
+  }
+  .about-story-block {
+    padding: 24px 20px;
+  }
+  .acc-left {
+    padding: 24px 18px;
+  }
+  .acc-right {
+    padding: 28px 20px;
+  }
+}
+
+@media (max-width: 380px) {
+  .about-h1 {
+    font-size: 1.6rem;
+  }
+  .about-hero-stats {
     grid-template-columns: 1fr;
   }
 }

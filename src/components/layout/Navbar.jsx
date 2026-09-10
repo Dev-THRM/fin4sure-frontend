@@ -79,7 +79,7 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* ═══ ROW 2: Tab ribbon ═══ */}
+      {/* ═══ ROW 2: Tab ribbon / Mobile drawer ═══ */}
       <nav className={`navbar-ribbon ${mobileMenuOpen ? 'open' : ''}`}>
         <NavLink 
           to="/about" 
@@ -142,6 +142,25 @@ export default function Navbar() {
             <span>Customer Login</span>
           </NavLink>
         )}
+
+        {/* Mobile Extra Menu Actions */}
+        <div className="nav-mobile-bottom-actions">
+          <a className="nav-mobile-phone" href={`tel:${(supportPhone || '').replace(/\D/g, '')}`}>
+            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 3.08 4.18 2 2 0 0 1 5.07 2h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L9.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.58 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
+            <span>Call Support: {supportPhone || "1800-123-4567"}</span>
+          </a>
+          {isAuthenticated ? (
+            <button className="nav-mobile-cta" onClick={() => { setMobileMenuOpen(false); handleLogout(); }}>
+              Sign Out
+            </button>
+          ) : (
+            <button className="nav-mobile-cta" onClick={() => { setMobileMenuOpen(false); navigate("/login"); }}>
+              Apply Now →
+            </button>
+          )}
+        </div>
       </nav>
     </>
   );

@@ -512,7 +512,7 @@ export default function Login() {
                   </div>
 
                   {/* 4-box OTP input */}
-                  <div style={{ display: "flex", gap: "12px", justifyContent: "center" }} onPaste={handleOtpPaste}>
+                  <div className="login-otp-container" onPaste={handleOtpPaste}>
                     {otp.map((digit, i) => (
                       <input
                         key={i}
@@ -524,14 +524,7 @@ export default function Login() {
                         value={digit}
                         onChange={(e) => handleOtpChange(i, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                        style={{
-                          width: "58px", height: "64px", textAlign: "center",
-                          fontSize: "1.8rem", fontWeight: 700, fontFamily: "monospace",
-                          border: `2px solid ${digit ? "var(--teal)" : "#C8DCF5"}`,
-                          borderRadius: "12px", background: digit ? "#f0fdf4" : "#F0F7FF",
-                          color: "var(--navy)", outline: "none", transition: "border-color .2s, background .2s",
-                          caretColor: "transparent",
-                        }}
+                        className={`login-otp-box ${digit ? 'filled' : ''}`}
                       />
                     ))}
                   </div>
@@ -641,7 +634,7 @@ export default function Login() {
                   </div>
 
                   {/* 4-box OTP input */}
-                  <div style={{ display: "flex", gap: "12px", justifyContent: "center" }} onPaste={handleOtpPaste}>
+                  <div className="login-otp-container" onPaste={handleOtpPaste}>
                     {otp.map((digit, i) => (
                       <input
                         key={i}
@@ -653,21 +646,7 @@ export default function Login() {
                         value={digit}
                         onChange={(e) => handleOtpChange(i, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                        style={{
-                          width: "58px",
-                          height: "64px",
-                          textAlign: "center",
-                          fontSize: "1.8rem",
-                          fontWeight: 700,
-                          fontFamily: "monospace",
-                          border: `2px solid ${digit ? "var(--teal)" : "#C8DCF5"}`,
-                          borderRadius: "12px",
-                          background: digit ? "#f0fdf4" : "#F0F7FF",
-                          color: "var(--navy)",
-                          outline: "none",
-                          transition: "border-color .2s, background .2s",
-                          caretColor: "transparent",
-                        }}
+                        className={`login-otp-box ${digit ? 'filled' : ''}`}
                       />
                     ))}
                   </div>

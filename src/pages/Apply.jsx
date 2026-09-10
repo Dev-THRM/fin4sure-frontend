@@ -527,7 +527,7 @@ export default function Apply() {
                 SET AMOUNT, RATE &amp; TENURE
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '20px', alignItems: 'start' }}>
+              <div className="apply-calculator-split">
                 {/* LEFT COLUMN: Range Sliders & Controls */}
                 <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
                   

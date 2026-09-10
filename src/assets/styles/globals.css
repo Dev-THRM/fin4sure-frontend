@@ -212,7 +212,7 @@ input[type="range"]::-moz-range-thumb {
 
 /* ── Touch enhancements ── */
 @media (hover: none), (pointer: coarse) {
-  .btn-primary {
+  .btn-primary, .btn-secondary {
     min-height: 44px;
   }
   input[type="range"] {
@@ -220,12 +220,29 @@ input[type="range"]::-moz-range-thumb {
     cursor: pointer;
   }
   input[type="range"]::-webkit-slider-thumb {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
   }
   input[type="range"]::-moz-range-thumb {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* ── Mobile Base Adjustments (prevent iOS auto-zoom on inputs) ── */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  body {
+    -webkit-text-size-adjust: 100%;
   }
 }
 

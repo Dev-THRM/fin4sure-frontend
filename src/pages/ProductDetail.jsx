@@ -91,21 +91,21 @@ export default function ProductDetail() {
       </div>
 
       {/* HERO */}
-      <div className="max-w-7xl mx-auto px-6 py-16 grid md:grid-cols-2 gap-10 items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-16 grid md:grid-cols-2 gap-8 items-center">
         <div>
-          <h1 className="text-4xl font-bold text-slate-900">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900">
             {product.name}
           </h1>
 
-          <p className="mt-4 text-lg text-slate-600">
+          <p className="mt-3 sm:mt-4 text-base sm:text-lg text-slate-600">
             {product.longDescription}
           </p>
 
           <Link
             to={`/apply?product=${product.id}`}
-            className="mt-6 inline-block px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            className="mt-6 inline-block px-6 py-3 bg-red-500 text-white font-semibold rounded-xl hover:bg-red-600 shadow-md transition"
           >
-            Apply Now
+            Apply Now →
           </Link>
         </div>
 
@@ -115,12 +115,12 @@ export default function ProductDetail() {
       </div>
 
       {/* TABS */}
-      <div className="sticky top-25 bg-white/80 backdrop-blur-md border-b z-40 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 flex gap-8 text-sm font-medium">
+      <div className="sticky top-[62px] bg-white/95 backdrop-blur-md border-b z-40 shadow-xs overflow-x-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex gap-6 sm:gap-8 text-sm font-medium whitespace-nowrap min-w-max sm:min-w-0">
 
           <button
             onClick={showAllSections}
-            className={`py-4 relative ${activeTab === "overview" ? active : inactive}`}
+            className={`py-3 sm:py-4 relative ${activeTab === "overview" ? active : inactive}`}
           >
             Overview
             <span className={`absolute bottom-0 left-0 w-full h-0.5 ${activeTab === "overview" ? "bg-red-500" : ""}`} />
@@ -128,7 +128,7 @@ export default function ProductDetail() {
 
           <button
             onClick={() => handleTabClick("features", featuresRef)}
-            className={`py-4 relative ${activeTab === "features" ? active : inactive}`}
+            className={`py-3 sm:py-4 relative ${activeTab === "features" ? active : inactive}`}
           >
             Features
             <span className={`absolute bottom-0 left-0 w-full h-0.5 ${activeTab === "features" ? "bg-red-500" : ""}`} />
@@ -136,7 +136,7 @@ export default function ProductDetail() {
 
           <button
             onClick={() => handleTabClick("eligibility", eligibilityRef)}
-            className={`py-4 relative ${activeTab === "eligibility" ? active : inactive}`}
+            className={`py-3 sm:py-4 relative ${activeTab === "eligibility" ? active : inactive}`}
           >
             Eligibility
             <span className={`absolute bottom-0 left-0 w-full h-0.5 ${activeTab === "eligibility" ? "bg-red-500" : ""}`} />
@@ -144,7 +144,7 @@ export default function ProductDetail() {
 
           <button
             onClick={() => handleTabClick("documents", documentsRef)}
-            className={`py-4 relative ${activeTab === "documents" ? active : inactive}`}
+            className={`py-3 sm:py-4 relative ${activeTab === "documents" ? active : inactive}`}
           >
             Documents
             <span className={`absolute bottom-0 left-0 w-full h-0.5 ${activeTab === "documents" ? "bg-red-500" : ""}`} />
@@ -153,7 +153,7 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-16 space-y-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-16 space-y-12 md:space-y-20">
 
         {/* OVERVIEW */}
         {(mode === "all" || activeTab === "overview") && (

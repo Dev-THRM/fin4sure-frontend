@@ -850,3 +850,196 @@
     margin: 0 -16px 8px;
   }
 }
+
+@media (max-width: 768px) {
+  .brand-panel {
+    padding: 28px 16px 24px;
+  }
+
+  .brand-panel .nav-logo {
+    padding: 8px 12px;
+  }
+
+  .brand-panel-logo {
+    width: 110px;
+  }
+
+  .b-hero h1 {
+    font-size: 1.85rem;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+
+  .b-hero p {
+    font-size: 0.88rem;
+    line-height: 1.55;
+    margin-bottom: 18px;
+  }
+
+  .b-features {
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .b-feat {
+    font-size: 0.8rem;
+  }
+
+  .b-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .stat+.stat {
+    border-left: none;
+  }
+
+  .stat {
+    padding: 4px;
+  }
+
+  .stat-val {
+    font-size: 1.15rem;
+  }
+
+  .stat-lbl {
+    font-size: 0.62rem;
+  }
+
+  .form-panel {
+    padding: 16px 12px 36px;
+    gap: 20px;
+  }
+
+  .top-header-stack {
+    width: calc(100% + 24px);
+    margin: 0 -12px 4px;
+  }
+
+  .company-ribbon {
+    padding: 10px 14px;
+    gap: 8px;
+  }
+
+  .company-ribbon-name {
+    font-size: 1.25rem;
+  }
+
+  .company-ribbon-tag {
+    font-size: 0.7rem;
+    padding-left: 8px;
+  }
+
+  .rp-heading {
+    font-size: 1.35rem;
+  }
+
+  .rp-sub {
+    font-size: 0.82rem;
+    margin-bottom: 18px;
+  }
+
+  .role-cards {
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .role-card {
+    padding: 14px 12px;
+    gap: 10px;
+  }
+
+  .role-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 1.3rem;
+  }
+
+  .role-title {
+    font-size: 0.95rem;
+  }
+
+  .role-desc {
+    font-size: 0.74rem;
+  }
+
+  .home-loan-type-row {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .home-loan-type-row .hltp {
+    padding: 8px 4px;
+    font-size: 0.7rem;
+  }
+
+  .hltp-ic {
+    font-size: 1.15rem;
+  }
+
+  .emi-card {
+    padding: 18px 14px;
+    border-radius: 18px;
+  }
+
+  .emi-card-top {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .ect-badge {
+    width: 38px;
+    height: 38px;
+  }
+
+  .ect-title h3 {
+    font-size: 1.02rem;
+  }
+
+  .rf-header label {
+    font-size: 0.8rem;
+  }
+
+  .rf-input-wrap {
+    height: 28px;
+    padding: 2px 6px;
+  }
+
+  .rf-input {
+    font-size: 0.85rem;
+    width: 48px;
+  }
+
+  .preview-val {
+    font-size: 1.4rem;
+  }
+
+  .emi-redirect-tab {
+    padding: 12px 14px;
+  }
+
+  .ert-txt .ert-title {
+    font-size: 0.85rem;
+  }
+
+  .ert-txt .ert-sub {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .home-loan-type-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .b-hero h1 {
+    font-size: 1.6rem;
+  }
+
+  .company-ribbon-name {
+    font-size: 1.1rem;
+  }
+}

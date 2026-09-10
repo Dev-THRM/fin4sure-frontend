@@ -295,8 +295,8 @@ export default function BrokerRegistration() {
             </div>
 
             {/* DOB & ADDRESS */}
-            <div className="apply-form-row" style={{ display: "flex", gap: "10px" }}>
-              <div className="input-wrap" style={{ flex: 1 }}>
+            <div className="apply-form-row">
+              <div className="input-wrap">
                 <span className="icon">📅</span>
                 <input
                   type="date"
@@ -305,7 +305,7 @@ export default function BrokerRegistration() {
                   required
                 />
               </div>
-              <div className="input-wrap" style={{ flex: 1.5 }}>
+              <div className="input-wrap">
                 <span className="icon">🏠</span>
                 <input
                   type="text"
@@ -318,8 +318,8 @@ export default function BrokerRegistration() {
             </div>
 
             {/* STATE & DISTRICT SELECTORS */}
-            <div className="apply-form-row" style={{ display: "flex", gap: "10px" }}>
-              <div className="input-wrap" style={{ flex: 1, padding: "0 10px" }}>
+            <div className="apply-form-row">
+              <div className="input-wrap" style={{ padding: "0 10px" }}>
                 <select
                   value={state}
                   onChange={(e) => {
@@ -338,7 +338,7 @@ export default function BrokerRegistration() {
                 </select>
               </div>
 
-              <div className="input-wrap" style={{ flex: 1, padding: "0 10px" }}>
+              <div className="input-wrap" style={{ padding: "0 10px" }}>
                 <select
                   value={district}
                   disabled={!state}

@@ -522,7 +522,7 @@ export default function Calculator() {
           {subTab === 'summary' ? (
             <div>
               {/* 4 Stat Cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '14px' }}>
+              <div className="calc-summary-4cards">
                 <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
                   <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F2942' }}>{fmtINRFull(emi)}</div>
                   <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>MONTHLY EMI</div>
@@ -579,7 +579,7 @@ export default function Calculator() {
         </div>
 
         {/* ═══ UNIFIED SIDE-BY-SIDE GRID (LEFT: CALCULATOR | RIGHT: COMPARE LENDERS TABLE) ═══ */}
-        <div className="calc-main-side-grid" style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: '24px', alignItems: 'start', marginBottom: '24px' }}>
+        <div className="calc-main-side-grid">
 
           {/* ═══ LEFT PANEL: LOAN CALCULATOR & EMI READOUT ═══ */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

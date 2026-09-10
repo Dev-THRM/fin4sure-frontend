@@ -191,9 +191,61 @@
   color: #a4b4c7;
 }
 
+.login-otp-container {
+  display: flex;
+  gap: clamp(6px, 2vw, 12px);
+  justify-content: center;
+  width: 100%;
+}
+
+.login-otp-box {
+  width: min(56px, 18vw);
+  height: min(60px, 19vw);
+  text-align: center;
+  font-size: clamp(1.3rem, 5vw, 1.8rem);
+  font-weight: 700;
+  font-family: monospace;
+  border: 2px solid #C8DCF5;
+  border-radius: 12px;
+  background: #F0F7FF;
+  color: var(--navy);
+  outline: none;
+  transition: border-color .2s, background .2s;
+  caret-color: transparent;
+  box-sizing: border-box;
+}
+
+.login-otp-box.filled {
+  border-color: var(--teal);
+  background: #F0FDF4;
+}
+
+.login-otp-box:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
 /* ── Media Queries (Responsive) ── */
 @media (max-width: 576px) {
+  .login-page-wrap {
+    padding: 20px 12px;
+  }
+
   .login-page-content {
-    padding: 24px 14px 40px;
+    padding: 0;
+  }
+
+  .login-form-card {
+    padding: 24px 16px;
+    border-radius: 16px;
+  }
+
+  .login-tabs {
+    margin-bottom: 20px;
+  }
+
+  .login-tab {
+    font-size: 0.76rem;
+    padding: 8px 4px;
   }
 }
