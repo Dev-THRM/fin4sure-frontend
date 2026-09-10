@@ -821,18 +821,22 @@
   }
   .calc-body-wrap {
     width: 100%;
-    padding: 0 12px;
+    padding: 0 12px 90px;
     margin-top: 8px;
+  }
+  .calc-step1-wrap, .calc-step2-wrap, .calc-step3-wrap {
+    padding-bottom: 80px;
   }
   .calc-summary-4cards {
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
   .calc-lender-card {
-    padding: 14px 16px;
+    padding: 12px 14px;
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
+    border-radius: 14px;
   }
   .clc-right {
     width: 100%;
@@ -841,6 +845,47 @@
     align-items: baseline;
     border-top: 1px solid #F1F5F9;
     padding-top: 8px;
+  }
+  .calc-bottom-bar {
+    padding: 10px 14px;
+    gap: 8px;
+    box-sizing: border-box;
+  }
+  .calc-bar-back {
+    font-size: 0.82rem;
+    padding: 6px 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .calc-bar-center {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    line-height: 1.15;
+    min-width: 0;
+    flex: 1;
+  }
+  .calc-bar-center .cbc-lbl {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    color: #64748B;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .calc-bar-center .cbc-val {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #0F2942;
+    white-space: nowrap;
+  }
+  .calc-bar-next {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border-radius: 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 }
 

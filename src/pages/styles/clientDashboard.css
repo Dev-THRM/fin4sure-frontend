@@ -733,21 +733,97 @@
 
 @media (max-width: 768px) {
   .cdash-header {
-    padding: 18px 14px 0;
+    padding: 16px 14px 0;
   }
   .cdash-header-inner {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
+  .cdash-greeting {
+    width: 100%;
+  }
+  .cdash-avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 1.15rem;
+    border-radius: 14px;
+  }
+  .cdash-name {
+    font-size: 1.25rem;
+  }
   .cdash-tab-bar {
-    padding: 0 14px;
+    padding: 0 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .cdash-tab-bar::-webkit-scrollbar {
+    display: none;
   }
   .cdash-tab {
     padding: 10px 14px;
-    font-size: .77rem;
+    font-size: .78rem;
+    flex-shrink: 0;
   }
   .cdash-body {
-    padding: 18px 12px 40px;
+    padding: 14px 10px 40px;
+  }
+  .cdl-card {
+    padding: 14px 12px;
+    border-radius: 14px;
+  }
+  .cdl-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .cdl-left {
+    width: 100%;
+  }
+  .cdl-right {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #F1F5F9;
+    padding-top: 8px;
+    margin-top: 2px;
+  }
+  .cdl-track {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    gap: 6px;
+    padding-bottom: 6px;
+    margin-top: 12px;
+  }
+  .cdl-track::-webkit-scrollbar {
+    display: none;
+  }
+  .cdl-track::before {
+    display: none;
+  }
+  .cdl-step {
+    min-width: 58px;
+    flex-shrink: 0;
+  }
+  .cdl-step-lbl {
+    font-size: 0.65rem;
+  }
+  .cd-sec-head h3 {
+    font-size: 1.05rem;
+  }
+  .cdash-new-btn {
+    padding: 7px 12px;
+    font-size: 0.76rem;
+  }
+  .cd-modal-card {
+    width: calc(100% - 24px);
+    max-width: 400px;
+    margin: 12px;
   }
 }

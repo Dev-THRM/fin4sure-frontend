@@ -668,19 +668,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);min-height:100vh;d
 .range-field:last-child{margin-bottom:0}
 .rf-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
 .rf-header label{font-size:.88rem;font-weight:600;color:var(--navy)}
-.rf-input-wrap{display:flex;align-items:center;background:#F0F7FF;border:1.5px solid #C8DCF5;border-radius:10px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
+.rf-input-wrap{display:inline-flex;align-items:center;background:#F0F7FF;border:1.5px solid #C8DCF5;border-radius:10px;overflow:hidden;transition:border-color .2s,box-shadow .2s;min-width:148px;box-sizing:border-box}
 .rf-input-wrap:focus-within{border-color:var(--teal);box-shadow:0 0 0 3px rgba(2,132,199,.1)}
-.rf-prefix,.rf-suffix{font-size:.78rem;font-weight:600;color:var(--text2);padding:0 8px}
+.rf-prefix,.rf-suffix{font-size:.78rem;font-weight:600;color:var(--text2);padding:0 8px;flex-shrink:0}
 .rf-unit{
   border:none;border-left:1.5px solid #C8DCF5;outline:none;cursor:pointer;
   background:#E0F2FE;color:var(--navy);
   font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:700;
   padding:7px 10px;height:100%;align-self:stretch;
-  min-width:68px;flex-shrink:0;text-align:center;
+  min-width:66px;flex-shrink:0;text-align:center;
   transition:background .2s;
+  appearance:auto;
+  -webkit-appearance:auto;
 }
 .rf-unit:hover{background-color:#BAE6FD}
-.rf-input{border:none;outline:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:700;color:var(--navy);width:64px;padding:8px 2px;text-align:right;min-width:0}
+.rf-input{border:none;outline:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:700;color:var(--navy);width:52px;min-width:44px;padding:8px 2px;text-align:right;flex-shrink:0}
 .rf-input::-webkit-outer-spin-button,.rf-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .rf-minmax{display:flex;justify-content:space-between;font-size:.66rem;color:var(--text2);margin-top:7px;padding:0 2px;opacity:.75}
 .amt-quick-btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
