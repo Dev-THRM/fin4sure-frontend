@@ -5,6 +5,11 @@ import tailwindcss from "@tailwindcss/vite";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    // Build directly into the backend's `client/` folder so Express can serve it
+    outDir: "../fin4sure-backend/client",
+    emptyOutDir: true,
+  },
   server: {
     proxy: {
       '/api': {
@@ -20,4 +25,3 @@ export default defineConfig({
     }
   }
 });
-
