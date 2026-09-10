@@ -2391,8 +2391,8 @@ export default function AdminDashboard() {
               </div>
 
               <div className="adm-workspace-card">
-                <div className="adm-wcard-body" style={{ padding: 0, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                  <table className="lenders-table">
+                <div className="adm-wcard-body" style={{ padding: 0, overflowX: 'auto' }}>
+                  <table className="lenders-table" style={{ minWidth: '700px', width: '100%' }}>
                     <thead>
                       <tr>
                         <th>APP ID</th>
@@ -2444,7 +2444,7 @@ export default function AdminDashboard() {
                               <td style={{ fontWeight: 800, color: '#1E293B', fontSize: '0.85rem' }}>
                                 {l.loan_amount ? Number(l.loan_amount).toLocaleString('en-IN') : "-"}
                               </td>
-                              <td style={{ fontWeight: 600, color: '#0F2942', fontSize: '0.82rem', maxWidth: '200px', lineHeight: '1.4' }}>
+                              <td style={{ fontWeight: 600, color: '#0F2942', fontSize: '0.82rem', maxWidth: '130px' }}>
                                 {(() => {
                                   let lendersList = [];
                                   if (Array.isArray(l.lenders) && l.lenders.length > 0) {
@@ -2454,7 +2454,6 @@ export default function AdminDashboard() {
                                   } else if (l.client_preference && typeof l.client_preference === 'string' && !['direct_reach', 'partner_routing'].includes(l.client_preference)) {
                                     lendersList = l.client_preference.split(',').map(s => s.trim()).filter(Boolean);
                                   }
-                                  
                                   if (lendersList.length === 0) {
                                     const defaultBankMap = {
                                       'Home Loan': ['SBI', 'HDFC Bank', 'ICICI Bank'],
@@ -2465,8 +2464,12 @@ export default function AdminDashboard() {
                                     };
                                     lendersList = defaultBankMap[l.product] || ['SBI', 'HDFC Bank'];
                                   }
-
-                                  return lendersList.join(', ');
+                                  const fullText = lendersList.join(', ');
+                                  return (
+                                    <div title={fullText} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '130px' }}>
+                                      {fullText}
+                                    </div>
+                                  );
                                 })()}
                               </td>
                               {/* Finalized Rate column */}
