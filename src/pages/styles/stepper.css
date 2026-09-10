@@ -25,61 +25,7 @@
 html{scroll-behavior:smooth}
 body{font-family:'DM Sans',sans-serif;background:var(--cream);min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden}
 
-/* ══════════════ NAV RIBBON ══════════════ */
-/* Row 1: logo bar */
-
-
-.navbar-top{
-  position:sticky;top:0;z-index:101;
-  background:#fff;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 48px;height:78px;
-  box-shadow:0 1px 0 #E1EAF4, 0 2px 12px rgba(15,23,42,.06);
-}
-.nav-logo{display:flex;align-items:center;gap:10px;cursor:pointer;text-decoration:none}
-.nav-logo-img{height:56px;width:auto;display:block;object-fit:contain;transition:transform .2s}
-.nav-logo:hover .nav-logo-img{transform:scale(1.04)}
-.nav-logo-name{font-family:'Arial Black',Impact,sans-serif;font-size:1.55rem;letter-spacing:-.02em;font-weight:900;display:flex;align-items:baseline;gap:0}
-.nl-finn{color:#0D2B6B}
-.nl-4{color:#00ACC1}
-.nl-sure{background:linear-gradient(90deg,#00ACC1,#26A69A,#66BB6A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-/* nav-logo-name spans handled by nl-finn/nl-4/nl-sure classes */
-.nav-top-right{display:flex;align-items:center;gap:14px}
-.nav-phone{font-size:.78rem;color:var(--text2);display:flex;align-items:center;gap:6px}
-.nav-cta{
-  padding:9px 22px;border-radius:8px;
-  background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;
-  font-size:.8rem;font-weight:700;border:none;cursor:pointer;
-  font-family:'DM Sans',sans-serif;letter-spacing:.03em;
-  transition:background .2s,transform .1s;white-space:nowrap;
-}
-.nav-cta:hover{background:linear-gradient(135deg,var(--teal2),#025E8F);box-shadow:0 4px 14px rgba(2,132,199,.35)}
-.nav-cta:active{transform:scale(.97)}
-
-/* Row 2: tab ribbon */
-.navbar-ribbon{
-  position:sticky;top:78px;z-index:100;
-  background:#fff;
-  display:flex;align-items:stretch;
-  padding:0 48px;
-  border-top:1px solid #BAE6FD;
-  border-bottom:2px solid #7DD3FC;
-  box-shadow:0 4px 16px rgba(2,132,199,.08);
-}
-.nav-tab{
-  display:flex;align-items:center;gap:7px;
-  padding:0 20px;height:46px;
-  font-size:.82rem;font-weight:500;color:var(--text2);
-  cursor:pointer;border:none;background:none;font-family:'DM Sans',sans-serif;
-  transition:color .2s,background .2s;white-space:nowrap;
-  border-bottom:3px solid transparent;margin-bottom:-2px;
-  position:relative;
-}
-.nav-tab:hover{color:var(--navy);background:var(--smoke)}
-.nav-tab.active{color:var(--navy);font-weight:600;border-bottom-color:var(--teal);background:#E0F2FE}
-.nav-tab svg{flex-shrink:0;opacity:.6}
-.nav-tab.active svg{opacity:1;color:var(--teal)}
-.nav-tab-spacer{flex:1}
+/* Stepper Base */
 
 /* ══════════════ PAGE VIEWS ══════════════ */
 .page{display:none;flex:1;animation:fadeUp .35s ease}
@@ -2400,17 +2346,8 @@ a.acc-row:hover{background:var(--teal-lt);border-color:#7DD3FC;transform:transla
   .apply-foot-meta{order:2;flex:1;text-align:right}
   html,body{overflow-x:hidden}
 
-  /* Navbar */
-  .navbar-top{padding:0 14px;height:60px;box-shadow:0 1px 0 #BAE6FD,0 2px 8px rgba(2,132,199,.08)}
   .ct-name{font-size:.92rem}
   .ct-tag{font-size:.66rem}
-  .navbar-ribbon{padding:0 4px;height:42px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;top:60px}
-  .navbar-ribbon::-webkit-scrollbar{display:none}
-  .nav-tab{padding:0 10px;height:42px;font-size:.66rem;gap:4px;flex-shrink:0}
-  .nav-tab svg{width:11px;height:11px}
-  .nav-phone,.nav-cta{display:none}
-  .nav-logo-img{height:42px}
-  .nav-logo{gap:7px}
   /* sticky offsets for mobile nav (60+42=102) */
 
   /* Nav height variable override */
@@ -2771,15 +2708,9 @@ a.acc-row:hover{background:var(--teal-lt);border-color:#7DD3FC;transform:transla
 
 /* ── Small phone 420px ── */
 @media(max-width:420px){
-  .navbar-top{padding:0 10px;height:54px}
   .ct-name{font-size:.84rem}
   .ct-tag{font-size:.6rem}
   .ct-sep{display:none}
-  .nav-logo-img{height:38px}
-  .nav-logo{gap:0}
-  .navbar-ribbon{top:54px!important;height:40px}
-  .roi-ticker-global{top:94px}
-  .nav-tab{padding:0 9px;height:40px;font-size:.62rem}
   .brand-panel{padding:16px 12px 16px}
   .b-hero h1{font-size:1.2rem}
   .b-hero p{font-size:.77rem}
