@@ -572,15 +572,19 @@ a.acc-row:hover {
 }
 
 /* ═══ RESPONSIVE BREAKPOINTS ═══ */
+.at-short-text {
+  display: none;
+}
+
 @media (max-width: 992px) {
   .about-vm-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
   .about-services-grid {
     grid-template-columns: repeat(2, 1fr);
   }
   .about-why-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
   .about-contact-card {
     grid-template-columns: 1fr;
@@ -610,32 +614,153 @@ a.acc-row:hover {
     font-size: 1.25rem;
   }
   .about-content {
-    padding: 0 14px 48px;
+    padding: 0 12px 48px;
   }
+
+  /* Single-line No-Scroll Floating Tab Bar */
   .about-tabs-container {
     width: 100%;
-    overflow-x: auto;
-    justify-content: flex-start;
-    padding-bottom: 8px;
-    margin-top: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: visible !important;
+    padding-bottom: 0;
+    margin-top: 20px;
     margin-bottom: 24px;
+    box-sizing: border-box;
   }
   .about-tabs {
-    width: max-content;
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    width: 100% !important;
+    max-width: 500px;
+    gap: 3px !important;
+    padding: 4px !important;
+    border-radius: 14px !important;
+    box-sizing: border-box;
+    overflow: visible !important;
   }
   .about-tab {
-    padding: 8px 14px;
-    font-size: 0.82rem;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 8px 2px !important;
+    gap: 3px !important;
+    border-radius: 10px !important;
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+    line-height: 1.15;
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box;
   }
-  .about-services-grid {
-    grid-template-columns: 1fr;
+  .about-tab .at-icon {
+    width: 15px !important;
+    height: 15px !important;
+  }
+
+  /* 2-2 in a row cards on mobile */
+  .about-vm-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
   }
   .about-vm-card {
-    padding: 24px 20px;
+    padding: 18px 14px !important;
+    border-radius: 16px !important;
+    box-sizing: border-box;
   }
+  .about-vm-card.about-values {
+    grid-column: span 2 !important;
+  }
+  .avm-icon-wrapper {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 12px !important;
+    margin-bottom: 10px !important;
+  }
+  .avm-icon-wrapper svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .about-vm-card h3 {
+    font-size: 1.05rem !important;
+    margin: 0 0 6px 0 !important;
+  }
+  .about-vm-card p {
+    font-size: 0.76rem !important;
+    line-height: 1.45 !important;
+  }
+
+  /* Services 2-2 in row */
+  .about-services-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  .about-service-item {
+    padding: 14px 10px !important;
+    border-radius: 14px !important;
+    gap: 10px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  .asi-icon {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+  }
+  .asi-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .about-service-item strong {
+    font-size: 0.84rem !important;
+    margin-bottom: 2px !important;
+  }
+  .about-service-item span {
+    font-size: 0.7rem !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Why Finn4sure 2-2 in row */
+  .about-why-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  .about-why-card {
+    padding: 18px 14px !important;
+    border-radius: 16px !important;
+  }
+  .awc-num {
+    font-size: 1.25rem !important;
+    margin-bottom: 8px !important;
+  }
+  .about-why-card h4 {
+    font-size: 0.95rem !important;
+    margin-bottom: 6px !important;
+  }
+  .about-why-card p {
+    font-size: 0.75rem !important;
+    line-height: 1.45 !important;
+  }
+
   .about-story-block {
-    padding: 24px 20px;
+    padding: 22px 18px !important;
+    border-radius: 16px !important;
   }
+  .about-story-block h2 {
+    font-size: 1.25rem !important;
+  }
+  .about-story-block p {
+    font-size: 0.82rem !important;
+    line-height: 1.55 !important;
+  }
+
   .acc-left {
     padding: 24px 18px;
   }
@@ -644,11 +769,21 @@ a.acc-row:hover {
   }
 }
 
+@media (max-width: 400px) {
+  .about-tab {
+    font-size: 0.62rem !important;
+    padding: 6px 1px !important;
+  }
+  .at-full-text {
+    display: none !important;
+  }
+  .at-short-text {
+    display: inline !important;
+  }
+}
+
 @media (max-width: 380px) {
   .about-h1 {
     font-size: 1.6rem;
-  }
-  .about-hero-stats {
-    grid-template-columns: 1fr;
   }
 }

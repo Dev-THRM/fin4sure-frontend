@@ -98,14 +98,16 @@ export default function About() {
               onClick={() => setActiveTab("why")}
             >
               <Star size={16} className="at-icon" />
-              <span>Why Finn4sure</span>
+              <span className="at-full-text">Why Finn4sure</span>
+              <span className="at-short-text">Why Finn</span>
             </button>
             <button
               className={`about-tab ${activeTab === "contact" ? "active" : ""}`}
               onClick={() => setActiveTab("contact")}
             >
               <Mail size={16} className="at-icon" />
-              <span>Get in Touch</span>
+              <span className="at-full-text">Get in Touch</span>
+              <span className="at-short-text">Contact</span>
             </button>
           </div>
         </div>
