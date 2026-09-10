@@ -2634,14 +2634,15 @@ export default function AdminDashboard() {
                 </button>
               </div>
 
-              {/* Partner Cards Container */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {filteredBrokers.length === 0 ? (
-                  <div className="adm-workspace-card" style={{ padding: '40px 20px', textAlign: 'center', borderRadius: '16px' }}>
-                    <p className="no-data-text">No partners match</p>
-                  </div>
-                ) : (
-                  pagedBrokers.map((b) => {
+              {/* Partner Cards Container — horizontally scrollable on mobile */}
+              <div className="adm-partner-cards-scroll-wrap" style={{ width: '100%', maxWidth: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                <div style={{ minWidth: '850px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {filteredBrokers.length === 0 ? (
+                    <div className="adm-workspace-card" style={{ padding: '40px 20px', textAlign: 'center', borderRadius: '16px' }}>
+                      <p className="no-data-text">No partners match</p>
+                    </div>
+                  ) : (
+                    pagedBrokers.map((b) => {
                     const status = (b.status || 'inactive').toLowerCase();
                     const isLive = status === 'active';
                     const partnerCode = b.brokerId ? (String(b.brokerId).startsWith('P4S') || String(b.brokerId).startsWith('F4S') ? b.brokerId : `F4S-${String(b.brokerId).padStart(5, '0')}`) : `F4S-${String(b.id).padStart(5, '0')}`;
@@ -2818,8 +2819,9 @@ export default function AdminDashboard() {
                     );
                   })
                 )}
-                <Pagination total={filteredBrokers.length} page={brokersPage} setPage={setBrokersPage} />
+                </div>
               </div>
+              <Pagination total={filteredBrokers.length} page={brokersPage} setPage={setBrokersPage} />
             </div>
           )}
 
