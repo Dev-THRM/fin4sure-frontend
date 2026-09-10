@@ -935,6 +935,30 @@
     max-width: 100%;
     box-sizing: border-box;
   }
+  /* Loan calculator card full containment */
+  .calc-main-side-grid > div,
+  .calc-main-side-grid > div > div {
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  /* Range field header row */
+  .range-field .rf-header {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+  /* Range inputs fill full width */
+  .range-field input[type="range"] {
+    max-width: 100%;
+    width: 100%;
+  }
+  /* Top banner responsive */
+  .calc-full-page > div:first-child > div {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
 }
 
 @media (max-width: 640px) {

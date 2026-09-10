@@ -583,7 +583,7 @@ export default function Calculator() {
 
           {/* ═══ LEFT PANEL: LOAN CALCULATOR & EMI READOUT ═══ */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '18px 20px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+            <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '14px 14px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', boxSizing: 'border-box', width: '100%', overflow: 'hidden' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                 <div style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.08em', color: '#64748B' }}>
                   LOAN CALCULATOR
@@ -632,8 +632,8 @@ export default function Calculator() {
 
               {/* 1. Loan Amount */}
               <div className="range-field" style={{ marginBottom: '14px' }}>
-                <div className="rf-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <label style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0F2942' }}>Loan Amount</label>
+                <div className="rf-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', gap: '6px', width: '100%', minWidth: 0 }}>
+                  <label style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0F2942', flexShrink: 1, minWidth: 0, whiteSpace: 'nowrap' }}>Loan Amount</label>
                   <div
                     className="rf-input-wrap"
                     style={{
@@ -643,11 +643,11 @@ export default function Calculator() {
                       background: "#F8FAFC",
                       border: "1px solid #CBD5E1",
                       borderRadius: "8px",
-                      padding: "2px 6px",
-                      minWidth: "148px",
-                      maxWidth: "160px",
+                      padding: "2px 4px",
+                      minWidth: "120px",
+                      maxWidth: "148px",
                       boxSizing: "border-box",
-                      overflow: "visible"
+                      flexShrink: 0
                     }}
                   >
                     <span
@@ -882,68 +882,68 @@ export default function Calculator() {
                 {Math.round(tenure / 12)} Yrs
               </div>
 
-              {/* Doughnut SVG Chart — compact */}
-              <div style={{ position: 'relative', width: '110px', height: '110px', margin: '0 auto 10px auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="110" height="110" viewBox="0 0 110 110" style={{ transform: 'rotate(-90deg)' }}>
-                  <circle cx="55" cy="55" r="44" stroke="rgba(255,255,255,0.08)" strokeWidth="13" fill="transparent" />
+              {/* Doughnut SVG Chart — restored 150px */}
+              <div style={{ position: 'relative', width: '150px', height: '150px', margin: '0 auto 10px auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="150" height="150" viewBox="0 0 150 150" style={{ transform: 'rotate(-90deg)' }}>
+                  <circle cx="75" cy="75" r="60" stroke="rgba(255,255,255,0.08)" strokeWidth="16" fill="transparent" />
                   <circle
-                    cx="55"
-                    cy="55"
-                    r="44"
+                    cx="75"
+                    cy="75"
+                    r="60"
                     stroke="#F59E0B"
-                    strokeWidth="13"
+                    strokeWidth="16"
                     fill="transparent"
-                    strokeDasharray={`${(100 - (totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50)) / 100 * (2 * Math.PI * 44)} ${2 * Math.PI * 44}`}
+                    strokeDasharray={`${(100 - (totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50)) / 100 * (2 * Math.PI * 60)} ${2 * Math.PI * 60}`}
                     strokeDashoffset={0}
                     style={{ transition: 'stroke-dasharray 0.4s ease' }}
                   />
                   <circle
-                    cx="55"
-                    cy="55"
-                    r="44"
+                    cx="75"
+                    cy="75"
+                    r="60"
                     stroke="#38BDF8"
-                    strokeWidth="13"
+                    strokeWidth="16"
                     fill="transparent"
-                    strokeDasharray={`${(totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50) / 100 * (2 * Math.PI * 44)} ${2 * Math.PI * 44}`}
-                    strokeDashoffset={-((100 - (totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50)) / 100 * (2 * Math.PI * 44))}
+                    strokeDasharray={`${(totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50) / 100 * (2 * Math.PI * 60)} ${2 * Math.PI * 60}`}
+                    strokeDashoffset={-((100 - (totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50)) / 100 * (2 * Math.PI * 60))}
                     style={{ transition: 'stroke-dasharray 0.4s ease' }}
                   />
                 </svg>
                 <div style={{ position: 'absolute', textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#FFFFFF', lineHeight: 1 }}>{totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50}%</div>
-                  <div style={{ fontSize: '0.55rem', fontWeight: 800, color: '#94A3B8', letterSpacing: '0.06em', marginTop: '1px' }}>PRINCIPAL</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#FFFFFF', lineHeight: 1 }}>{totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50}%</div>
+                  <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#94A3B8', letterSpacing: '0.06em', marginTop: '2px' }}>PRINCIPAL</div>
                 </div>
               </div>
 
               {/* Chart Legend */}
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', fontSize: '0.75rem', fontWeight: 600, marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', fontSize: '0.75rem', fontWeight: 600, marginBottom: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#38BDF8', display: 'inline-block' }} />
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#38BDF8', display: 'inline-block', flexShrink: 0 }} />
                   <span style={{ color: '#FFFFFF' }}>Principal</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#F59E0B', display: 'inline-block' }} />
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#F59E0B', display: 'inline-block', flexShrink: 0 }} />
                   <span style={{ color: '#FFFFFF' }}>Interest</span>
                 </div>
               </div>
 
               {/* 2 Side-by-Side Metric Boxes */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                <div style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', padding: '10px 10px' }}>
-                  <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.0rem', fontWeight: 900, color: '#FFFFFF' }}>{fmtLakhCr(amount)}</div>
-                  <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#94A3B8', marginTop: '2px', letterSpacing: '0.04em' }}>PRINCIPAL</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '6px' }}>
+                <div style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', padding: '7px 8px' }}>
+                  <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '0.92rem', fontWeight: 900, color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{fmtLakhCr(amount)}</div>
+                  <div style={{ fontSize: '0.56rem', fontWeight: 800, color: '#94A3B8', marginTop: '1px', letterSpacing: '0.04em' }}>PRINCIPAL</div>
                 </div>
 
-                <div style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', padding: '10px 10px' }}>
-                  <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.0rem', fontWeight: 900, color: '#FFFFFF' }}>{fmtLakhCr(totalInterest)}</div>
-                  <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#94A3B8', marginTop: '2px', letterSpacing: '0.04em' }}>TOTAL INTEREST</div>
+                <div style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', padding: '7px 8px' }}>
+                  <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '0.92rem', fontWeight: 900, color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{fmtLakhCr(totalInterest)}</div>
+                  <div style={{ fontSize: '0.56rem', fontWeight: 800, color: '#94A3B8', marginTop: '1px', letterSpacing: '0.04em' }}>TOTAL INTEREST</div>
                 </div>
               </div>
 
               {/* 1 Full-Width Bottom Metric Box */}
-              <div style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', padding: '10px 12px' }}>
-                <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.1rem', fontWeight: 900, color: '#38BDF8' }}>{fmtLakhCr(totalPayable)}</div>
-                <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#94A3B8', marginTop: '2px', letterSpacing: '0.04em' }}>TOTAL AMOUNT PAYABLE</div>
+              <div style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', padding: '7px 10px' }}>
+                <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.0rem', fontWeight: 900, color: '#38BDF8' }}>{fmtLakhCr(totalPayable)}</div>
+                <div style={{ fontSize: '0.56rem', fontWeight: 800, color: '#94A3B8', marginTop: '1px', letterSpacing: '0.04em' }}>TOTAL AMOUNT PAYABLE</div>
               </div>
             </div>
           </div>
