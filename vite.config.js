@@ -12,12 +12,12 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://palevioletred-ape-449755.hostingersite.com',
+        target: 'https://finn4sure.com',
         changeOrigin: true,
         secure: false,
       },
       '/uploads': {
-        target: 'https://palevioletred-ape-449755.hostingersite.com',
+        target: 'https://finn4sure.com',
         changeOrigin: true,
         secure: false,
       }
