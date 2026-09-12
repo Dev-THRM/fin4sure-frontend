@@ -11,9 +11,6 @@ export default function CompanyRibbon() {
           alt="Finn4sure Logo"
         />
       </div>
-      <div className="company-ribbon-tag">
-        Direct Lender Matchmaking Engine
-      </div>
     </div>
   );
 }
