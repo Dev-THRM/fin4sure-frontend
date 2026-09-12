@@ -590,13 +590,13 @@ export default function ClientDashboard() {
                   </span>
                 </div>
                 <div className="cdsm-actions">
-                  <a className="cdsm-btn cdsm-call" href="tel:9910507574" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <a className="cdsm-btn cdsm-call" href="tel:9217624627" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                     <Phone size={13} /> Call
                   </a>
                   <a className="cdsm-btn cdsm-email" href="mailto:support@finn4sure.com" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                     <Mail size={13} /> Email
                   </a>
-                  <a className="cdsm-btn cdsm-wa" href="https://wa.me/919910507574" target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <a className="cdsm-btn cdsm-wa" href="https://wa.me/919217624627" target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                     <MessageSquare size={13} /> WhatsApp
                   </a>
                 </div>
@@ -806,13 +806,13 @@ export default function ClientDashboard() {
                   <div className="cdm-role">Manager — Mortgages · Finn4sure</div>
                 </div>
               </div>
-              <a href="tel:9910507574" className="cdm-contact-row">
+              <a href="tel:9217624627" className="cdm-contact-row">
                 <div className="cdm-ci" style={{ backgroundColor: "#EEF6FF", color: "#1B4D8E", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Phone size={15} />
                 </div>
                 <div>
                   <div className="cdm-cl" style={{ fontSize: ".66rem", color: "var(--text2)", textTransform: "uppercase" }}>Phone Support</div>
-                  <div className="cdm-cv">99105 07574</div>
+                  <div className="cdm-cv">92176 24627</div>
                 </div>
               </a>
               <a href="mailto:support@finn4sure.com" className="cdm-contact-row">
@@ -824,7 +824,7 @@ export default function ClientDashboard() {
                   <div className="cdm-cv">support@finn4sure.com</div>
                 </div>
               </a>
-              <a href="https://wa.me/919910507574" target="_blank" rel="noreferrer" className="cdm-contact-row">
+              <a href="https://wa.me/919217624627" target="_blank" rel="noreferrer" className="cdm-contact-row">
                 <div className="cdm-ci" style={{ backgroundColor: "#ECFDF5", color: "#059669", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <MessageSquare size={15} />
                 </div>

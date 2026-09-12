@@ -268,11 +268,11 @@ export default function About() {
                 <p>Have questions about your loan application or need personalized advice? Speak directly to our loan specialists.</p>
 
                 <div className="acc-rows">
-                  <a href="tel:9910507574" className="acc-row">
+                  <a href="tel:9217624627" className="acc-row">
                     <div className="acc-ic"><Phone size={18} color="#0284C7" /></div>
                     <div>
                       <div className="acc-k">Phone Support</div>
-                      <div className="acc-v">99105 07574</div>
+                      <div className="acc-v">92176 24627</div>
                     </div>
                   </a>
                   <a href="mailto:support@finn4sure.com" className="acc-row">

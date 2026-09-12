@@ -803,13 +803,13 @@ export default function BrokerDashboard() {
                     </span>
                   </div>
                   <div className="cdsm-actions">
-                    <a className="cdsm-btn" href="tel:9910507574">
+                    <a className="cdsm-btn" href="tel:9217624627">
                       📞 Call
                     </a>
                     <a className="cdsm-btn" href="mailto:support@finn4sure.com">
                       📧 Email
                     </a>
-                    <a className="cdsm-btn" href="https://wa.me/919910507574" target="_blank" rel="noreferrer">
+                    <a className="cdsm-btn" href="https://wa.me/919217624627" target="_blank" rel="noreferrer">
                       📱 WhatsApp
                     </a>
                   </div>
@@ -1511,11 +1511,11 @@ export default function BrokerDashboard() {
                   <div className="cdm-role">Manager — Mortgages · Finn4sure</div>
                 </div>
               </div>
-              <a href="tel:9910507574" className="cdm-contact-row">
+              <a href="tel:9217624627" className="cdm-contact-row">
                 <div className="cdm-ci" style={{ backgroundColor: "#EEF6FF", color: "#1B4D8E" }}>📞</div>
                 <div>
                   <div className="cdm-cl" style={{ fontSize: ".66rem", color: "var(--text2)", textTransform: "uppercase" }}>Phone Support</div>
-                  <div className="cdm-cv">99105 07574</div>
+                  <div className="cdm-cv">92176 24627</div>
                 </div>
               </a>
               <a href="mailto:support@finn4sure.com" className="cdm-contact-row">
