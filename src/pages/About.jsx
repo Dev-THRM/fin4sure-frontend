@@ -301,7 +301,7 @@ export default function About() {
                 <p>Compare pre-qualified offers from {lenderDisplay} top banks in under 2 minutes.</p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', maxWidth: '240px', position: 'relative', zIndex: 2 }}>
-                  <Link to="/" className="acc-cta-btn">
+                  <Link to="/loans" className="acc-cta-btn">
                     Check Loan Options
                   </Link>
                   <Link to="/" state={{ activeView: "partnerStepper" }} className="acc-cta-btn partner-cta">
