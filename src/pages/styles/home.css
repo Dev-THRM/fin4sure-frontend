@@ -289,6 +289,10 @@
   max-width: 440px;
 }
 
+.form-container.roles-view {
+  max-width: 620px;
+}
+
 /* ═══ Company Name Ribbon - LIGHT MODE ═══ */
 .top-header-stack {
   width: calc(100% + 120px);

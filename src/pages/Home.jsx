@@ -4,6 +4,7 @@ import BrandPanel from "../components/home/BrandPanel";
 import CompanyRibbon from "../components/home/CompanyRibbon";
 import RoleCards from "../components/home/RoleCards";
 import HomeEmiWidget from "../components/home/HomeEmiWidget";
+import LoanDocGuide from "../components/home/LoanDocGuide";
 import BorrowerStepper from "../components/home/BorrowerStepper";
 import PartnerStepper from "../components/home/PartnerStepper";
 import "./styles/home.css";
@@ -60,7 +61,7 @@ export default function Home() {
       <main className="form-panel">
         <CompanyRibbon />
 
-        <div className="form-container">
+        <div className={`form-container ${activeView === "roles" ? "roles-view" : ""}`}>
           {activeView === "roles" ? (
             <>
               <div className="rp-heading">Welcome to Finn4sure</div>
@@ -69,6 +70,8 @@ export default function Home() {
               <RoleCards onSelectRole={handleSelectRole} />
 
               <HomeEmiWidget />
+
+              <LoanDocGuide />
 
               {/* Security trust badges */}
               <div className="trust-row">
