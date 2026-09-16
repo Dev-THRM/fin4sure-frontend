@@ -1,9 +1,9 @@
 export const LOAN_PARAMS = {
-  home: { amtMin: 100000, amtMax: 300000000, rateMin: 6.5, rateMax: 18, tenureMin: 12, tenureMax: 360, label: 'Home Loan' },
-  lap: { amtMin: 500000, amtMax: 300000000, rateMin: 7.5, rateMax: 18, tenureMin: 12, tenureMax: 240, label: 'Loan Against Property' },
-  personal: { amtMin: 50000, amtMax: 5000000, rateMin: 9, rateMax: 24, tenureMin: 12, tenureMax: 84, label: 'Personal Loan' },
-  business: { amtMin: 100000, amtMax: 20000000, rateMin: 10, rateMax: 26, tenureMin: 12, tenureMax: 60, label: 'Business Loan' },
-  vehicle: { amtMin: 100000, amtMax: 10000000, rateMin: 7.5, rateMax: 16, tenureMin: 12, tenureMax: 96, label: 'Vehicle Loan' }
+  home: { amtMin: 100000, amtMax: 300000000, defaultAmount: 5000000, rateMin: 6.5, rateMax: 18, defaultRate: 8.50, tenureMin: 12, tenureMax: 360, defaultTenure: 240, label: 'Home Loan', startingRate: '8.50%' },
+  lap: { amtMin: 500000, amtMax: 300000000, defaultAmount: 5000000, rateMin: 7.5, rateMax: 18, defaultRate: 9.00, tenureMin: 12, tenureMax: 240, defaultTenure: 180, label: 'Loan Against Property', startingRate: '9.00%' },
+  personal: { amtMin: 50000, amtMax: 5000000, defaultAmount: 500000, rateMin: 9, rateMax: 24, defaultRate: 10.50, tenureMin: 12, tenureMax: 84, defaultTenure: 48, label: 'Personal Loan', startingRate: '10.50%' },
+  business: { amtMin: 100000, amtMax: 20000000, defaultAmount: 2000000, rateMin: 10, rateMax: 26, defaultRate: 11.00, tenureMin: 12, tenureMax: 60, defaultTenure: 36, label: 'Business Loan', startingRate: '11.00%' },
+  vehicle: { amtMin: 100000, amtMax: 10000000, defaultAmount: 1000000, rateMin: 7.5, rateMax: 16, defaultRate: 8.75, tenureMin: 12, tenureMax: 96, defaultTenure: 60, label: 'Vehicle Loan', startingRate: '8.75%' }
 };
 
 export function getLenderTypePriority(type) {

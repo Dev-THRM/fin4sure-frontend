@@ -5,7 +5,12 @@ import {
   Zap,
   BarChart3,
   Calendar,
-  Landmark
+  Landmark,
+  Home,
+  Building2,
+  CreditCard,
+  Briefcase,
+  Car
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useEmiCalculator } from "../hooks/useEmiCalculator";
@@ -366,6 +371,14 @@ export default function Calculator() {
     });
   };
 
+  const loanTypesList = [
+    { id: "home", name: "Home Loan", icon: Home, startingRate: "8.50%" },
+    { id: "lap", name: "LAP (Property)", icon: Building2, startingRate: "9.00%" },
+    { id: "personal", name: "Personal Loan", icon: CreditCard, startingRate: "10.50%" },
+    { id: "business", name: "Business Loan", icon: Briefcase, startingRate: "11.00%" },
+    { id: "vehicle", name: "Vehicle Loan", icon: Car, startingRate: "8.75%" }
+  ];
+
   return (
     <div className="calc-full-page animate-fade-up">
       {/* ═══ STANDALONE EMI CALCULATOR HERO BANNER (COMPACT) ═══ */}
@@ -474,6 +487,44 @@ export default function Calculator() {
 
       {/* ═══ MAIN CONTENT BODY (NO STEPPER) ═══ */}
       <div className="calc-body-wrap">
+        {/* ═══ LOAN TYPES TABS SELECTOR (WITH LIVE RATES) ═══ */}
+        <div className="calc-loan-type-tabs-bar">
+          <div className="clt-header">
+            <div className="clt-label-group">
+              <span className="clt-badge">LOAN CATEGORIES</span>
+              <span className="clt-subtitle">Select a loan type to view rates, adjust amount &amp; tenure, and calculate exact EMIs</span>
+            </div>
+            <div className="clt-active-indicator">
+              <span>Expected Rate:</span>
+              <span className="clt-rate-highlight">{rate}% p.a.</span>
+            </div>
+          </div>
+
+          <div className="clt-tabs-row">
+            {loanTypesList.map((lt) => {
+              const Icon = lt.icon;
+              const isActive = loanType === lt.id;
+              return (
+                <button
+                  key={lt.id}
+                  type="button"
+                  className={`clt-tab-card ${isActive ? "active" : ""}`}
+                  onClick={() => setLoanType(lt.id)}
+                >
+                  <div className="clt-tab-icon-wrap">
+                    <Icon size={18} strokeWidth={2.2} />
+                  </div>
+                  <div className="clt-tab-info">
+                    <div className="clt-tab-name">{lt.name}</div>
+                    <div className="clt-tab-rate">
+                      From <strong>{lt.startingRate}</strong> p.a.
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
         {/* ═══ TOP SECTION: SCHEDULE SUMMARY | AMORTIZATION SCHEDULE ═══ */}
         <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '18px 24px', marginBottom: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
@@ -584,9 +635,9 @@ export default function Calculator() {
           {/* ═══ LEFT PANEL: LOAN CALCULATOR & EMI READOUT ═══ */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '14px 14px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', boxSizing: 'border-box', width: '100%', overflow: 'hidden' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <div style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.08em', color: '#64748B' }}>
-                  LOAN CALCULATOR
+                  LOAN CALCULATOR · {params.label.toUpperCase()}
                 </div>
                 {/* Floating | Fixed Toggle */}
                 <div style={{ display: 'inline-flex', background: '#F1F5F9', padding: '3px', borderRadius: '20px', border: '1px solid #CBD5E1' }}>
@@ -628,6 +679,12 @@ export default function Calculator() {
                     — Fixed
                   </button>
                 </div>
+              </div>
+
+              {/* Active loan type badge with limits */}
+              <div className="calc-active-loan-info">
+                <span>Selected: <strong>{params.label}</strong></span>
+                <span>ROI: <strong>{params.rateMin}% – {params.rateMax}%</strong> · Tenure: <strong>Up to {Math.round(params.tenureMax / 12)} Yrs</strong></span>
               </div>
 
               {/* 1. Loan Amount */}
