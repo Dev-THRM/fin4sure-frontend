@@ -13,9 +13,13 @@ import {
   Smartphone,
   CheckCircle2,
   AlertTriangle,
-  UserCheck
+  UserCheck,
+  User,
+  Mail,
+  Key,
+  Loader2
 } from 'lucide-react';
-import { LENDERS } from '../utils/loanConstants';
+import { useAuth } from '../context/AuthContext';
 import './styles/stepper.css';
 
 const LOAN_TYPE_MAPPING = {
@@ -28,19 +32,61 @@ const LOAN_TYPE_MAPPING = {
 
 export default function Products() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [step, setStep] = useState(1);
   const [loanType, setLoanType] = useState('');
   const [selectedLenders, setSelectedLenders] = useState([]);
   const [loanTypesData, setLoanTypesData] = useState([]);
   const [lendersData, setLendersData] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Step 3 Login/Apply form states
+  const [loanAmtVal, setLoanAmtVal] = useState("50");
+  const [loanAmtUnit, setLoanAmtUnit] = useState(100000); // 100000 = Lakh, 10000000 = Crore
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [otpChannel, setOtpChannel] = useState("mobile"); // "mobile" | "email"
+  const [showOtpVerify, setShowOtpVerify] = useState(false);
+  const [otpInput, setOtpInput] = useState("");
+  const [otpTimer, setOtpTimer] = useState(0);
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [otpError, setOtpError] = useState("");
+  const [submittedData, setSubmittedData] = useState(null);
+
+  useEffect(() => {
+    if (otpTimer <= 0) return;
+    const interval = setInterval(() => {
+      setOtpTimer((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [otpTimer]);
+
+  useEffect(() => {
+    if (step === 4) {
+      const timer = setTimeout(() => {
+        navigate('/client-dashboard', {
+          state: {
+            appSubmitted: true,
+            appId: submittedData?.appId,
+            loanName: submittedData?.loanName,
+            lenderNames: submittedData?.lenderNames
+          }
+        });
+      }, 3200);
+      return () => clearTimeout(timer);
+    }
+  }, [step, submittedData, navigate]);
   
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const loanTypesRes = await axios.get('/api/loan-types');
-        const lendersRes = await axios.get('/api/lenders');
+        const [loanTypesRes, lendersRes] = await Promise.all([
+          axios.get('/api/loan-types').catch(() => ({ data: { success: false } })),
+          axios.get('/api/lenders').catch(() => ({ data: { success: false } }))
+        ]);
         
         if (loanTypesRes.data?.success) {
           const mappedTypes = loanTypesRes.data.data.map(lt => {
@@ -86,6 +132,7 @@ export default function Products() {
     if (s.includes('personal')) return 'personal';
     if (s.includes('business')) return 'business';
     if (s.includes('vehicle') || s.includes('car') || s.includes('auto')) return 'vehicle';
+    if (s.includes('education')) return 'education';
     return s;
   };
 
@@ -93,7 +140,6 @@ export default function Products() {
     if (!lender) return 'N/A';
     const normKey = normalizeTypeKey(selectedTypeId);
     
-    // Check database rates
     if (lender.loanRates && lender.loanRates.length > 0) {
       const rateData = lender.loanRates.find(r => {
         if (!r) return false;
@@ -153,6 +199,122 @@ export default function Products() {
       return 'SFB Bank';
     }
     return 'Private Bank';
+  };
+
+  const handleSendOtp = async () => {
+    if (otpSending) return;
+    setOtpError('');
+    if (!fullName.trim()) {
+      setOtpError('Please enter your full name.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setOtpError('Please enter a valid email address.');
+      return;
+    }
+    if (!/^[0-9]{10}$/.test(mobile.trim())) {
+      setOtpError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+
+    setOtpSending(true);
+    try {
+      if (otpChannel === 'email') {
+        const res = await axios.post('/api/auth/send-email-otp', {
+          email: email.trim().toLowerCase(),
+          purpose: 'registration'
+        });
+        if (res.data?.success || res.status === 200) {
+          setShowOtpVerify(true);
+          setOtpTimer(30);
+        } else {
+          setOtpError(res.data?.message || 'Failed to send OTP. Please try again.');
+        }
+      } else {
+        const res = await axios.post('/api/auth/send-otp', {
+          number: mobile.trim()
+        });
+        if (res.data?.success || res.status === 200) {
+          setShowOtpVerify(true);
+          setOtpTimer(30);
+        } else {
+          setOtpError(res.data?.message || 'Failed to send OTP. Please try again.');
+        }
+      }
+    } catch (err) {
+      setOtpError(err.response?.data?.message || err.message || 'Failed to send OTP.');
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  const handleVerifyOtpAndSubmit = async () => {
+    if (otpVerifying) return;
+    setOtpError('');
+    if (!otpInput || otpInput.trim().length < 4) {
+      setOtpError('Please enter the OTP.');
+      return;
+    }
+
+    setOtpVerifying(true);
+    try {
+      if (otpChannel === 'email') {
+        await axios.post('/api/auth/verify-email-otp', {
+          email: email.trim().toLowerCase(),
+          otp: otpInput.trim()
+        });
+      } else {
+        await axios.post('/api/auth/verify-otp', {
+          number: mobile.trim(),
+          otp: otpInput.trim()
+        });
+      }
+
+      const calculatedAmount = Math.round((parseFloat(loanAmtVal) || 50) * loanAmtUnit);
+      const regRes = await axios.post('/api/auth/register-borrower', {
+        name: fullName.trim(),
+        email: email.trim().toLowerCase(),
+        number: mobile.trim(),
+        loanAmount: calculatedAmount,
+        tenure: 12,
+        loanPurpose: `${loanTypesData.find((t) => t.id === loanType)?.title || loanType} Application`,
+        loanType: loanType,
+        selectedLenders: selectedLenders
+      }, { withCredentials: true });
+
+      const resData = regRes.data;
+      if (resData) {
+        if (resData.accessToken) {
+          localStorage.setItem('accessToken', resData.accessToken);
+        }
+        login({
+          _id: resData._id || resData.id,
+          name: resData.name || fullName.trim(),
+          email: resData.email || email.trim().toLowerCase(),
+          number: resData.number || mobile.trim(),
+          role: 'borrower'
+        });
+
+        const targetLenderNames = selectedLenders.map((id) => {
+          const l = lendersData.find((x) => x.id === id);
+          return l ? l.name : id;
+        });
+
+        setSubmittedData({
+          appId: resData.applicationId || `APP-${Date.now().toString().slice(-5)}`,
+          loanName: loanTypesData.find((t) => t.id === loanType)?.title || 'Loan',
+          lenderNames: targetLenderNames,
+          amount: calculatedAmount
+        });
+
+        setStep(4);
+      }
+    } catch (err) {
+      console.error('Error submitting application:', err);
+      setOtpError(err.response?.data?.message || err.message || 'Verification or submission failed.');
+    } finally {
+      setOtpVerifying(false);
+    }
   };
 
   return (
@@ -251,7 +413,7 @@ export default function Products() {
                       Showing best <strong>{currentLoanTitle}</strong> rates. Select as many lenders as you like — we’ll apply to all at once.
                     </div>
 
-                    {/* ═══ DYNAMIC SMART TIP BASED ON SELECTION COUNT ═══ */}
+                    {/* Dynamic Smart Tip */}
                     <div className={`bl-smart-tip show ${selectedLenders.length === 1 ? 'warn' : selectedLenders.length >= 2 && selectedLenders.length <= 4 ? 'good' : ''}`}>
                       {selectedLenders.length === 0 && (
                         <>
@@ -361,63 +523,218 @@ export default function Products() {
                 );
               })()}
 
-              {/* Step 3: Login */}
+              {/* Step 3: Login / Register with OTP */}
               {step === 3 && (
-                <div>
-                  <div className="form-title">Almost there!</div>
-                  <div className="form-subtitle">Please verify your details to submit the application</div>
-                  
+                <div style={{ animation: 'fadeUp 0.3s ease' }}>
+                  <div className="form-title">Almost there — log in to apply</div>
+                  <div className="form-subtitle">Enter your details and verify with OTP so lenders can reach you</div>
+
                   <div className="bl-apply-summary">
-                    <div className="bl-sum-head">Applying for {loanTypesData.find(t => t.id === loanType)?.title || loanType}</div>
+                    <div className="bl-sum-head" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>🏠</span> {loanTypesData.find((t) => t.id === loanType)?.title || 'Home Loan'} · {selectedLenders.length} {selectedLenders.length === 1 ? 'lender' : 'lenders'}
+                    </div>
                     <div className="bl-sum-chips">
-                      {selectedLenders.map(id => {
-                        const lender = lendersData.find(l => l.id === id);
-                        return <span key={id} className="bl-sum-chip">{lender ? lender.short : id}</span>;
+                      {selectedLenders.map((id) => {
+                        const lender = lendersData.find((l) => l.id === id);
+                        return <span key={id} className="bl-sum-chip">{lender ? lender.name : id}</span>;
                       })}
                     </div>
                   </div>
 
-                  <div className="field">
-                    <label>Mobile Number</label>
-                    <div className="input-wrap">
-                      <span className="icon"><Smartphone size={16} /></span>
-                      <input type="tel" placeholder="10-digit mobile number" maxLength="10" />
-                    </div>
-                  </div>
+                  {!showOtpVerify ? (
+                    <div>
+                      <div className="bl-amt-field">
+                        <label className="bl-amt-label">Loan Amount Required</label>
+                        <div className="rf-input-wrap">
+                          <span className="rf-prefix">₹</span>
+                          <input
+                            type="number"
+                            className="rf-input"
+                            value={loanAmtVal}
+                            step="0.01"
+                            min="0"
+                            style={{ width: '90px' }}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => setLoanAmtVal(e.target.value)}
+                          />
+                          <select
+                            className="rf-unit"
+                            value={loanAmtUnit}
+                            onChange={(e) => setLoanAmtUnit(Number(e.target.value))}
+                          >
+                            <option value={100000}>Lakh</option>
+                            <option value={10000000}>Crore</option>
+                          </select>
+                        </div>
+                      </div>
 
-                  <button 
-                    className="btn-primary" 
-                    onClick={() => setStep(4)}
-                    style={{ width: '100%', padding: '14px', borderRadius: '12px', marginTop: '12px' }}
-                  >
-                    Send OTP →
-                  </button>
-                  
-                  <div style={{ marginTop: '12px', textAlign: 'center' }}>
-                    <button className="btn-back" onClick={() => setStep(2)}>← Edit selection</button>
-                  </div>
+                      <div className="field">
+                        <div className="input-wrap">
+                          <span className="icon"><User size={16} /></span>
+                          <input
+                            type="text"
+                            placeholder="Full Name"
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="field">
+                        <div className="input-wrap">
+                          <span className="icon"><Mail size={16} /></span>
+                          <input
+                            type="email"
+                            placeholder="Email Address"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="field">
+                        <div className="input-wrap">
+                          <span className="icon"><Smartphone size={16} /></span>
+                          <input
+                            type="tel"
+                            placeholder="Mobile Number"
+                            maxLength="10"
+                            value={mobile}
+                            onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="otp-channel-row">
+                        <span className="ocr-label">Verify using:</span>
+                        <button
+                          type="button"
+                          className={`ocr-btn ${otpChannel === 'mobile' ? 'active' : ''}`}
+                          onClick={() => setOtpChannel('mobile')}
+                        >
+                          📱 Mobile OTP
+                        </button>
+                        <button
+                          type="button"
+                          className={`ocr-btn ${otpChannel === 'email' ? 'active' : ''}`}
+                          onClick={() => setOtpChannel('email')}
+                        >
+                          📧 Email OTP
+                        </button>
+                      </div>
+
+                      {otpError && (
+                        <div style={{ color: '#DC2626', fontSize: '.78rem', fontWeight: 600, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <AlertTriangle size={15} /> {otpError}
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        className="btn-primary"
+                        disabled={otpSending || !fullName.trim() || !email.trim() || mobile.length !== 10}
+                        onClick={handleSendOtp}
+                        style={{ width: '100%', padding: '14px', borderRadius: '12px' }}
+                      >
+                        {otpSending ? 'Sending OTP...' : 'Send OTP →'}
+                      </button>
+
+                      <div style={{ marginTop: '14px', textAlign: 'center' }}>
+                        <button type="button" className="btn-back" onClick={() => setStep(2)}>← Back to lenders</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ animation: 'fadeUp 0.25s ease' }}>
+                      <div className="bl-otp-info">
+                        📲 We've sent a verification code to <strong>{otpChannel === 'email' ? email : mobile}</strong>
+                      </div>
+
+                      <div className="field">
+                        <div className="input-wrap">
+                          <span className="icon"><Key size={16} /></span>
+                          <input
+                            type="text"
+                            placeholder="Enter verification code (Demo: 123456)"
+                            maxLength="6"
+                            value={otpInput}
+                            onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                            style={{ letterSpacing: '4px', fontSize: '1.1rem', textAlign: 'center' }}
+                            autoFocus
+                          />
+                        </div>
+                      </div>
+
+                      {otpError && (
+                        <div style={{ color: '#DC2626', fontSize: '.78rem', fontWeight: 600, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <AlertTriangle size={15} /> {otpError}
+                        </div>
+                      )}
+
+                      {otpTimer > 0 ? (
+                        <div className="timer-row">Resend in {otpTimer}s</div>
+                      ) : (
+                        <div className="timer-row">
+                          <button type="button" className="btn-back" onClick={handleSendOtp} style={{ color: 'var(--teal)', fontWeight: 700 }}>
+                            Resend OTP
+                          </button>
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        className="btn-primary"
+                        disabled={otpVerifying || otpInput.trim().length < 4}
+                        onClick={handleVerifyOtpAndSubmit}
+                        style={{ width: '100%', padding: '14px', borderRadius: '12px' }}
+                      >
+                        {otpVerifying ? 'Verifying & Submitting...' : 'Verify & Submit →'}
+                      </button>
+
+                      <div style={{ marginTop: '14px', textAlign: 'center' }}>
+                        <button type="button" className="btn-back" onClick={() => { setShowOtpVerify(false); setOtpInput(''); setOtpError(''); }}>
+                          ← Edit details
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Step 4: Done */}
               {step === 4 && (
-                <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', color: '#059669' }}>
-                    <CheckCircle2 size={56} />
-                  </div>
+                <div style={{ textAlign: 'center', padding: '24px 0', animation: 'fadeUp 0.3s ease' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '12px' }}>🎉</div>
                   <div className="form-title">Applications Submitted!</div>
-                  <div className="form-subtitle" style={{ marginBottom: '10px' }}>
-                    Your loan requests have been sent. Track everything from your dashboard.
+                  <div className="form-subtitle" style={{ marginBottom: '16px' }}>
+                    We’ve sent your <strong>{submittedData?.loanName || 'Loan'}</strong> request to <strong>{selectedLenders.length} {selectedLenders.length === 1 ? 'lender' : 'lenders'}</strong>. Track every application live from your dashboard.
                   </div>
-                  
-                  <div className="bl-redirect-note" style={{ marginTop: '24px', cursor: 'pointer', color: 'var(--teal)', fontWeight: 'bold' }} onClick={() => navigate('/client-dashboard')}>
-                    Go to Dashboard →
+                  <div className="bl-apply-summary" style={{ marginBottom: '20px' }}>
+                    <div className="bl-sum-head" style={{ textAlign: 'center' }}>Submitted to</div>
+                    <div className="bl-sum-chips" style={{ justifyContent: 'center' }}>
+                      {selectedLenders.map((id) => {
+                        const lender = lendersData.find((l) => l.id === id);
+                        return <span key={id} className="bl-sum-chip">{lender ? lender.name : id}</span>;
+                      })}
+                    </div>
+                  </div>
+                  <div
+                    className="bl-redirect-note"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => navigate('/client-dashboard', {
+                      state: {
+                        appSubmitted: true,
+                        appId: submittedData?.appId,
+                        loanName: submittedData?.loanName,
+                        lenderNames: submittedData?.lenderNames
+                      }
+                    })}
+                  >
+                    Taking you to your dashboard…
                   </div>
                 </div>
               )}
             </>
           )}
-          
         </div>
       </div>
     </div>
