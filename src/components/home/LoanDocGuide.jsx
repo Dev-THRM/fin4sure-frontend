@@ -6,11 +6,8 @@ import {
   CreditCard,
   Briefcase,
   Car,
-  GraduationCap,
   Users,
   BarChart3,
-  Landmark,
-  Globe,
   Coins,
   FileText,
   Lightbulb,
@@ -279,66 +276,6 @@ const DOC_DATA = {
         ]
       }
     ]
-  },
-  education: {
-    id: "education",
-    name: "Education",
-    icon: GraduationCap,
-    layout: "grid-2",
-    notice: "Interest on education loans is tax-deductible under Section 80E for up to 8 years",
-    cards: [
-      {
-        title: "Student Documents",
-        icon: GraduationCap,
-        headerBg: "#EFF6FF",
-        titleColor: "#0284C7",
-        items: [
-          { text: "Aadhaar & PAN of student", mandatory: true },
-          { text: "Admission / conditional offer letter", mandatory: true },
-          { text: "Fee structure from institution", mandatory: true },
-          { text: "Mark sheets — 10th, 12th, Graduation", mandatory: true },
-          { text: "Scholarship / fellowship proof (if any)", mandatory: false }
-        ]
-      },
-      {
-        title: "Co-Borrower (Parent/Guardian)",
-        icon: Users,
-        headerBg: "#F0FDF4",
-        titleColor: "#16A34A",
-        items: [
-          { text: "Aadhaar & PAN of co-borrower", mandatory: true },
-          { text: "Income proof (salary slips / ITR)", mandatory: true },
-          { text: "Bank statements — last 6 months", mandatory: true },
-          { text: "Form 16 or business financials", mandatory: true },
-          { text: "Relationship proof with student", mandatory: true }
-        ]
-      },
-      {
-        title: "Collateral (Loans > ₹7.5 Lakh)",
-        icon: Landmark,
-        headerBg: "#FAF5FF",
-        titleColor: "#7C3AED",
-        items: [
-          { text: "Property documents (title deed, EC)", mandatory: false },
-          { text: "Fixed deposit certificate", mandatory: false },
-          { text: "LIC policy / NSC / KVP documents", mandatory: false },
-          { text: "Third-party guarantee documents", mandatory: false }
-        ]
-      },
-      {
-        title: "Abroad Studies (Additional)",
-        icon: Globe,
-        headerBg: "#FFF7ED",
-        titleColor: "#EA580C",
-        items: [
-          { text: "Valid student visa (I-20 / CAS / CoE)", mandatory: true },
-          { text: "Admission letter from foreign university", mandatory: true },
-          { text: "Admission letter from foreign university", mandatory: false, hidden: true },
-          { text: "GRE / GMAT / IELTS / TOEFL scores", mandatory: false },
-          { text: "Forex requirement estimate", mandatory: false }
-        ].filter(item => !item.hidden)
-      }
-    ]
   }
 };
 
@@ -373,8 +310,7 @@ export default function LoanDocGuide({ onApplyLoan }) {
     { id: "lap", label: "LAP", icon: Building2 },
     { id: "personal", label: "Personal", icon: CreditCard },
     { id: "business", label: "Business", icon: Briefcase },
-    { id: "vehicle", label: "Vehicle", icon: Car },
-    { id: "education", label: "Education", icon: GraduationCap }
+    { id: "vehicle", label: "Vehicle", icon: Car }
   ];
 
   return (
