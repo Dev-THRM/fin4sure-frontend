@@ -222,7 +222,8 @@ export default function Products() {
       if (otpChannel === 'email') {
         const res = await axios.post('/api/auth/send-email-otp', {
           email: email.trim().toLowerCase(),
-          purpose: 'registration'
+          purpose: 'registration',
+          number: mobile.trim()
         });
         if (res.data?.success || res.status === 200) {
           setShowOtpVerify(true);
