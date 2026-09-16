@@ -525,20 +525,21 @@ export default function Calculator() {
             })}
           </div>
         </div>
+
         {/* ═══ TOP SECTION: SCHEDULE SUMMARY | AMORTIZATION SCHEDULE ═══ */}
-        <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '18px 24px', marginBottom: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
+        <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '12px 18px', marginBottom: '14px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', borderBottom: '1px solid #F1F5F9', paddingBottom: '8px' }}>
             <button
               type="button"
               onClick={() => setSubTab('summary')}
               style={{
-                padding: '6px 18px',
+                padding: '5px 16px',
                 borderRadius: '16px',
                 border: subTab === 'summary' ? '1px solid #0284C7' : '1px solid #E2E8F0',
                 background: subTab === 'summary' ? '#E0F2FE' : '#F8FAFC',
                 color: subTab === 'summary' ? '#0369A1' : '#64748B',
                 fontWeight: 700,
-                fontSize: '0.82rem',
+                fontSize: '0.8rem',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 display: 'inline-flex',
@@ -546,19 +547,19 @@ export default function Calculator() {
                 gap: '6px'
               }}
             >
-              <BarChart3 size={15} /> Schedule Summary
+              <BarChart3 size={14} /> Schedule Summary
             </button>
             <button
               type="button"
               onClick={() => setSubTab('amortization')}
               style={{
-                padding: '6px 18px',
+                padding: '5px 16px',
                 borderRadius: '16px',
                 border: subTab === 'amortization' ? '1px solid #0284C7' : '1px solid #E2E8F0',
                 background: subTab === 'amortization' ? '#E0F2FE' : '#F8FAFC',
                 color: subTab === 'amortization' ? '#0369A1' : '#64748B',
                 fontWeight: 700,
-                fontSize: '0.82rem',
+                fontSize: '0.8rem',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 display: 'inline-flex',
@@ -566,7 +567,7 @@ export default function Calculator() {
                 gap: '6px'
               }}
             >
-              <Calendar size={15} /> Amortization Schedule
+              <Calendar size={14} /> Amortization Schedule
             </button>
           </div>
 
@@ -574,30 +575,25 @@ export default function Calculator() {
             <div>
               {/* 4 Stat Cards */}
               <div className="calc-summary-4cards">
-                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px 14px', textAlign: 'center' }}>
                   <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F2942' }}>{fmtINRFull(emi)}</div>
-                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>MONTHLY EMI</div>
+                  <div style={{ fontSize: '0.66rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>MONTHLY EMI</div>
                 </div>
 
-                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px 14px', textAlign: 'center' }}>
                   <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F2942' }}>{fmtLakhCr(amount)}</div>
-                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>PRINCIPAL</div>
+                  <div style={{ fontSize: '0.66rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>PRINCIPAL</div>
                 </div>
 
-                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px 14px', textAlign: 'center' }}>
                   <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#D97706' }}>{fmtLakhCr(totalInterest)}</div>
-                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>TOTAL INTEREST</div>
+                  <div style={{ fontSize: '0.66rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>TOTAL INTEREST</div>
                 </div>
 
-                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px 14px', textAlign: 'center' }}>
                   <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0284C7' }}>{fmtLakhCr(totalPayable)}</div>
-                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>TOTAL PAYABLE</div>
+                  <div style={{ fontSize: '0.66rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>TOTAL PAYABLE</div>
                 </div>
-              </div>
-
-              {/* Summary Explanatory Banner */}
-              <div style={{ background: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '10px', padding: '10px 16px', color: '#0369A1', fontSize: '0.82rem', lineHeight: '1.4', fontWeight: 500 }}>
-                Over <strong>{Math.round(tenure / 12)} yrs</strong>, you'll pay <strong>{fmtLakhCr(totalInterest)}</strong> in interest — about <strong>{100 - (totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50)}%</strong> of your total outlay. Choosing lower expected ROI or shorter tenure reduces this. Final ROI will be confirmed post credit assessment of the case.
               </div>
             </div>
           ) : (
