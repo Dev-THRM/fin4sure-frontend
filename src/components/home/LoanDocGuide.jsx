@@ -342,18 +342,30 @@ const DOC_DATA = {
   }
 };
 
-export default function LoanDocGuide() {
+export default function LoanDocGuide({ onApplyLoan }) {
   const [activeTab, setActiveTab] = useState("home");
   const navigate = useNavigate();
 
   const currentDoc = DOC_DATA[activeTab] || DOC_DATA.home;
 
-  const handleApply = () => {
-    navigate("/apply", {
-      state: {
-        loanType: activeTab
-      }
-    });
+  const handleApply = (loanId = activeTab) => {
+    if (onApplyLoan) {
+      onApplyLoan(loanId);
+    } else {
+      navigate("/apply", {
+        state: {
+          loanType: loanId
+        }
+      });
+    }
+  };
+
+  const handleTabClick = (tabId) => {
+    if (activeTab === tabId && onApplyLoan) {
+      onApplyLoan(tabId);
+    } else {
+      setActiveTab(tabId);
+    }
   };
 
   const tabsList = [
@@ -388,7 +400,8 @@ export default function LoanDocGuide() {
               key={tab.id}
               type="button"
               className={`doc-tab-btn ${isActive ? "active" : ""}`}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabClick(tab.id)}
+              title={isActive ? `Click to apply for ${tab.label} on home page` : `View documents for ${tab.label}`}
             >
               <span className="doc-tab-icon">
                 <IconComp size={15} strokeWidth={2.2} />
@@ -503,8 +516,8 @@ export default function LoanDocGuide() {
           Not sure what to gather? Our advisors can guide you step by step.
         </div>
         <div className="doc-cta-btn-wrap">
-          <button type="button" className="doc-cta-btn" onClick={handleApply}>
-            <span>Apply Now</span>
+          <button type="button" className="doc-cta-btn" onClick={() => handleApply(activeTab)}>
+            <span>Apply for {currentDoc.name}</span>
             <ArrowRight size={15} strokeWidth={2.5} />
           </button>
         </div>

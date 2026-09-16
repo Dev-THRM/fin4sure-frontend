@@ -52,6 +52,20 @@ export default function Home() {
     }
   };
 
+  const [selectedLoanType, setSelectedLoanType] = useState("home");
+
+  const handleDocGuideApply = (loanTypeId) => {
+    setSelectedLoanType(loanTypeId);
+    setActiveView("borrowerStepper");
+    setTimeout(() => {
+      const formPanel = document.querySelector('.form-panel');
+      if (formPanel) {
+        formPanel.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 50);
+  };
+
   return (
     <div className={`brand-form-layout animate-fade-up ${activeView === "partnerStepper" ? "partner-mode-active" : ""}`}>
       {/* Left branding panel */}
@@ -71,7 +85,7 @@ export default function Home() {
 
               <HomeEmiWidget />
 
-              <LoanDocGuide />
+              <LoanDocGuide onApplyLoan={handleDocGuideApply} />
 
               {/* Security trust badges */}
               <div className="trust-row">
@@ -97,7 +111,7 @@ export default function Home() {
               </div>
             </>
           ) : activeView === "borrowerStepper" ? (
-            <BorrowerStepper onBack={() => setActiveView("roles")} />
+            <BorrowerStepper onBack={() => setActiveView("roles")} initialLoanType={selectedLoanType} />
           ) : (
             <PartnerStepper onBack={() => setActiveView("roles")} />
           )}

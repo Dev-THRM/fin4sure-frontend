@@ -36,12 +36,12 @@ const getLoanTypeIcon = (name = '') => {
   return <FileText size={24} />;
 };
 
-export default function BorrowerStepper({ onBack }) {
+export default function BorrowerStepper({ onBack, initialLoanType }) {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [step, setStep] = useState(1);
   const [submitError, setSubmitError] = useState('');
-  const [loanType, setLoanType] = useState('');
+  const [loanType, setLoanType] = useState(initialLoanType || '');
   const [selectedLenders, setSelectedLenders] = useState([]);
   const [loanTypesData, setLoanTypesData] = useState([]);
   const [lendersData, setLendersData] = useState([]);
@@ -149,8 +149,23 @@ export default function BorrowerStepper({ onBack }) {
     if (s.includes('personal')) return 'personal';
     if (s.includes('business')) return 'business';
     if (s.includes('vehicle') || s.includes('car') || s.includes('auto')) return 'vehicle';
+    if (s.includes('education')) return 'education';
     return s;
   };
+
+  useEffect(() => {
+    if (initialLoanType && loanTypesData.length > 0) {
+      const norm = normalizeTypeKey(initialLoanType);
+      const match = loanTypesData.find(lt => 
+        normalizeTypeKey(lt.title) === norm || 
+        normalizeTypeKey(lt.id) === norm ||
+        normalizeTypeKey(lt.dbName) === norm
+      );
+      if (match) {
+        setLoanType(match.id);
+      }
+    }
+  }, [initialLoanType, loanTypesData]);
 
   const getRateForLoanType = (lender, selectedTypeId) => {
     if (!lender) return 'N/A';
