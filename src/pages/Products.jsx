@@ -12,6 +12,7 @@ import {
   Check,
   Smartphone,
   CheckCircle2,
+  AlertTriangle,
   UserCheck
 } from 'lucide-react';
 import { LENDERS } from '../utils/loanConstants';
@@ -231,59 +232,134 @@ export default function Products() {
               )}
 
               {/* Step 2: Lenders */}
-              {step === 2 && (
-                <div>
-                  <div className="form-title">Choose Preferred Lenders</div>
-                  <div className="form-subtitle">
-                    Showing best {loanTypesData.find(t => t.id === loanType)?.title || 'Loan'} rates. Select as many lenders as you like — we’ll apply to all at once.
-                  </div>
-                  
-                  <div className="bl-lender-list">
-                    {lendersData
-                      .filter(lender => getRateForLoanType(lender, loanType) !== 'N/A')
-                      .map(lender => {
-                      const isSel = selectedLenders.includes(lender.id);
-                      const rate = getRateForLoanType(lender, loanType);
-                      const catLabel = getLenderCategoryLabel(lender);
-                      return (
-                        <div key={lender.id} className={`bl-lender ${isSel ? 'sel' : ''}`} onClick={() => toggleLender(lender.id)}>
-                          <div className="bl-check">{isSel ? <Check size={12} strokeWidth={3} /> : ''}</div>
-                          <div className="bl-l-info">
-                            <div className="bl-l-name" style={{ display: 'flex', alignItems: 'center' }}>
-                              {lender.logo ? (
-                                <img src={lender.logo} alt={lender.name} style={{ width: '20px', height: '20px', marginRight: '8px', objectFit: 'contain' }} />
-                              ) : (
-                                <Landmark size={18} className="text-slate-600" style={{ marginRight: '8px' }} />
-                              )}
-                              {lender.name}
-                            </div>
-                            <div className="bl-l-sub">{catLabel}</div>
-                          </div>
-                          <div className="bl-l-rate">
-                            <div className="bl-l-rate-v">{rate}%</div>
-                            <div className="bl-l-rate-l">p.a. onwards</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+              {step === 2 && (() => {
+                const currentLoanTitle = loanTypesData.find(t => t.id === loanType)?.title || 'Home Loan';
+                const sortedLenders = lendersData
+                  .map(lender => ({
+                    ...lender,
+                    parsedRate: parseFloat(getRateForLoanType(lender, loanType))
+                  }))
+                  .filter(l => !isNaN(l.parsedRate) && l.parsedRate > 0)
+                  .sort((a, b) => a.parsedRate - b.parsedRate);
 
-                  <div className="bl-select-bar">
-                    <div id="blSelCount">Selected: <strong>{selectedLenders.length}</strong> {selectedLenders.length < 2 ? '(Min 2)' : ''}</div>
-                    <button 
-                      className="btn-primary bl-continue" 
-                      disabled={selectedLenders.length < 2} 
-                      onClick={() => setStep(3)}
-                      style={{ padding: '10px 20px', borderRadius: '10px' }}
-                    >
-                      Continue →
-                    </button>
+                const bestRate = sortedLenders.length > 0 ? sortedLenders[0].parsedRate : null;
+
+                return (
+                  <div>
+                    <div className="form-title">Choose your lenders</div>
+                    <div className="form-subtitle">
+                      Showing best <strong>{currentLoanTitle}</strong> rates. Select as many lenders as you like — we’ll apply to all at once.
+                    </div>
+
+                    {/* ═══ DYNAMIC SMART TIP BASED ON SELECTION COUNT ═══ */}
+                    <div className={`bl-smart-tip show ${selectedLenders.length === 1 ? 'warn' : selectedLenders.length >= 2 && selectedLenders.length <= 4 ? 'good' : ''}`}>
+                      {selectedLenders.length === 0 && (
+                        <>
+                          💡 <strong>Smart tip:</strong> Applying to <strong>3–4 lenders</strong> gets you the best negotiating power — they compete to offer you the lowest rate.
+                        </>
+                      )}
+                      {selectedLenders.length === 1 && (
+                        <>
+                          ⚠️ <strong>Only 1 selected.</strong> Add <strong>2–3 more</strong> lenders so you can compare real offers side by side and pick the cheapest.
+                        </>
+                      )}
+                      {selectedLenders.length >= 2 && selectedLenders.length <= 4 && (
+                        <>
+                          ✅ <strong>Great choice!</strong> {selectedLenders.length} lenders will compete for your loan. This is the sweet spot for the best deal.
+                        </>
+                      )}
+                      {selectedLenders.length > 4 && (
+                        <>
+                          👍 <strong>{selectedLenders.length} lenders selected.</strong> That’s plenty of options — more than 5 applications may slightly impact your credit score.
+                        </>
+                      )}
+                    </div>
+                    
+                    <div className="bl-lender-list">
+                      {sortedLenders.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text2)' }}>
+                          No lenders available for {currentLoanTitle}.
+                        </div>
+                      ) : (
+                        sortedLenders.map(lender => {
+                          const isSel = selectedLenders.includes(lender.id);
+                          const rateStr = lender.parsedRate.toFixed(2);
+                          const catLabel = getLenderCategoryLabel(lender);
+                          const isBest = lender.parsedRate === bestRate;
+
+                          return (
+                            <div 
+                              key={lender.id} 
+                              className={`bl-lender ${isSel ? 'sel' : ''} ${isBest ? 'best' : ''}`} 
+                              onClick={() => toggleLender(lender.id)}
+                            >
+                              <div className="bl-check">
+                                {isSel ? <Check size={13} strokeWidth={3} /> : ''}
+                              </div>
+                              <div 
+                                className="bl-l-icon"
+                                style={{
+                                  background: lender.type === 'nbfc' || lender.name?.toLowerCase().includes('finserv') ? '#E0F2FE' : '#EEF2FF',
+                                  color: lender.type === 'nbfc' || lender.name?.toLowerCase().includes('finserv') ? '#0284C7' : '#4F46E5'
+                                }}
+                              >
+                                {lender.logo ? (
+                                  <img src={lender.logo} alt={lender.name} style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
+                                ) : (lender.type === 'nbfc' || lender.name?.toLowerCase().includes('finserv')) ? (
+                                  <Building2 size={20} />
+                                ) : (
+                                  <Landmark size={20} />
+                                )}
+                              </div>
+                              <div className="bl-l-info">
+                                <div className="bl-l-name">
+                                  {lender.name}
+                                  {isBest && <span className="bl-best-tag">★ Best Rate</span>}
+                                </div>
+                                <div className="bl-l-sub">
+                                  <span>{catLabel}</span>
+                                  {' · '}
+                                  <span className="bl-pf-note">PF applicable*</span>
+                                  {' · '}
+                                  <span className="bl-l-offer">🎁 Offer</span>
+                                </div>
+                              </div>
+                              <div className="bl-l-rate">
+                                <div className="bl-l-rate-v">{rateStr}%</div>
+                                <div className="bl-l-rate-l">EXPECTED ROI</div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+
+                    <div className="bl-select-bar">
+                      <div id="blSelCount">
+                        <strong>{selectedLenders.length}</strong> {selectedLenders.length === 1 ? 'lender' : 'lenders'} selected
+                      </div>
+                      <button 
+                        className="btn-primary bl-continue" 
+                        disabled={selectedLenders.length === 0} 
+                        onClick={() => setStep(3)}
+                        style={{ padding: '10px 22px', borderRadius: '10px' }}
+                      >
+                        Continue →
+                      </button>
+                    </div>
+                    <div style={{ marginTop: '12px', textAlign: 'center' }}>
+                      <button className="btn-back" onClick={() => setStep(1)}>← Change loan type</button>
+                    </div>
+                    <div className="roi-confirm-note">
+                      <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: '2px', color: '#EA580C' }} />
+                      <span><strong>Note:</strong> Rates shown are indicative. Final ROI will be confirmed post credit assessment of the case.</span>
+                    </div>
+                    <div className="bl-pf-foot">
+                      * Processing fee, where applicable, is confirmed by the lender at sanction. Many PSU schemes and select offers waive it — we'll guide you on this.
+                    </div>
                   </div>
-                  <div style={{ marginTop: '12px', textAlign: 'center' }}>
-                    <button className="btn-back" onClick={() => setStep(1)}>← Back</button>
-                  </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Step 3: Login */}
               {step === 3 && (
