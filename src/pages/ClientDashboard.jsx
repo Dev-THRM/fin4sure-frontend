@@ -73,6 +73,7 @@ export default function ClientDashboard() {
   useEffect(() => {
     fetchProfile();
     fetchApplications();
+    checkAndSubmitPendingLoan();
   }, []);
 
   const { user: authUser } = useAuth();
@@ -140,6 +141,44 @@ export default function ClientDashboard() {
       }
     } catch (e) {
       console.error("Failed to fetch applications:", e.message);
+    }
+  };
+
+  const checkAndSubmitPendingLoan = async () => {
+    try {
+      const pendingStr = sessionStorage.getItem("pendingLoanApp");
+      if (!pendingStr) return;
+      const pending = JSON.parse(pendingStr);
+      sessionStorage.removeItem("pendingLoanApp");
+
+      const token = localStorage.getItem("accessToken");
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await fetch("/api/client/apply-loan", {
+        method: "POST",
+        headers,
+        credentials: "include",
+        body: JSON.stringify({
+          product: pending.loanType || "home",
+          loanAmount: pending.amount || 500000,
+          tenure: pending.tenure || 12,
+          selectedLenders: pending.selectedLenders || [],
+          loan_purpose: pending.loan_purpose || "Loan Application"
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        showNotification(
+          "Application Submitted!",
+          `Your loan application (#${data.applicationId || "APP-SUCCESS"}) has been successfully submitted to lenders.`,
+          "success"
+        );
+        fetchApplications();
+      }
+    } catch (err) {
+      console.error("Error auto-submitting pending loan:", err);
     }
   };
 

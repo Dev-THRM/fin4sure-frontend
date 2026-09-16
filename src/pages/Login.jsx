@@ -21,10 +21,13 @@ function roleRedirect(userPayload, navigate, redirectTarget) {
   const role = userPayload.role;
   if (role === "admin") { navigate("/admin-dashboard"); return; }
   if (role === "broker" || role === "partner") { navigate("/broker-dashboard"); return; }
+  // If there's a pending loan application from calculator, go straight to client-dashboard to auto-submit it
+  if (sessionStorage.getItem("pendingLoanApp")) {
+    navigate("/client-dashboard");
+    return;
+  }
   if (redirectTarget) {
-    const draftStr = sessionStorage.getItem("pendingLoanApp");
-    const draftState = draftStr ? JSON.parse(draftStr) : {};
-    navigate(redirectTarget, { state: { ...draftState, step: 3 } });
+    navigate(redirectTarget);
   } else {
     navigate("/client-dashboard");
   }
@@ -455,9 +458,9 @@ export default function Login() {
 
               <div style={{ textAlign: "center", marginTop: "8px", fontSize: ".8rem", color: "var(--text2)" }}>
                 {activeTab === "borrower" ? (
-                  <>Don't have an account?{" "}<Link to="/?view=borrower" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Register here</Link></>
+                  <>Don't have an account?{" "}<Link to="/signup" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Register here</Link></>
                 ) : (
-                  <>New partner?{" "}<Link to="/?view=partner" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Apply here</Link></>
+                  <>New partner?{" "}<Link to="/broker-register" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Apply here</Link></>
                 )}
               </div>
             </form>
@@ -559,9 +562,9 @@ export default function Login() {
 
               <div style={{ textAlign: "center", marginTop: "16px", fontSize: ".8rem", color: "var(--text2)" }}>
                 {activeTab === "borrower" ? (
-                  <>Don't have an account?{" "}<Link to="/?view=borrower" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Register here</Link></>
+                  <>Don't have an account?{" "}<Link to="/signup" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Register here</Link></>
                 ) : (
-                  <>New partner?{" "}<Link to="/?view=partner" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Apply here</Link></>
+                  <>New partner?{" "}<Link to="/broker-register" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Apply here</Link></>
                 )}
               </div>
             </>

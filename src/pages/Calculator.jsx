@@ -11,7 +11,10 @@ import {
   CreditCard,
   Briefcase,
   Car,
-  Check
+  Check,
+  CheckCircle2,
+  AlertTriangle,
+  Loader2
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useEmiCalculator } from "../hooks/useEmiCalculator";
@@ -33,6 +36,14 @@ export default function Calculator() {
   const [loadingLenders, setLoadingLenders] = useState(false);
   const [lenderFilter, setLenderFilter] = useState("All");
   const [lenderSort, setLenderSort] = useState("type_order");
+
+  // Application submission states (direct from calculator)
+  const [submittingApp, setSubmittingApp] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submittedAppId, setSubmittedAppId] = useState("");
+  const [submittedLendersList, setSubmittedLendersList] = useState([]);
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [applyError, setApplyError] = useState("");
 
   // Determine initial loan type from location.state or URL query params
   const resolveLoanType = (input) => {
@@ -388,7 +399,7 @@ export default function Calculator() {
     return { firstSelectedIdx: firstIdx, contiguousCount: count };
   }, [filteredAndSortedLenders, selectedLenders]);
 
-  const handleApplyToLender = (lenderIdOrArray) => {
+  const handleApplyToLender = async (lenderIdOrArray) => {
     let ids = [];
     if (Array.isArray(lenderIdOrArray)) {
       ids = lenderIdOrArray;
@@ -399,15 +410,68 @@ export default function Calculator() {
     }
     if (ids.length === 0) return;
 
-    navigate("/apply", {
-      state: {
-        loanType: loanType,
-        amount: amount,
-        rate: rate,
-        tenure: tenure,
-        selectedLenders: ids
-      }
-    });
+    const targetLenders = ids;
+    const loanName = loanTypesList.find((l) => l.id === loanType)?.name || loanType;
+
+    // 1. IF NOT REGISTERED / NOT LOGGED IN -> DIRECTLY SHOW LOGIN PAGE
+    if (!user || !user.email) {
+      sessionStorage.setItem("pendingLoanApp", JSON.stringify({
+        loanType,
+        amount,
+        tenure,
+        rate,
+        rateType,
+        selectedLenders: targetLenders,
+        loan_purpose: `${loanName} Application`
+      }));
+      navigate("/login");
+      return;
+    }
+
+    // 2. IF ADMIN OR PARTNER ACCOUNT -> SHOW ACTION RESTRICTED MODAL
+    if (user.role === "admin" || user.role === "partner" || user.role === "broker") {
+      setShowAdminModal(true);
+      return;
+    }
+
+    // 3. IF LOGGED IN BORROWER -> DIRECTLY SUBMIT APPLICATION (NO CHOOSING LENDERS / LOAN PURPOSE)
+    try {
+      setSubmittingApp(true);
+      setApplyError("");
+
+      const token = localStorage.getItem("accessToken");
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await fetch("/api/client/apply-loan", {
+        method: "POST",
+        headers,
+        credentials: "include",
+        body: JSON.stringify({
+          product: loanType,
+          loanAmount: amount,
+          tenure: tenure,
+          selectedLenders: targetLenders,
+          loan_purpose: `${loanName} Application`
+        })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      const appId = data.applicationId || `APP-${Date.now().toString().slice(-5)}`;
+      setSubmittedAppId(appId);
+
+      const lenderNames = targetLenders.map((id) => {
+        const found = filteredAndSortedLenders.find((l) => l.id === id);
+        return found ? found.name : id;
+      });
+      setSubmittedLendersList(lenderNames);
+      setShowSuccessModal(true);
+    } catch (err) {
+      console.error("Error submitting loan application from Calculator:", err);
+      setApplyError(err.message || "Failed to submit loan application. Please try again.");
+    } finally {
+      setSubmittingApp(false);
+    }
   };
 
   const loanTypesList = [
@@ -1181,6 +1245,7 @@ export default function Calculator() {
 
                   <button
                     type="button"
+                    disabled={submittingApp}
                     onClick={() => {
                       if (selectedLenders.length >= 2 && selectedLenders.includes(filteredAndSortedLenders[0].id)) {
                         handleApplyToLender(selectedLenders);
@@ -1198,12 +1263,15 @@ export default function Calculator() {
                       border: 'none',
                       fontWeight: 800,
                       fontSize: '0.8rem',
-                      cursor: 'pointer',
+                      cursor: submittingApp ? 'not-allowed' : 'pointer',
                       boxShadow: '0 2px 8px rgba(15,41,66,0.2)',
-                      transition: 'all 0.2s ease'
+                      transition: 'all 0.2s ease',
+                      opacity: submittingApp ? 0.7 : 1
                     }}
                   >
-                    {selectedLenders.length >= 2 && selectedLenders.includes(filteredAndSortedLenders[0].id)
+                    {submittingApp
+                      ? 'Submitting...'
+                      : selectedLenders.length >= 2 && selectedLenders.includes(filteredAndSortedLenders[0].id)
                       ? `Apply (${selectedLenders.length} Banks) →`
                       : 'Apply →'}
                   </button>
@@ -1264,6 +1332,7 @@ export default function Calculator() {
                   </button>
                   <button
                     type="button"
+                    disabled={submittingApp}
                     onClick={() => handleApplyToLender(selectedLenders)}
                     style={{
                       background: '#38BDF8',
@@ -1273,14 +1342,15 @@ export default function Calculator() {
                       borderRadius: '6px',
                       fontSize: '0.82rem',
                       fontWeight: 800,
-                      cursor: 'pointer',
+                      cursor: submittingApp ? 'not-allowed' : 'pointer',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '4px'
+                      gap: '4px',
+                      opacity: submittingApp ? 0.7 : 1
                     }}
                   >
-                    Apply to {selectedLenders.length} Banks →
+                    {submittingApp ? 'Submitting...' : `Apply to ${selectedLenders.length} Banks →`}
                   </button>
                 </div>
               </div>
@@ -1429,6 +1499,7 @@ export default function Calculator() {
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                                   <button
                                     type="button"
+                                    disabled={submittingApp}
                                     onClick={() => handleApplyToLender(selectedLenders)}
                                     style={{
                                       padding: '8px 16px',
@@ -1438,16 +1509,17 @@ export default function Calculator() {
                                       border: 'none',
                                       fontWeight: 800,
                                       fontSize: '0.82rem',
-                                      cursor: 'pointer',
+                                      cursor: submittingApp ? 'not-allowed' : 'pointer',
                                       boxShadow: '0 4px 12px rgba(2, 132, 199, 0.28)',
                                       whiteSpace: 'nowrap',
                                       display: 'inline-flex',
                                       alignItems: 'center',
                                       gap: '6px',
-                                      transition: 'all 0.2s ease'
+                                      transition: 'all 0.2s ease',
+                                      opacity: submittingApp ? 0.7 : 1
                                     }}
                                   >
-                                    Apply ({selectedLenders.length} Banks) →
+                                    {submittingApp ? 'Submitting...' : `Apply (${selectedLenders.length} Banks) →`}
                                   </button>
                                   <span style={{ fontSize: '0.67rem', fontWeight: 700, color: '#0369A1' }}>
                                     1-Click Multi Application
@@ -1475,6 +1547,7 @@ export default function Calculator() {
                               <td style={{ padding: '10px 14px', textAlign: 'right' }}>
                                 <button
                                   type="button"
+                                  disabled={submittingApp}
                                   onClick={() => handleApplyToLender(lender.id)}
                                   style={{
                                     padding: '6px 14px',
@@ -1484,11 +1557,12 @@ export default function Calculator() {
                                     border: 'none',
                                     fontWeight: 800,
                                     fontSize: '0.78rem',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease'
+                                    cursor: submittingApp ? 'not-allowed' : 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    opacity: submittingApp ? 0.7 : 1
                                   }}
                                 >
-                                  Apply →
+                                  {submittingApp ? 'Submitting...' : 'Apply →'}
                                 </button>
                               </td>
                             )
@@ -1496,6 +1570,7 @@ export default function Calculator() {
                             <td style={{ padding: '10px 14px', textAlign: 'right' }}>
                               <button
                                 type="button"
+                                disabled={submittingApp}
                                 onClick={() => handleApplyToLender(lender.id)}
                                 style={{
                                   padding: '6px 14px',
@@ -1505,11 +1580,12 @@ export default function Calculator() {
                                   border: 'none',
                                   fontWeight: 800,
                                   fontSize: '0.78rem',
-                                  cursor: 'pointer',
-                                  transition: 'all 0.2s ease'
+                                  cursor: submittingApp ? 'not-allowed' : 'pointer',
+                                  transition: 'all 0.2s ease',
+                                  opacity: submittingApp ? 0.7 : 1
                                 }}
                               >
-                                Apply →
+                                {submittingApp ? 'Submitting...' : 'Apply →'}
                               </button>
                             </td>
                           )}
@@ -1523,6 +1599,113 @@ export default function Calculator() {
           </div>
         </div>
       </div>
+
+      {/* ═══ APPLICATION SUCCESS MODAL (DIRECT FROM EMI CALCULATOR) ═══ */}
+      {showSuccessModal && (
+        <div className="custom-modal-backdrop" onClick={() => setShowSuccessModal(false)}>
+          <div className="custom-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px', padding: '32px 28px', textAlign: 'center' }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              background: '#DCFCE7',
+              color: '#16A34A',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px'
+            }}>
+              <CheckCircle2 size={36} strokeWidth={2.5} />
+            </div>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F2942', marginBottom: '8px' }}>
+              Application Submitted!
+            </h3>
+            <p style={{ color: '#64748B', fontSize: '0.88rem', lineHeight: '1.5', marginBottom: '16px' }}>
+              Your application <strong style={{ color: '#0F2942' }}>({submittedAppId})</strong> for <strong style={{ color: '#0284C7' }}>{loanTypesList.find(l => l.id === loanType)?.name || loanType} ({fmtINR(amount)})</strong> has been registered successfully.
+            </p>
+
+            {submittedLendersList.length > 0 && (
+              <div style={{
+                background: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                padding: '12px 14px',
+                marginBottom: '20px',
+                textAlign: 'left'
+              }}>
+                <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748B', letterSpacing: '0.05em', marginBottom: '4px' }}>
+                  SUBMITTED TO {submittedLendersList.length} LENDER{submittedLendersList.length > 1 ? 'S' : ''}
+                </div>
+                <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0F2942' }}>
+                  {submittedLendersList.join(' · ')}
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setShowSuccessModal(false)}
+                style={{
+                  flex: 1,
+                  padding: '10px 16px',
+                  borderRadius: '8px',
+                  background: '#F1F5F9',
+                  color: '#475569',
+                  border: '1px solid #CBD5E1',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/client-dashboard")}
+                style={{
+                  flex: 1,
+                  padding: '10px 16px',
+                  borderRadius: '8px',
+                  background: '#0284C7',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(2,132,199,0.25)'
+                }}
+              >
+                Go to Dashboard →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ CUSTOM ADMIN MODAL POPUP ═══ */}
+      {showAdminModal && (
+        <div className="custom-modal-backdrop" onClick={() => setShowAdminModal(false)}>
+          <div className="custom-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px', padding: '28px', textAlign: 'center' }}>
+            <div style={{ background: '#FEF2F2', width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px auto', color: '#DC2626' }}>
+              <AlertTriangle size={28} />
+            </div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F2942', marginBottom: '8px' }}>
+              Action Restricted
+            </h3>
+            <p style={{ color: '#64748B', fontSize: '0.88rem', lineHeight: '1.5', marginBottom: '20px' }}>
+              Admin and Partner accounts cannot apply for loans. Only borrower accounts can submit applications.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowAdminModal(false)}
+              style={{ width: '100%', padding: '10px 16px', borderRadius: '8px', background: '#0284C7', color: '#FFFFFF', border: 'none', fontWeight: 800, cursor: 'pointer' }}
+            >
+              Got It
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
