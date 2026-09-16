@@ -32,8 +32,14 @@ export default function Apply() {
   const { user, login, fetchProfile } = useAuth();
 
   // State for 3-step application flow (1: Details, 2: Choose Lenders, 3: Review & Apply)
-  const [stepperStep, setStepperStep] = useState(1);
-  const [selectedLenders, setSelectedLenders] = useState([]);
+  const [stepperStep, setStepperStep] = useState(
+    Array.isArray(location.state?.selectedLenders) && location.state.selectedLenders.length > 0 ? 3 : 1
+  );
+  const [selectedLenders, setSelectedLenders] = useState(
+    Array.isArray(location.state?.selectedLenders) && location.state.selectedLenders.length > 0
+      ? location.state.selectedLenders
+      : []
+  );
   const [dbLenders, setDbLenders] = useState([]);
   const [loadingLenders, setLoadingLenders] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -123,6 +129,10 @@ export default function Apply() {
     if (rawPassed) {
       const resolved = resolveLoanType(rawPassed);
       handleSelectLoanType(resolved);
+    }
+    if (Array.isArray(location.state?.selectedLenders) && location.state.selectedLenders.length > 0) {
+      setSelectedLenders(location.state.selectedLenders);
+      setStepperStep(3);
     }
   }, [location.search, location.state]);
 
@@ -907,6 +917,23 @@ export default function Apply() {
                   <span className="val highlight">{fmtINRFull(emi)}</span>
                 </div>
               </div>
+
+              {selectedLenders.length > 0 && (
+                <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                  <div style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 600 }}>
+                    Selected Lenders ({selectedLenders.length}): <strong style={{ color: '#0F2942' }}>
+                      {selectedLenders.map(id => mergedLendersList.find(l => l.id === id)?.name || id).join(', ')}
+                    </strong>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setStepperStep(2)}
+                    style={{ background: 'none', border: 'none', color: '#0284C7', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', padding: 0 }}
+                  >
+                    Change Lenders
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Primary Applicant Details Form */}

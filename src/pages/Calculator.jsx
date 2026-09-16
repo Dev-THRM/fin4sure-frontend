@@ -10,7 +10,8 @@ import {
   Building2,
   CreditCard,
   Briefcase,
-  Car
+  Car,
+  Check
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useEmiCalculator } from "../hooks/useEmiCalculator";
@@ -359,14 +360,52 @@ export default function Calculator() {
     return list;
   }, [mergedLendersList, lenderFilter, lenderSort, amount, tenure]);
 
-  const handleApplyToLender = (lenderId) => {
+  // Toggle lender selection for multi-bank application
+  const toggleLenderSelection = (lenderId) => {
+    setSelectedLenders((prev) =>
+      prev.includes(lenderId) ? prev.filter((id) => id !== lenderId) : [...prev, lenderId]
+    );
+  };
+
+  // Reset selected lenders when loan category changes
+  useEffect(() => {
+    setSelectedLenders([]);
+  }, [loanType]);
+
+  // Contiguous block calculation for merging action column when 2+ banks selected
+  const { firstSelectedIdx, contiguousCount } = useMemo(() => {
+    if (selectedLenders.length < 2) return { firstSelectedIdx: -1, contiguousCount: 0 };
+    const firstIdx = filteredAndSortedLenders.findIndex((l) => selectedLenders.includes(l.id));
+    if (firstIdx === -1) return { firstSelectedIdx: -1, contiguousCount: 0 };
+    let count = 0;
+    for (let k = firstIdx; k < filteredAndSortedLenders.length; k++) {
+      if (selectedLenders.includes(filteredAndSortedLenders[k].id)) {
+        count++;
+      } else {
+        break;
+      }
+    }
+    return { firstSelectedIdx: firstIdx, contiguousCount: count };
+  }, [filteredAndSortedLenders, selectedLenders]);
+
+  const handleApplyToLender = (lenderIdOrArray) => {
+    let ids = [];
+    if (Array.isArray(lenderIdOrArray)) {
+      ids = lenderIdOrArray;
+    } else if (lenderIdOrArray) {
+      ids = [lenderIdOrArray];
+    } else if (selectedLenders.length > 0) {
+      ids = selectedLenders;
+    }
+    if (ids.length === 0) return;
+
     navigate("/apply", {
       state: {
         loanType: loanType,
         amount: amount,
         rate: rate,
         tenure: tenure,
-        selectedLenders: [lenderId]
+        selectedLenders: ids
       }
     });
   };
@@ -1075,7 +1114,7 @@ export default function Calculator() {
             {filteredAndSortedLenders.length > 0 && (
               <div style={{
                 background: 'linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%)',
-                border: '1.5px solid #BFDBFE',
+                border: selectedLenders.includes(filteredAndSortedLenders[0].id) ? '1.5px solid #0284C7' : '1.5px solid #BFDBFE',
                 borderRadius: '12px',
                 padding: '12px 14px',
                 marginBottom: '14px',
@@ -1083,13 +1122,41 @@ export default function Calculator() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '10px',
-                flexWrap: 'wrap'
+                flexWrap: 'wrap',
+                transition: 'border-color 0.2s ease'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {/* Checkbox on top best-offer card */}
+                  <label
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      margin: 0,
+                      padding: 0
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedLenders.includes(filteredAndSortedLenders[0].id)}
+                      onChange={() => toggleLenderSelection(filteredAndSortedLenders[0].id)}
+                      style={{
+                        width: '18px',
+                        height: '18px',
+                        cursor: 'pointer',
+                        accentColor: '#0284C7',
+                        borderRadius: '4px',
+                        flexShrink: 0
+                      }}
+                      aria-label={`Select ${filteredAndSortedLenders[0].name}`}
+                    />
+                  </label>
                   <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>
                     <Landmark size={20} className="text-slate-600" />
                   </div>
-                  <div>
+                  <div style={{ cursor: 'pointer' }} onClick={() => toggleLenderSelection(filteredAndSortedLenders[0].id)}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0F2942' }}>{filteredAndSortedLenders[0].name}</span>
                       <span style={{ padding: '1px 6px', borderRadius: '8px', background: '#DBEAFE', color: '#1E40AF', fontSize: '0.65rem', fontWeight: 700 }}>
@@ -1114,20 +1181,106 @@ export default function Calculator() {
 
                   <button
                     type="button"
-                    onClick={() => handleApplyToLender(filteredAndSortedLenders[0].id)}
+                    onClick={() => {
+                      if (selectedLenders.length >= 2 && selectedLenders.includes(filteredAndSortedLenders[0].id)) {
+                        handleApplyToLender(selectedLenders);
+                      } else {
+                        handleApplyToLender(filteredAndSortedLenders[0].id);
+                      }
+                    }}
                     style={{
                       padding: '8px 14px',
                       borderRadius: '8px',
-                      background: '#0F2942',
+                      background: selectedLenders.length >= 2 && selectedLenders.includes(filteredAndSortedLenders[0].id)
+                        ? 'linear-gradient(135deg, #0F2942 0%, #0284C7 100%)'
+                        : '#0F2942',
                       color: '#FFFFFF',
                       border: 'none',
                       fontWeight: 800,
                       fontSize: '0.8rem',
                       cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(15,41,66,0.2)'
+                      boxShadow: '0 2px 8px rgba(15,41,66,0.2)',
+                      transition: 'all 0.2s ease'
                     }}
                   >
-                    Apply →
+                    {selectedLenders.length >= 2 && selectedLenders.includes(filteredAndSortedLenders[0].id)
+                      ? `Apply (${selectedLenders.length} Banks) →`
+                      : 'Apply →'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ═══ MULTI-BANK SELECTION BAR (VISIBLE WHEN 2+ BANKS SELECTED) ═══ */}
+            {selectedLenders.length >= 2 && (
+              <div style={{
+                background: 'linear-gradient(135deg, #0F2942 0%, #1E3A8A 100%)',
+                color: '#FFFFFF',
+                borderRadius: '12px',
+                padding: '10px 16px',
+                marginBottom: '14px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '10px',
+                boxShadow: '0 4px 14px rgba(15, 41, 66, 0.15)',
+                border: '1px solid #38BDF8'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  <span style={{
+                    background: '#38BDF8',
+                    color: '#0F2942',
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    padding: '2px 8px',
+                    borderRadius: '12px'
+                  }}>
+                    {selectedLenders.length} BANKS SELECTED
+                  </span>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#E2E8F0' }}>
+                    {selectedLenders
+                      .map(id => filteredAndSortedLenders.find(l => l.id === id)?.name || id)
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedLenders([])}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      fontSize: '0.74rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Clear
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleApplyToLender(selectedLenders)}
+                    style={{
+                      background: '#38BDF8',
+                      color: '#0F2942',
+                      border: 'none',
+                      padding: '7px 16px',
+                      borderRadius: '6px',
+                      fontSize: '0.82rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    Apply to {selectedLenders.length} Banks →
                   </button>
                 </div>
               </div>
@@ -1138,7 +1291,24 @@ export default function Calculator() {
               <table style={{ minWidth: '580px', width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
                 <thead>
                   <tr style={{ background: '#0F2942', color: '#FFFFFF', textAlign: 'left' }}>
-                    <th style={{ padding: '10px 14px', borderRadius: '8px 0 0 0', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.05em' }}>LENDER</th>
+                    <th style={{ padding: '10px 14px', borderRadius: '8px 0 0 0', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.05em' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input
+                          type="checkbox"
+                          checked={filteredAndSortedLenders.length > 0 && selectedLenders.length >= 2 && filteredAndSortedLenders.slice(0, 3).every(l => selectedLenders.includes(l.id))}
+                          onChange={() => {
+                            if (selectedLenders.length >= 2) {
+                              setSelectedLenders([]);
+                            } else {
+                              setSelectedLenders(filteredAndSortedLenders.slice(0, 3).map(l => l.id));
+                            }
+                          }}
+                          title={selectedLenders.length >= 2 ? "Deselect All" : "Select Top 3 Banks"}
+                          style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#38BDF8' }}
+                        />
+                        <span>LENDER</span>
+                      </div>
+                    </th>
                     <th style={{ padding: '10px 14px', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.05em' }}>EXPECTED ROI ({rateType === 'floating' ? 'FLOATING' : 'FIXED'})</th>
                     <th style={{ padding: '10px 14px', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.05em' }}>EST. EMI</th>
                     <th style={{ padding: '10px 14px', borderRadius: '0 8px 0 0', textAlign: 'right', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.05em' }}>ACTION</th>
@@ -1152,21 +1322,71 @@ export default function Calculator() {
                       </td>
                     </tr>
                   ) : (
-                    filteredAndSortedLenders.map((lender) => {
+                    filteredAndSortedLenders.map((lender, idx) => {
                       const lEmi = calcEMI(amount, lender.rate, tenure);
                       const rowKey = `calc-lender-${lender.name}-${lender.type}-${lenderFilter}-${rateType}-${loanType}`;
                       const isPsu = lender.type === 'PSU';
                       const isNbfc = lender.type === 'NBFC/HFC';
                       const isSfb = lender.type === 'SFB';
+                      const isSel = selectedLenders.includes(lender.id);
+
+                      // Check contiguous run logic for 2+ selected lenders
+                      let isFirstInContiguous = false;
+                      let contiguousSpan = 1;
+                      let isSubsequentInContiguous = false;
+
+                      if (selectedLenders.length >= 2) {
+                        if (idx === firstSelectedIdx) {
+                          isFirstInContiguous = true;
+                          contiguousSpan = contiguousCount;
+                        } else if (idx > firstSelectedIdx && idx < firstSelectedIdx + contiguousCount) {
+                          isSubsequentInContiguous = true;
+                        }
+                      }
 
                       return (
-                        <tr key={rowKey} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                        <tr
+                          key={rowKey}
+                          style={{
+                            borderBottom: '1px solid #F1F5F9',
+                            background: isSel ? '#F0F9FF' : '#FFFFFF',
+                            transition: 'background 0.2s ease'
+                          }}
+                        >
                           <td style={{ padding: '10px 14px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <div style={{ width: '30px', height: '30px', borderRadius: '6px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Landmark size={16} className="text-slate-600" />
+                              {/* Checkbox on left side of bank */}
+                              <label
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  cursor: 'pointer',
+                                  margin: 0,
+                                  padding: 0
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isSel}
+                                  onChange={() => toggleLenderSelection(lender.id)}
+                                  style={{
+                                    width: '18px',
+                                    height: '18px',
+                                    cursor: 'pointer',
+                                    accentColor: '#0284C7',
+                                    borderRadius: '4px',
+                                    flexShrink: 0
+                                  }}
+                                  aria-label={`Select ${lender.name}`}
+                                />
+                              </label>
+
+                              <div style={{ width: '30px', height: '30px', borderRadius: '6px', background: isSel ? '#FFFFFF' : '#F8FAFC', border: isSel ? '1px solid #BAE6FD' : '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <Landmark size={16} className={isSel ? "text-sky-600" : "text-slate-600"} />
                               </div>
-                              <div>
+                              <div style={{ cursor: 'pointer' }} onClick={() => toggleLenderSelection(lender.id)}>
                                 <div style={{ fontWeight: 800, color: '#0F2942' }}>{lender.name}</div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '1px' }}>
                                   <span style={{
@@ -1193,25 +1413,106 @@ export default function Calculator() {
                             <div style={{ fontWeight: 800, color: '#0284C7', fontSize: '0.88rem' }}>{fmtINRFull(lEmi)}<span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#64748B' }}>/mo</span></div>
                           </td>
 
-                          <td style={{ padding: '10px 14px', textAlign: 'right' }}>
-                            <button
-                              type="button"
-                              onClick={() => handleApplyToLender(lender.id)}
-                              style={{
-                                padding: '6px 14px',
-                                borderRadius: '6px',
-                                background: '#0F2942',
-                                color: '#FFFFFF',
-                                border: 'none',
-                                fontWeight: 800,
-                                fontSize: '0.78rem',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease'
-                              }}
-                            >
-                              Apply →
-                            </button>
-                          </td>
+                          {/* ACTION COLUMN: Merged single button for 2+ selected banks */}
+                          {selectedLenders.length >= 2 ? (
+                            isFirstInContiguous ? (
+                              <td
+                                rowSpan={contiguousSpan}
+                                style={{
+                                  padding: '10px 14px',
+                                  textAlign: 'right',
+                                  verticalAlign: 'middle',
+                                  background: '#F0F9FF',
+                                  borderLeft: '2px solid #BAE6FD'
+                                }}
+                              >
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleApplyToLender(selectedLenders)}
+                                    style={{
+                                      padding: '8px 16px',
+                                      borderRadius: '8px',
+                                      background: 'linear-gradient(135deg, #0F2942 0%, #0284C7 100%)',
+                                      color: '#FFFFFF',
+                                      border: 'none',
+                                      fontWeight: 800,
+                                      fontSize: '0.82rem',
+                                      cursor: 'pointer',
+                                      boxShadow: '0 4px 12px rgba(2, 132, 199, 0.28)',
+                                      whiteSpace: 'nowrap',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '6px',
+                                      transition: 'all 0.2s ease'
+                                    }}
+                                  >
+                                    Apply ({selectedLenders.length} Banks) →
+                                  </button>
+                                  <span style={{ fontSize: '0.67rem', fontWeight: 700, color: '#0369A1' }}>
+                                    1-Click Multi Application
+                                  </span>
+                                </div>
+                              </td>
+                            ) : isSubsequentInContiguous ? null : isSel ? (
+                              <td style={{ padding: '10px 14px', textAlign: 'right', verticalAlign: 'middle', background: '#F0F9FF' }}>
+                                <div style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  fontSize: '0.74rem',
+                                  fontWeight: 700,
+                                  color: '#0369A1',
+                                  background: '#E0F2FE',
+                                  border: '1px solid #BAE6FD',
+                                  padding: '5px 10px',
+                                  borderRadius: '6px'
+                                }}>
+                                  <Check size={12} strokeWidth={3} /> Selected ({selectedLenders.length})
+                                </div>
+                              </td>
+                            ) : (
+                              <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => handleApplyToLender(lender.id)}
+                                  style={{
+                                    padding: '6px 14px',
+                                    borderRadius: '6px',
+                                    background: '#0F2942',
+                                    color: '#FFFFFF',
+                                    border: 'none',
+                                    fontWeight: 800,
+                                    fontSize: '0.78rem',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease'
+                                  }}
+                                >
+                                  Apply →
+                                </button>
+                              </td>
+                            )
+                          ) : (
+                            <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleApplyToLender(lender.id)}
+                                style={{
+                                  padding: '6px 14px',
+                                  borderRadius: '6px',
+                                  background: isSel ? '#0284C7' : '#0F2942',
+                                  color: '#FFFFFF',
+                                  border: 'none',
+                                  fontWeight: 800,
+                                  fontSize: '0.78rem',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s ease'
+                                }}
+                              >
+                                Apply →
+                              </button>
+                            </td>
+                          )}
                         </tr>
                       );
                     })
