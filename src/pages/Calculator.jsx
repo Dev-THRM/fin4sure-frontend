@@ -39,9 +39,6 @@ export default function Calculator() {
 
   // Application submission states (direct from calculator)
   const [submittingApp, setSubmittingApp] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [submittedAppId, setSubmittedAppId] = useState("");
-  const [submittedLendersList, setSubmittedLendersList] = useState([]);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [applyError, setApplyError] = useState("");
 
@@ -458,14 +455,19 @@ export default function Calculator() {
 
       const data = await res.json().catch(() => ({}));
       const appId = data.applicationId || `APP-${Date.now().toString().slice(-5)}`;
-      setSubmittedAppId(appId);
-
       const lenderNames = targetLenders.map((id) => {
         const found = filteredAndSortedLenders.find((l) => l.id === id);
         return found ? found.name : id;
       });
-      setSubmittedLendersList(lenderNames);
-      setShowSuccessModal(true);
+
+      navigate("/client-dashboard", {
+        state: {
+          appSubmitted: true,
+          appId,
+          loanName,
+          lenderNames
+        }
+      });
     } catch (err) {
       console.error("Error submitting loan application from Calculator:", err);
       setApplyError(err.message || "Failed to submit loan application. Please try again.");
@@ -1599,89 +1601,6 @@ export default function Calculator() {
           </div>
         </div>
       </div>
-
-      {/* ═══ APPLICATION SUCCESS MODAL (DIRECT FROM EMI CALCULATOR) ═══ */}
-      {showSuccessModal && (
-        <div className="custom-modal-backdrop" onClick={() => setShowSuccessModal(false)}>
-          <div className="custom-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px', padding: '32px 28px', textAlign: 'center' }}>
-            <div style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '50%',
-              background: '#DCFCE7',
-              color: '#16A34A',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 16px'
-            }}>
-              <CheckCircle2 size={36} strokeWidth={2.5} />
-            </div>
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F2942', marginBottom: '8px' }}>
-              Application Submitted!
-            </h3>
-            <p style={{ color: '#64748B', fontSize: '0.88rem', lineHeight: '1.5', marginBottom: '16px' }}>
-              Your application <strong style={{ color: '#0F2942' }}>({submittedAppId})</strong> for <strong style={{ color: '#0284C7' }}>{loanTypesList.find(l => l.id === loanType)?.name || loanType} ({fmtINR(amount)})</strong> has been registered successfully.
-            </p>
-
-            {submittedLendersList.length > 0 && (
-              <div style={{
-                background: '#F8FAFC',
-                border: '1px solid #E2E8F0',
-                borderRadius: '10px',
-                padding: '12px 14px',
-                marginBottom: '20px',
-                textAlign: 'left'
-              }}>
-                <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748B', letterSpacing: '0.05em', marginBottom: '4px' }}>
-                  SUBMITTED TO {submittedLendersList.length} LENDER{submittedLendersList.length > 1 ? 'S' : ''}
-                </div>
-                <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0F2942' }}>
-                  {submittedLendersList.join(' · ')}
-                </div>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                type="button"
-                onClick={() => setShowSuccessModal(false)}
-                style={{
-                  flex: 1,
-                  padding: '10px 16px',
-                  borderRadius: '8px',
-                  background: '#F1F5F9',
-                  color: '#475569',
-                  border: '1px solid #CBD5E1',
-                  fontWeight: 700,
-                  fontSize: '0.85rem',
-                  cursor: 'pointer'
-                }}
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate("/client-dashboard")}
-                style={{
-                  flex: 1,
-                  padding: '10px 16px',
-                  borderRadius: '8px',
-                  background: '#0284C7',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  fontWeight: 800,
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(2,132,199,0.25)'
-                }}
-              >
-                Go to Dashboard →
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ═══ CUSTOM ADMIN MODAL POPUP ═══ */}
       {showAdminModal && (

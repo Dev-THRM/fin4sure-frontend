@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   IoMdCard,
   IoMdTimer,
@@ -38,17 +38,53 @@ import "./styles/clientDashboard.css";
 export default function ClientDashboard() {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Local dashboard states
   const [user, setUser] = useState(null);
   const [applications, setApplications] = useState([]);
   const [activeTab, setActiveTab] = useState("loans");
   const [showSupportModal, setShowSupportModal] = useState(false);
-  const [notification, setNotification] = useState(null); // { type, title, message, onClose }
+  const [notification, setNotification] = useState(null); // { type, title, message, onClose, autoDismiss }
+  const notificationTimeoutRef = useRef(null);
 
-  const showNotification = (title, message, type = "info", onClose = null) => {
-    setNotification({ title, message, type, onClose });
+  const closeNotification = () => {
+    if (notificationTimeoutRef.current) {
+      clearTimeout(notificationTimeoutRef.current);
+      notificationTimeoutRef.current = null;
+    }
+    if (notification?.onClose) {
+      notification.onClose();
+    }
+    setNotification(null);
   };
+
+  const showNotification = (title, message, type = "info", onClose = null, autoDismissMs = null) => {
+    if (notificationTimeoutRef.current) {
+      clearTimeout(notificationTimeoutRef.current);
+      notificationTimeoutRef.current = null;
+    }
+    setNotification({ title, message, type, onClose, autoDismiss: !!autoDismissMs });
+    if (autoDismissMs) {
+      notificationTimeoutRef.current = setTimeout(() => {
+        setNotification((prev) => {
+          if (prev) {
+            if (prev.onClose) prev.onClose();
+            return null;
+          }
+          return prev;
+        });
+      }, autoDismissMs);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (notificationTimeoutRef.current) {
+        clearTimeout(notificationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Profile Form States
   const [editing, setEditing] = useState(false);
@@ -75,6 +111,23 @@ export default function ClientDashboard() {
     fetchApplications();
     checkAndSubmitPendingLoan();
   }, []);
+
+  useEffect(() => {
+    if (location.state?.appSubmitted) {
+      const { appId, loanName, lenderNames } = location.state;
+      const lendersText = lenderNames && lenderNames.length > 0 ? ` to ${lenderNames.join(", ")}` : "";
+      showNotification(
+        "Application Submitted!",
+        `Your application (${appId || "APP-SUCCESS"}) for ${loanName || "Loan"} has been successfully submitted${lendersText}.`,
+        "success",
+        null,
+        3500
+      );
+      fetchApplications();
+      // Clear location state so manual refresh doesn't pop up again
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const { user: authUser } = useAuth();
 
@@ -173,7 +226,9 @@ export default function ClientDashboard() {
         showNotification(
           "Application Submitted!",
           `Your loan application (#${data.applicationId || "APP-SUCCESS"}) has been successfully submitted to lenders.`,
-          "success"
+          "success",
+          null,
+          3500
         );
         fetchApplications();
       }
@@ -879,11 +934,7 @@ export default function ClientDashboard() {
 
       {/* ═══ CUSTOM NOTIFICATION MODAL ═══ */}
       {notification && (
-        <div className="cd-modal" onClick={() => {
-          const cb = notification.onClose;
-          setNotification(null);
-          if (cb) cb();
-        }}>
+        <div className="cd-modal" onClick={closeNotification}>
           <div className="cd-modal-card" onClick={(e) => e.stopPropagation()} style={{ textAlign: "center", padding: "32px 24px" }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
               {notification.type === "success" ? (
@@ -897,16 +948,17 @@ export default function ClientDashboard() {
             <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.45rem", fontWeight: "700", color: "var(--navy)", marginBottom: "8px" }}>
               {notification.title}
             </h3>
-            <p style={{ fontSize: ".84rem", color: "var(--text2)", lineHeight: "1.5", marginBottom: "22px" }}>
+            <p style={{ fontSize: ".84rem", color: "var(--text2)", lineHeight: "1.5", marginBottom: notification.autoDismiss ? "12px" : "22px" }}>
               {notification.message}
             </p>
+            {notification.autoDismiss && (
+              <div style={{ fontSize: ".76rem", color: "#64748B", marginBottom: "18px", fontStyle: "italic" }}>
+                Auto-closing in a moment...
+              </div>
+            )}
             <button 
               type="button" 
-              onClick={() => {
-                const cb = notification.onClose;
-                setNotification(null);
-                if (cb) cb();
-              }} 
+              onClick={closeNotification} 
               className="btn-primary" 
               style={{ width: "100%", height: "42px" }}
             >
