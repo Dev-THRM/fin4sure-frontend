@@ -1,62 +1,44 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Home,
-  Building2,
-  CreditCard,
-  Briefcase,
-  Car,
-  GraduationCap,
-  Sparkles,
-  CheckCircle2,
-  HelpCircle,
-  ArrowRight,
-  UserCheck,
-  Coins,
-  FileText,
-  BadgeCheck,
-  GraduationCap as GradIcon
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import "./loanDocGuide.css";
 
 const DOC_DATA = {
   home: {
     id: "home",
     name: "Home Loan",
-    icon: Home,
+    icon: "🏠",
+    layout: "grid-2",
     cards: [
       {
         title: "Identity & Address Proof",
-        icon: UserCheck,
-        headerBg: "#F0F9FF",
-        iconBg: "#E0F2FE",
-        iconColor: "#0284C7",
+        icon: "💳",
+        headerBg: "#EFF6FF",
+        titleColor: "#0284C7",
         items: [
           { text: "Aadhaar Card (both sides)", mandatory: true },
           { text: "PAN Card", mandatory: true },
-          { text: "Passport / Voter ID / Driving Licence", mandatory: false },
-          { text: "Recent utility bill or bank statement (address proof)", mandatory: false }
+          { text: "Passport / Voter ID / Driving Licence", mandatory: true },
+          { text: "Recent utility bill or bank statement (address proof)", mandatory: true }
         ]
       },
       {
         title: "Income Documents",
-        icon: Coins,
-        headerBg: "#FEF9EE",
-        iconBg: "#FEF3C7",
-        iconColor: "#D97706",
+        icon: "💰",
+        headerBg: "#F0FDF4",
+        titleColor: "#16A34A",
         items: [
           { text: "Last 3 months' salary slips", tag: "Salaried", mandatory: true },
           { text: "Form 16 / IT Returns (2 years)", tag: "Salaried", mandatory: true },
-          { text: "ITR with P&L & Balance Sheet (2–3 years)", tag: "Self-Employed", mandatory: true },
+          { text: "ITR with P&L & Balance Sheet (3 years)", tag: "Self Employed", mandatory: true },
           { text: "Bank statements — last 6 months", mandatory: true }
         ]
       },
       {
         title: "Property Documents",
-        icon: Building2,
+        icon: "🏠",
         headerBg: "#FAF5FF",
-        iconBg: "#F3E8FF",
-        iconColor: "#7C3AED",
+        titleColor: "#7C3AED",
         items: [
           { text: "Sale agreement / Allotment letter", mandatory: true },
           { text: "Title deed & chain of ownership", mandatory: true },
@@ -68,10 +50,9 @@ const DOC_DATA = {
       },
       {
         title: "Additional (if applicable)",
-        icon: FileText,
+        icon: "📋",
         headerBg: "#FFF7ED",
-        iconBg: "#FFEDD5",
-        iconColor: "#EA580C",
+        titleColor: "#EA580C",
         items: [
           { text: "Co-applicant KYC & income docs", mandatory: false },
           { text: "Processing fee cheque", mandatory: false },
@@ -84,60 +65,56 @@ const DOC_DATA = {
   lap: {
     id: "lap",
     name: "LAP",
-    icon: Building2,
+    icon: "🏢",
+    layout: "grid-2",
     cards: [
       {
         title: "Identity & Address Proof",
-        icon: UserCheck,
-        headerBg: "#F0F9FF",
-        iconBg: "#E0F2FE",
-        iconColor: "#0284C7",
+        icon: "🪪",
+        headerBg: "#EFF6FF",
+        titleColor: "#0284C7",
         items: [
-          { text: "Aadhaar Card (both sides)", mandatory: true },
+          { text: "Aadhaar Card", mandatory: true },
           { text: "PAN Card", mandatory: true },
-          { text: "Passport / Voter ID / Driving Licence", mandatory: false },
-          { text: "Recent utility bill or bank statement (address proof)", mandatory: false }
+          { text: "Passport / Voter ID", mandatory: true },
+          { text: "Address proof (utility bill / bank statement)", mandatory: true }
         ]
       },
       {
         title: "Income Documents",
-        icon: Coins,
-        headerBg: "#FEF9EE",
-        iconBg: "#FEF3C7",
-        iconColor: "#D97706",
+        icon: "💰",
+        headerBg: "#F0FDF4",
+        titleColor: "#16A34A",
         items: [
-          { text: "Last 3 months' salary slips", tag: "Salaried", mandatory: true },
-          { text: "Form 16 / IT Returns (2 years)", tag: "Salaried", mandatory: true },
-          { text: "Audited Balance Sheet & P&L (3 years)", tag: "Self-Employed", mandatory: true },
-          { text: "Primary bank statement — last 6 to 12 months", mandatory: true }
+          { text: "Bank statements — last 12 months", mandatory: true },
+          { text: "ITR with computation (2–3 years)", mandatory: true },
+          { text: "P&L statement & balance sheet", tag: "Business", mandatory: true },
+          { text: "Salary slips + Form 16", tag: "Salaried", mandatory: true }
         ]
       },
       {
-        title: "Property & Mortgaged Title",
-        icon: Building2,
+        title: "Property Documents",
+        icon: "🏢",
         headerBg: "#FAF5FF",
-        iconBg: "#F3E8FF",
-        iconColor: "#7C3AED",
+        titleColor: "#7C3AED",
         items: [
-          { text: "Original Registered Sale / Title Deed", mandatory: true },
-          { text: "Chain of past property conveyance deeds", mandatory: true },
-          { text: "Approved architectural & sanction layout", mandatory: true },
-          { text: "Latest property tax receipt & paid bills", mandatory: true },
-          { text: "Updated Encumbrance Certificate (13–30 yrs)", mandatory: true },
-          { text: "Mutation & Khata certificate", mandatory: true }
+          { text: "Original title deed / sale deed", mandatory: true },
+          { text: "Encumbrance certificate (EC)", mandatory: true },
+          { text: "Latest property tax paid receipts", mandatory: true },
+          { text: "Municipal approved building plan", mandatory: true },
+          { text: "Khata / Patta (state-wise)", mandatory: true }
         ]
       },
       {
-        title: "Additional (if applicable)",
-        icon: FileText,
+        title: "Additional",
+        icon: "📋",
         headerBg: "#FFF7ED",
-        iconBg: "#FFEDD5",
-        iconColor: "#EA580C",
+        titleColor: "#EA580C",
         items: [
-          { text: "Co-borrower KYC & income proof", mandatory: false },
-          { text: "Foreclosure letter (if balance transfer)", mandatory: false },
-          { text: "Business registration (commercial asset)", mandatory: false },
-          { text: "Processing fee cheque / receipt", mandatory: false }
+          { text: "Valuation report from approved valuer", mandatory: false },
+          { text: "Search report from advocate", mandatory: false },
+          { text: "Co-applicant KYC", mandatory: false },
+          { text: "Rental agreement (if rented out)", mandatory: false }
         ]
       }
     ]
@@ -145,58 +122,44 @@ const DOC_DATA = {
   personal: {
     id: "personal",
     name: "Personal",
-    icon: CreditCard,
+    icon: "💳",
+    layout: "grid-3",
+    notice: "Personal loans are collateral-free — minimal documentation, fastest disbursal",
     cards: [
       {
         title: "Identity & Address Proof",
-        icon: UserCheck,
-        headerBg: "#F0F9FF",
-        iconBg: "#E0F2FE",
-        iconColor: "#0284C7",
+        icon: "🪪",
+        headerBg: "#EFF6FF",
+        titleColor: "#0284C7",
         items: [
-          { text: "Aadhaar Card (both sides)", mandatory: true },
+          { text: "Aadhaar Card", mandatory: true },
           { text: "PAN Card", mandatory: true },
-          { text: "Passport / Voter ID / Driving Licence", mandatory: false },
-          { text: "Current residence proof (utility bill / rent agreement)", mandatory: false }
+          { text: "Passport / Voter ID / Driving Licence", mandatory: true },
+          { text: "Recent utility bill (address)", mandatory: true }
         ]
       },
       {
-        title: "Income Documents",
-        icon: Coins,
-        headerBg: "#FEF9EE",
-        iconBg: "#FEF3C7",
-        iconColor: "#D97706",
+        title: "Salaried Applicants",
+        icon: "💰",
+        headerBg: "#F0FDF4",
+        titleColor: "#16A34A",
         items: [
-          { text: "Last 3 months' salary slips", tag: "Salaried", mandatory: true },
-          { text: "Form 16 / ITR for last 2 years", tag: "Salaried", mandatory: true },
-          { text: "ITR with computation sheet (2 years)", tag: "Self-Employed", mandatory: true },
-          { text: "Bank statement — last 6 months (salary credit)", mandatory: true }
+          { text: "Last 3 months' salary slips", mandatory: true },
+          { text: "Form 16 / IT return (1 year)", mandatory: true },
+          { text: "Bank statements — last 3 months", mandatory: true },
+          { text: "Employment ID / offer letter", mandatory: true }
         ]
       },
       {
-        title: "Employment & Professional Proof",
-        icon: BadgeCheck,
-        headerBg: "#FAF5FF",
-        iconBg: "#F3E8FF",
-        iconColor: "#7C3AED",
-        items: [
-          { text: "Official Employee ID card", mandatory: true },
-          { text: "Official company email confirmation / Offer letter", mandatory: true },
-          { text: "Form 26AS / EPFO service track", mandatory: false },
-          { text: "Business vintage proof (min 2 yrs)", tag: "Self-Employed", mandatory: false }
-        ]
-      },
-      {
-        title: "Additional (if applicable)",
-        icon: FileText,
+        title: "Self Employed Applicants",
+        icon: "💼",
         headerBg: "#FFF7ED",
-        iconBg: "#FFEDD5",
-        iconColor: "#EA580C",
+        titleColor: "#EA580C",
         items: [
-          { text: "Existing loan track / repayment record", mandatory: false },
-          { text: "Registered rent agreement (if rented)", mandatory: false },
-          { text: "Passport size photograph", mandatory: false },
-          { text: "Processing fee debit consent", mandatory: false }
+          { text: "ITR — last 2 years with computation", mandatory: true },
+          { text: "Bank statements — last 6 months", mandatory: true },
+          { text: "Business proof (GST / trade licence)", mandatory: true },
+          { text: "Office address proof", mandatory: false }
         ]
       }
     ]
@@ -204,59 +167,57 @@ const DOC_DATA = {
   business: {
     id: "business",
     name: "Business",
-    icon: Briefcase,
+    icon: "📦",
+    layout: "grid-2",
     cards: [
       {
-        title: "Identity & Promoters KYC",
-        icon: UserCheck,
-        headerBg: "#F0F9FF",
-        iconBg: "#E0F2FE",
-        iconColor: "#0284C7",
+        title: "Promoter / Director KYC",
+        icon: "🪪",
+        headerBg: "#F0FDFA",
+        titleColor: "#0D9488",
         items: [
-          { text: "PAN Card of entity & all key promoters", mandatory: true },
-          { text: "Aadhaar Card of all Partners / Directors", mandatory: true },
-          { text: "Residential address proof of promoters", mandatory: true },
-          { text: "Business premises proof (electricity / lease agreement)", mandatory: true }
+          { text: "Aadhaar & PAN of all directors", mandatory: true },
+          { text: "Address proof of promoters", mandatory: true },
+          { text: "Passport-size photographs", mandatory: true }
         ]
       },
       {
-        title: "Financial & Tax Documents",
-        icon: Coins,
-        headerBg: "#FEF9EE",
-        iconBg: "#FEF3C7",
-        iconColor: "#D97706",
+        title: "Business Registration",
+        icon: "🏢",
+        headerBg: "#F1F5F9",
+        titleColor: "#334155",
         items: [
-          { text: "Audited Balance Sheet & P&L (last 2–3 yrs)", mandatory: true },
-          { text: "ITR with computation sheets (last 2–3 yrs)", mandatory: true },
-          { text: "Current bank account statements (last 12 months)", mandatory: true },
-          { text: "CA certified Net Worth statement", mandatory: false }
+          { text: "Certificate of incorporation / MOA & AOA", mandatory: true },
+          { text: "Partnership deed", tag: "Partnership", mandatory: true },
+          { text: "Udyam / MSME registration certificate", mandatory: true },
+          { text: "GST registration certificate", mandatory: true },
+          { text: "Business PAN card", mandatory: true },
+          { text: "Shop & Establishment licence", mandatory: true }
         ]
       },
       {
-        title: "Business Registration & Proofs",
-        icon: Briefcase,
+        title: "Financial Documents",
+        icon: "📊",
+        headerBg: "#FFFBEB",
+        titleColor: "#D97706",
+        items: [
+          { text: "ITR — last 2–3 years (company + directors)", mandatory: true },
+          { text: "Audited P&L & balance sheet (2 years)", mandatory: true },
+          { text: "Business current account — last 12 months", mandatory: true },
+          { text: "GST returns — last 12 months (GSTR-3B)", mandatory: true },
+          { text: "Existing loan statements / sanction letters", mandatory: false }
+        ]
+      },
+      {
+        title: "Additional",
+        icon: "📋",
         headerBg: "#FAF5FF",
-        iconBg: "#F3E8FF",
-        iconColor: "#7C3AED",
+        titleColor: "#7C3AED",
         items: [
-          { text: "GST Registration Certificate & 12 months GST returns", mandatory: true },
-          { text: "Certificate of Incorporation / Partnership Deed", mandatory: true },
-          { text: "MOA & AOA / Shop & Establishment License", mandatory: true },
-          { text: "Udyam / MSME Registration Certificate", mandatory: true },
-          { text: "Applicable trade & industrial licenses", mandatory: false }
-        ]
-      },
-      {
-        title: "Additional (if applicable)",
-        icon: FileText,
-        headerBg: "#FFF7ED",
-        iconBg: "#FFEDD5",
-        iconColor: "#EA580C",
-        items: [
-          { text: "Existing loan sanction letters & repayment track", mandatory: false },
-          { text: "Major confirmed client work orders / contracts", mandatory: false },
-          { text: "Collateral property title (secured SME loans)", mandatory: false },
-          { text: "Board Resolution for loan borrowing authorization", mandatory: false }
+          { text: "Office / business address proof", mandatory: false },
+          { text: "Projected financials / business plan", mandatory: false },
+          { text: "Purchase orders / invoices (for WC loans)", mandatory: false },
+          { text: "Collateral documents (if secured)", mandatory: false }
         ]
       }
     ]
@@ -264,59 +225,42 @@ const DOC_DATA = {
   vehicle: {
     id: "vehicle",
     name: "Vehicle",
-    icon: Car,
+    icon: "🚗",
+    layout: "grid-3",
+    notice: "For used vehicles — vehicle age typically must be under 10 years at loan maturity",
     cards: [
       {
         title: "Identity & Address Proof",
-        icon: UserCheck,
-        headerBg: "#F0F9FF",
-        iconBg: "#E0F2FE",
-        iconColor: "#0284C7",
+        icon: "🪪",
+        headerBg: "#FFF1F2",
+        titleColor: "#E11D48",
         items: [
-          { text: "Aadhaar Card (both sides)", mandatory: true },
-          { text: "PAN Card", mandatory: true },
+          { text: "Aadhaar Card & PAN Card", mandatory: true },
           { text: "Valid Driving Licence", mandatory: true },
-          { text: "Current utility bill / residence proof", mandatory: false }
+          { text: "Address proof (utility bill / bank statement)", mandatory: true }
         ]
       },
       {
         title: "Income Documents",
-        icon: Coins,
-        headerBg: "#FEF9EE",
-        iconBg: "#FEF3C7",
-        iconColor: "#D97706",
+        icon: "💰",
+        headerBg: "#F0FDF4",
+        titleColor: "#16A34A",
         items: [
-          { text: "Last 3 months' salary slips", tag: "Salaried", mandatory: true },
-          { text: "Form 16 / 1 year ITR", tag: "Salaried", mandatory: true },
-          { text: "Latest 2 years ITR with P&L computation", tag: "Self-Employed", mandatory: true },
-          { text: "Bank statement — last 6 months", mandatory: true }
+          { text: "Salary slips — last 3 months", tag: "Salaried", mandatory: true },
+          { text: "ITR + bank statements (6 months)", tag: "Self Employed", mandatory: true },
+          { text: "Form 16 / IT Returns (1 year)", mandatory: true }
         ]
       },
       {
-        title: "Vehicle Quotation & Details",
-        icon: Car,
-        headerBg: "#FAF5FF",
-        iconBg: "#F3E8FF",
-        iconColor: "#7C3AED",
+        title: "Vehicle Documents",
+        icon: "🚗",
+        headerBg: "#FFF1F2",
+        titleColor: "#E11D48",
         items: [
-          { text: "Proforma Invoice / Quotation from authorized dealer", mandatory: true },
-          { text: "Margin money / Down-payment advance receipt", mandatory: true },
-          { text: "Existing RC book copy (for used car)", mandatory: false },
-          { text: "Certified Valuer Inspection Report (for used car)", mandatory: false },
-          { text: "Valid Comprehensive Insurance policy (for used car)", mandatory: false }
-        ]
-      },
-      {
-        title: "Additional (if applicable)",
-        icon: FileText,
-        headerBg: "#FFF7ED",
-        iconBg: "#FFEDD5",
-        iconColor: "#EA580C",
-        items: [
-          { text: "Co-applicant KYC (for income clubbing)", mandatory: false },
-          { text: "2 Passport size photographs", mandatory: false },
-          { text: "Processing fee & documentation charges cheque", mandatory: false },
-          { text: "Hypothecation endorsement Form 34/35", mandatory: false }
+          { text: "Proforma invoice from dealer", tag: "New", mandatory: true },
+          { text: "RC book & insurance certificate", tag: "Used", mandatory: true },
+          { text: "Vehicle valuation report", tag: "Used", mandatory: true },
+          { text: "Quotation / booking slip from showroom", mandatory: false }
         ]
       }
     ]
@@ -324,14 +268,15 @@ const DOC_DATA = {
   education: {
     id: "education",
     name: "Education",
-    icon: GraduationCap,
+    icon: "🎓",
+    layout: "grid-2",
+    notice: "Collateral may be required for education loans above ₹7.5 Lakhs or overseas studies",
     cards: [
       {
         title: "Student & Co-borrower KYC",
-        icon: UserCheck,
-        headerBg: "#F0F9FF",
-        iconBg: "#E0F2FE",
-        iconColor: "#0284C7",
+        icon: "🪪",
+        headerBg: "#EFF6FF",
+        titleColor: "#0284C7",
         items: [
           { text: "Aadhaar & PAN Card of Student", mandatory: true },
           { text: "Aadhaar & PAN Card of Parent / Co-borrower", mandatory: true },
@@ -341,10 +286,9 @@ const DOC_DATA = {
       },
       {
         title: "Academic & Admission Docs",
-        icon: GradIcon,
-        headerBg: "#FEF9EE",
-        iconBg: "#FEF3C7",
-        iconColor: "#D97706",
+        icon: "🎓",
+        headerBg: "#F0FDF4",
+        titleColor: "#16A34A",
         items: [
           { text: "Official Admission Letter from University / College", mandatory: true },
           { text: "Detailed Course Fee Structure schedule", mandatory: true },
@@ -355,23 +299,21 @@ const DOC_DATA = {
       },
       {
         title: "Co-borrower Income Proof",
-        icon: Coins,
+        icon: "💰",
         headerBg: "#FAF5FF",
-        iconBg: "#F3E8FF",
-        iconColor: "#7C3AED",
+        titleColor: "#7C3AED",
         items: [
-          { text: "Last 3 months salary slips", tag: "Salaried Parent", mandatory: true },
+          { text: "Last 3 months' salary slips", tag: "Salaried Parent", mandatory: true },
           { text: "Form 16 / 2 years ITR with computation", tag: "Salaried Parent", mandatory: true },
-          { text: "Last 2–3 years audited ITR & P&L", tag: "Self-Employed Parent", mandatory: true },
+          { text: "Last 2–3 years audited ITR & P&L", tag: "Self Employed Parent", mandatory: true },
           { text: "Bank statement — last 6 months of co-borrower", mandatory: true }
         ]
       },
       {
         title: "Collateral & Additional (if applicable)",
-        icon: FileText,
+        icon: "📋",
         headerBg: "#FFF7ED",
-        iconBg: "#FFEDD5",
-        iconColor: "#EA580C",
+        titleColor: "#EA580C",
         items: [
           { text: "Property title deed (for secured loans > ₹7.5L)", mandatory: false },
           { text: "Student Visa copy / I-20 Form (overseas studies)", mandatory: false },
@@ -398,12 +340,12 @@ export default function LoanDocGuide() {
   };
 
   const tabsList = [
-    { id: "home", label: "Home Loan", icon: Home },
-    { id: "lap", label: "LAP", icon: Building2 },
-    { id: "personal", label: "Personal", icon: CreditCard },
-    { id: "business", label: "Business", icon: Briefcase },
-    { id: "vehicle", label: "Vehicle", icon: Car },
-    { id: "education", label: "Education", icon: GraduationCap }
+    { id: "home", label: "Home Loan", icon: "🏠" },
+    { id: "lap", label: "LAP", icon: "🏢" },
+    { id: "personal", label: "Personal", icon: "💳" },
+    { id: "business", label: "Business", icon: "📦" },
+    { id: "vehicle", label: "Vehicle", icon: "🚗" },
+    { id: "education", label: "Education", icon: "🎓" }
   ];
 
   return (
@@ -411,8 +353,7 @@ export default function LoanDocGuide() {
       {/* Header */}
       <div className="doc-guide-head">
         <div className="doc-guide-pill">
-          <Sparkles size={12} className="doc-guide-sparkle" />
-          <span>Documentation Guide</span>
+          <span>✦ DOCUMENTATION GUIDE</span>
         </div>
         <h2 className="doc-guide-title">Documents Required for Your Loan</h2>
         <p className="doc-guide-sub">
@@ -423,7 +364,6 @@ export default function LoanDocGuide() {
       {/* Tabs */}
       <div className="doc-tabs-row">
         {tabsList.map((tab) => {
-          const IconComp = tab.icon;
           const isActive = activeTab === tab.id;
           return (
             <button
@@ -432,81 +372,99 @@ export default function LoanDocGuide() {
               className={`doc-tab-btn ${isActive ? "active" : ""}`}
               onClick={() => setActiveTab(tab.id)}
             >
-              <span className="doc-tab-icon">
-                <IconComp size={14} strokeWidth={2.2} />
-              </span>
+              <span className="doc-tab-icon">{tab.icon}</span>
               <span>{tab.label}</span>
             </button>
           );
         })}
       </div>
 
-      {/* 4 Cards Grid */}
-      <div className="doc-cards-grid">
-        {currentDoc.cards.map((card, idx) => {
-          const CardIcon = card.icon;
-          return (
-            <div key={idx} className="doc-card">
-              <div
-                className="doc-card-head"
-                style={{ backgroundColor: card.headerBg }}
+      {/* Cards Grid */}
+      <div className={`doc-cards-grid ${currentDoc.layout || "grid-2"}`}>
+        {currentDoc.cards.map((card, idx) => (
+          <div key={idx} className="doc-card">
+            <div
+              className="doc-card-head"
+              style={{ backgroundColor: card.headerBg }}
+            >
+              <span className="doc-card-emoji">{card.icon}</span>
+              <span
+                className="doc-card-head-title"
+                style={{ color: card.titleColor || "#0F2942" }}
               >
-                <div
-                  className="doc-card-icon-wrap"
-                  style={{
-                    backgroundColor: card.iconBg,
-                    color: card.iconColor
-                  }}
-                >
-                  <CardIcon size={16} strokeWidth={2.3} />
-                </div>
-                <div className="doc-card-head-title">{card.title}</div>
-              </div>
+                {card.title}
+              </span>
+            </div>
 
-              <ul className="doc-card-list">
-                {card.items.map((item, itemIdx) => (
-                  <li key={itemIdx} className="doc-card-item">
-                    {item.mandatory ? (
-                      <span className="doc-item-icon" title="Mandatory">
-                        <CheckCircle2 size={13} strokeWidth={2.5} color="#16A34A" />
-                      </span>
-                    ) : (
-                      <span className="doc-item-icon" title="May be required">
-                        <HelpCircle size={13} strokeWidth={2} color="#94A3B8" />
+            <ul className="doc-card-list">
+              {card.items.map((item, itemIdx) => (
+                <li key={itemIdx} className="doc-card-item">
+                  {item.mandatory ? (
+                    <span className="doc-check-icon" title="Mandatory document">
+                      <svg
+                        width="11"
+                        height="11"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#16A34A"
+                        strokeWidth="3.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </span>
+                  ) : (
+                    <span className="doc-hollow-circle" title="May be required (case-specific)"></span>
+                  )}
+                  <div className="doc-item-text-wrap">
+                    <span className="doc-item-label">{item.text}</span>
+                    {item.tag && (
+                      <span className="doc-tag-badge">
+                        {item.tag}
                       </span>
                     )}
-                    <span className="doc-item-text-wrap">
-                      <span>{item.text}</span>
-                      {item.tag && (
-                        <span
-                          className={`doc-tag-badge ${
-                            item.tag.toLowerCase().includes("self") ? "self-employed" : ""
-                          }`}
-                        >
-                          {item.tag}
-                        </span>
-                      )}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          );
-        })}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
+
+      {/* Notice bar for Personal, Vehicle, etc. */}
+      {currentDoc.notice && (
+        <div className="doc-notice-banner">
+          <span className="doc-notice-icon">💡</span>
+          <span className="doc-notice-text">{currentDoc.notice}</span>
+        </div>
+      )}
 
       {/* Legend Row */}
       <div className="doc-legend-row">
         <div className="doc-legend-item">
-          <CheckCircle2 size={13} strokeWidth={2.5} color="#16A34A" />
+          <span className="doc-check-icon">
+            <svg
+              width="10"
+              height="10"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#16A34A"
+              strokeWidth="3.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </span>
           <span>Mandatory document</span>
         </div>
         <div className="doc-legend-item">
-          <HelpCircle size={13} strokeWidth={2} color="#94A3B8" />
+          <span className="doc-hollow-circle"></span>
           <span>May be required (case-specific)</span>
         </div>
         <div className="doc-legend-item">
-          <span className="doc-legend-tag">Label</span>
+          <span className="doc-tag-badge legend">Label</span>
           <span>Applicable category</span>
         </div>
       </div>
@@ -516,10 +474,12 @@ export default function LoanDocGuide() {
         <div className="doc-cta-text">
           Not sure what to gather? Our advisors can guide you step by step.
         </div>
-        <button type="button" className="doc-cta-btn" onClick={handleApply}>
-          <span>Apply Now</span>
-          <ArrowRight size={14} strokeWidth={2.5} />
-        </button>
+        <div className="doc-cta-btn-wrap">
+          <button type="button" className="doc-cta-btn" onClick={handleApply}>
+            <span>Apply Now</span>
+            <ArrowRight size={15} strokeWidth={2.5} />
+          </button>
+        </div>
       </div>
     </section>
   );

@@ -290,7 +290,24 @@
 }
 
 .form-container.roles-view {
-  max-width: 620px;
+  max-width: 860px;
+}
+
+.form-container.roles-view .rp-heading,
+.form-container.roles-view .rp-sub {
+  text-align: center;
+}
+
+.form-container.roles-view .role-cards {
+  max-width: 580px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.form-container.roles-view .home-emi-widget {
+  max-width: 580px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* ═══ Company Name Ribbon - LIGHT MODE ═══ */

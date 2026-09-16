@@ -4,7 +4,8 @@
 
 .doc-guide-section {
   width: 100%;
-  margin-top: 36px;
+  margin-top: 42px;
+  margin-bottom: 24px;
   box-sizing: border-box;
 }
 
@@ -17,39 +18,35 @@
 .doc-guide-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
   background: #E0F2FE;
   color: #0284C7;
   border: 1px solid #BAE6FD;
-  padding: 5px 14px;
+  padding: 5px 16px;
   border-radius: 9999px;
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   margin-bottom: 12px;
 }
 
-.doc-guide-sparkle {
-  color: #0284C7;
-}
-
 .doc-guide-title {
   font-family: 'Playfair Display', Georgia, serif;
-  font-size: 1.75rem;
+  font-size: 2.1rem;
   font-weight: 800;
-  color: #0F2942;
-  margin: 0 0 8px 0;
-  line-height: 1.25;
+  color: #16375A;
+  margin: 0 0 10px 0;
+  line-height: 1.22;
   letter-spacing: -0.015em;
 }
 
 .doc-guide-sub {
-  font-size: 0.88rem;
+  font-size: 0.94rem;
   color: #64748B;
   margin: 0 auto;
   line-height: 1.5;
-  max-width: 520px;
+  max-width: 580px;
 }
 
 /* Horizontal loan type filter tabs */
@@ -57,121 +54,135 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 
 .doc-tab-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   background: #FFFFFF;
   border: 1px solid #E2E8F0;
-  color: #475569;
-  padding: 7px 16px;
+  color: #334155;
+  padding: 8px 18px;
   border-radius: 9999px;
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .doc-tab-btn:hover {
-  background: #F8FBFF;
+  background: #F8FAFC;
   border-color: #CBD5E1;
-  color: #0F2942;
+  color: #0F172A;
 }
 
 .doc-tab-btn.active {
-  background: #0F2942;
-  border-color: #0F2942;
+  background: #0E3A5D;
+  border-color: #0E3A5D;
   color: #FFFFFF;
-  box-shadow: 0 4px 12px rgba(15, 41, 66, 0.22);
+  box-shadow: 0 4px 14px rgba(14, 58, 93, 0.28);
 }
 
 .doc-tab-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: inherit;
+  font-size: 0.95rem;
+  line-height: 1;
 }
 
-.doc-tab-btn.active .doc-tab-icon {
-  color: #38BDF8;
-}
-
-/* 4-Cards Grid */
+/* Cards Grid Layouts */
 .doc-cards-grid {
   display: grid;
+  gap: 18px;
+  margin-bottom: 12px;
+}
+
+.doc-cards-grid.grid-2 {
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-bottom: 20px;
+}
+
+.doc-cards-grid.grid-3 {
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .doc-card {
   background: #FFFFFF;
   border: 1px solid #E2E8F0;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 4px 16px -2px rgba(15, 41, 66, 0.05), 0 1px 3px rgba(15, 41, 66, 0.02);
+  box-shadow: 0 4px 20px -2px rgba(15, 41, 66, 0.05), 0 1px 3px rgba(15, 41, 66, 0.02);
   display: flex;
   flex-direction: column;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .doc-card:hover {
-  box-shadow: 0 8px 22px -4px rgba(15, 41, 66, 0.09);
+  box-shadow: 0 8px 24px -4px rgba(15, 41, 66, 0.09);
 }
 
 .doc-card-head {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 16px;
-  border-bottom: 1px solid #E2E8F0;
+  padding: 13px 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
 }
 
-.doc-card-icon-wrap {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+.doc-card-emoji {
+  font-size: 1.15rem;
+  line-height: 1;
 }
 
 .doc-card-head-title {
-  font-size: 0.84rem;
+  font-size: 0.88rem;
   font-weight: 700;
-  color: #0F2942;
   letter-spacing: -0.01em;
 }
 
 .doc-card-list {
   list-style: none;
-  padding: 14px 16px;
+  padding: 16px 20px 20px;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 13px;
   flex-grow: 1;
 }
 
 .doc-card-item {
   display: flex;
   align-items: flex-start;
-  gap: 9px;
-  font-size: 0.8rem;
-  line-height: 1.4;
+  gap: 10px;
+  font-size: 0.84rem;
+  line-height: 1.45;
   color: #334155;
 }
 
-.doc-item-icon {
-  margin-top: 2px;
+/* Custom Check and Hollow Circle Icons */
+.doc-check-icon {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #DCFCE7;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.doc-hollow-circle {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1.8px solid #CBD5E1;
+  display: inline-block;
+  flex-shrink: 0;
+  margin-top: 3px;
+  margin-left: 2px;
 }
 
 .doc-item-text-wrap {
@@ -179,24 +190,51 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
+  flex: 1;
 }
 
+.doc-item-label {
+  color: #334155;
+  font-weight: 500;
+}
+
+/* Blue category pill tags */
 .doc-tag-badge {
   display: inline-block;
-  font-size: 0.62rem;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 9999px;
   background: #EFF6FF;
   color: #2563EB;
   border: 1px solid #BFDBFE;
-  line-height: 1.2;
+  line-height: 1.25;
+  white-space: nowrap;
 }
 
-.doc-tag-badge.self-employed {
-  background: #F1F5F9;
-  color: #475569;
-  border-color: #CBD5E1;
+/* Notice Banner */
+.doc-notice-banner {
+  background: #FFFDF0;
+  border: 1px solid #FEF08A;
+  border-radius: 12px;
+  padding: 11px 18px;
+  color: #854D0E;
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  margin-bottom: 6px;
+}
+
+.doc-notice-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.doc-notice-text {
+  line-height: 1.4;
 }
 
 /* Legend row */
@@ -204,88 +242,92 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 18px;
+  gap: 24px;
   flex-wrap: wrap;
-  margin-bottom: 22px;
+  margin: 22px 0 20px;
 }
 
 .doc-legend-item {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.74rem;
+  gap: 7px;
+  font-size: 0.78rem;
   color: #64748B;
   font-weight: 600;
 }
 
-.doc-legend-tag {
-  display: inline-block;
-  font-size: 0.62rem;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: #EFF6FF;
-  color: #2563EB;
-  border: 1px solid #BFDBFE;
-}
-
 /* Bottom CTA Banner Box */
 .doc-cta-banner {
-  background: linear-gradient(135deg, #F0F7FF 0%, #E8F2FD 100%);
-  border: 1px solid #BAE6FD;
-  border-radius: 14px;
-  padding: 16px 20px;
+  background: #F0F8FF;
+  border: 1px solid #C7E2FE;
+  border-radius: 20px;
+  padding: 26px 32px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.08);
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.05);
+  margin-top: 10px;
 }
 
 .doc-cta-text {
-  font-size: 0.85rem;
+  font-size: 0.98rem;
   color: #0F2942;
-  font-weight: 600;
+  font-weight: 700;
+  text-align: center;
   line-height: 1.4;
+}
+
+.doc-cta-btn-wrap {
+  display: flex;
+  justify-content: flex-start;
 }
 
 .doc-cta-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: #0F2942;
+  gap: 8px;
+  background: #0E3A5D;
   color: #FFFFFF;
   border: none;
-  padding: 9px 18px;
+  padding: 10px 24px;
   border-radius: 8px;
-  font-size: 0.82rem;
+  font-size: 0.86rem;
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(14, 58, 93, 0.25);
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(15, 41, 66, 0.2);
 }
 
 .doc-cta-btn:hover {
-  background: #1E3A8A;
+  background: #144A74;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(15, 41, 66, 0.28);
+  box-shadow: 0 4px 12px rgba(14, 58, 93, 0.35);
 }
 
 .doc-cta-btn:active {
   transform: translateY(0);
 }
 
-/* Responsive */
+/* Responsive queries */
+@media (max-width: 900px) {
+  .doc-cards-grid.grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 640px) {
-  .doc-cards-grid {
+  .doc-cards-grid.grid-2,
+  .doc-cards-grid.grid-3 {
     grid-template-columns: 1fr;
   }
 
   .doc-cta-banner {
-    flex-direction: column;
-    text-align: center;
+    padding: 20px 18px;
+  }
+
+  .doc-cta-btn-wrap {
+    justify-content: center;
   }
 
   .doc-cta-btn {
@@ -294,6 +336,15 @@
   }
 
   .doc-guide-title {
-    font-size: 1.45rem;
+    font-size: 1.6rem;
+  }
+  
+  .doc-tabs-row {
+    gap: 6px;
+  }
+  
+  .doc-tab-btn {
+    padding: 6px 14px;
+    font-size: 0.78rem;
   }
 }
