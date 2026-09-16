@@ -1,18 +1,33 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import {
+  Home,
+  Building2,
+  CreditCard,
+  Briefcase,
+  Car,
+  GraduationCap,
+  Users,
+  BarChart3,
+  Landmark,
+  Globe,
+  Coins,
+  FileText,
+  Lightbulb,
+  ArrowRight
+} from "lucide-react";
 import "./loanDocGuide.css";
 
 const DOC_DATA = {
   home: {
     id: "home",
     name: "Home Loan",
-    icon: "🏠",
+    icon: Home,
     layout: "grid-2",
     cards: [
       {
         title: "Identity & Address Proof",
-        icon: "💳",
+        icon: CreditCard,
         headerBg: "#EFF6FF",
         titleColor: "#0284C7",
         items: [
@@ -24,7 +39,7 @@ const DOC_DATA = {
       },
       {
         title: "Income Documents",
-        icon: "💰",
+        icon: Coins,
         headerBg: "#F0FDF4",
         titleColor: "#16A34A",
         items: [
@@ -36,7 +51,7 @@ const DOC_DATA = {
       },
       {
         title: "Property Documents",
-        icon: "🏠",
+        icon: Home,
         headerBg: "#FAF5FF",
         titleColor: "#7C3AED",
         items: [
@@ -50,7 +65,7 @@ const DOC_DATA = {
       },
       {
         title: "Additional (if applicable)",
-        icon: "📋",
+        icon: FileText,
         headerBg: "#FFF7ED",
         titleColor: "#EA580C",
         items: [
@@ -65,12 +80,12 @@ const DOC_DATA = {
   lap: {
     id: "lap",
     name: "LAP",
-    icon: "🏢",
+    icon: Building2,
     layout: "grid-2",
     cards: [
       {
         title: "Identity & Address Proof",
-        icon: "🪪",
+        icon: CreditCard,
         headerBg: "#EFF6FF",
         titleColor: "#0284C7",
         items: [
@@ -82,7 +97,7 @@ const DOC_DATA = {
       },
       {
         title: "Income Documents",
-        icon: "💰",
+        icon: Coins,
         headerBg: "#F0FDF4",
         titleColor: "#16A34A",
         items: [
@@ -94,7 +109,7 @@ const DOC_DATA = {
       },
       {
         title: "Property Documents",
-        icon: "🏢",
+        icon: Building2,
         headerBg: "#FAF5FF",
         titleColor: "#7C3AED",
         items: [
@@ -107,7 +122,7 @@ const DOC_DATA = {
       },
       {
         title: "Additional",
-        icon: "📋",
+        icon: FileText,
         headerBg: "#FFF7ED",
         titleColor: "#EA580C",
         items: [
@@ -122,13 +137,13 @@ const DOC_DATA = {
   personal: {
     id: "personal",
     name: "Personal",
-    icon: "💳",
+    icon: CreditCard,
     layout: "grid-3",
     notice: "Personal loans are collateral-free — minimal documentation, fastest disbursal",
     cards: [
       {
         title: "Identity & Address Proof",
-        icon: "🪪",
+        icon: CreditCard,
         headerBg: "#EFF6FF",
         titleColor: "#0284C7",
         items: [
@@ -140,7 +155,7 @@ const DOC_DATA = {
       },
       {
         title: "Salaried Applicants",
-        icon: "💰",
+        icon: Coins,
         headerBg: "#F0FDF4",
         titleColor: "#16A34A",
         items: [
@@ -152,7 +167,7 @@ const DOC_DATA = {
       },
       {
         title: "Self Employed Applicants",
-        icon: "💼",
+        icon: Briefcase,
         headerBg: "#FFF7ED",
         titleColor: "#EA580C",
         items: [
@@ -167,12 +182,12 @@ const DOC_DATA = {
   business: {
     id: "business",
     name: "Business",
-    icon: "📦",
+    icon: Briefcase,
     layout: "grid-2",
     cards: [
       {
         title: "Promoter / Director KYC",
-        icon: "🪪",
+        icon: Users,
         headerBg: "#F0FDFA",
         titleColor: "#0D9488",
         items: [
@@ -183,7 +198,7 @@ const DOC_DATA = {
       },
       {
         title: "Business Registration",
-        icon: "🏢",
+        icon: Building2,
         headerBg: "#F1F5F9",
         titleColor: "#334155",
         items: [
@@ -197,7 +212,7 @@ const DOC_DATA = {
       },
       {
         title: "Financial Documents",
-        icon: "📊",
+        icon: BarChart3,
         headerBg: "#FFFBEB",
         titleColor: "#D97706",
         items: [
@@ -210,7 +225,7 @@ const DOC_DATA = {
       },
       {
         title: "Additional",
-        icon: "📋",
+        icon: FileText,
         headerBg: "#FAF5FF",
         titleColor: "#7C3AED",
         items: [
@@ -225,13 +240,13 @@ const DOC_DATA = {
   vehicle: {
     id: "vehicle",
     name: "Vehicle",
-    icon: "🚗",
+    icon: Car,
     layout: "grid-3",
     notice: "For used vehicles — vehicle age typically must be under 10 years at loan maturity",
     cards: [
       {
         title: "Identity & Address Proof",
-        icon: "🪪",
+        icon: CreditCard,
         headerBg: "#FFF1F2",
         titleColor: "#E11D48",
         items: [
@@ -242,7 +257,7 @@ const DOC_DATA = {
       },
       {
         title: "Income Documents",
-        icon: "💰",
+        icon: Coins,
         headerBg: "#F0FDF4",
         titleColor: "#16A34A",
         items: [
@@ -253,7 +268,7 @@ const DOC_DATA = {
       },
       {
         title: "Vehicle Documents",
-        icon: "🚗",
+        icon: Car,
         headerBg: "#FFF1F2",
         titleColor: "#E11D48",
         items: [
@@ -268,58 +283,60 @@ const DOC_DATA = {
   education: {
     id: "education",
     name: "Education",
-    icon: "🎓",
+    icon: GraduationCap,
     layout: "grid-2",
-    notice: "Collateral may be required for education loans above ₹7.5 Lakhs or overseas studies",
+    notice: "Interest on education loans is tax-deductible under Section 80E for up to 8 years",
     cards: [
       {
-        title: "Student & Co-borrower KYC",
-        icon: "🪪",
+        title: "Student Documents",
+        icon: GraduationCap,
         headerBg: "#EFF6FF",
         titleColor: "#0284C7",
         items: [
-          { text: "Aadhaar & PAN Card of Student", mandatory: true },
-          { text: "Aadhaar & PAN Card of Parent / Co-borrower", mandatory: true },
-          { text: "Valid Passport of Student (study abroad)", mandatory: true },
-          { text: "Residential address proof of co-borrower", mandatory: false }
+          { text: "Aadhaar & PAN of student", mandatory: true },
+          { text: "Admission / conditional offer letter", mandatory: true },
+          { text: "Fee structure from institution", mandatory: true },
+          { text: "Mark sheets — 10th, 12th, Graduation", mandatory: true },
+          { text: "Scholarship / fellowship proof (if any)", mandatory: false }
         ]
       },
       {
-        title: "Academic & Admission Docs",
-        icon: "🎓",
+        title: "Co-Borrower (Parent/Guardian)",
+        icon: Users,
         headerBg: "#F0FDF4",
         titleColor: "#16A34A",
         items: [
-          { text: "Official Admission Letter from University / College", mandatory: true },
-          { text: "Detailed Course Fee Structure schedule", mandatory: true },
-          { text: "10th, 12th, and Degree marksheets & certificates", mandatory: true },
-          { text: "GRE / GMAT / IELTS / TOEFL / Entrance scorecard", mandatory: true },
-          { text: "Scholarship or freeship award letter", mandatory: false }
+          { text: "Aadhaar & PAN of co-borrower", mandatory: true },
+          { text: "Income proof (salary slips / ITR)", mandatory: true },
+          { text: "Bank statements — last 6 months", mandatory: true },
+          { text: "Form 16 or business financials", mandatory: true },
+          { text: "Relationship proof with student", mandatory: true }
         ]
       },
       {
-        title: "Co-borrower Income Proof",
-        icon: "💰",
+        title: "Collateral (Loans > ₹7.5 Lakh)",
+        icon: Landmark,
         headerBg: "#FAF5FF",
         titleColor: "#7C3AED",
         items: [
-          { text: "Last 3 months' salary slips", tag: "Salaried Parent", mandatory: true },
-          { text: "Form 16 / 2 years ITR with computation", tag: "Salaried Parent", mandatory: true },
-          { text: "Last 2–3 years audited ITR & P&L", tag: "Self Employed Parent", mandatory: true },
-          { text: "Bank statement — last 6 months of co-borrower", mandatory: true }
+          { text: "Property documents (title deed, EC)", mandatory: false },
+          { text: "Fixed deposit certificate", mandatory: false },
+          { text: "LIC policy / NSC / KVP documents", mandatory: false },
+          { text: "Third-party guarantee documents", mandatory: false }
         ]
       },
       {
-        title: "Collateral & Additional (if applicable)",
-        icon: "📋",
+        title: "Abroad Studies (Additional)",
+        icon: Globe,
         headerBg: "#FFF7ED",
         titleColor: "#EA580C",
         items: [
-          { text: "Property title deed (for secured loans > ₹7.5L)", mandatory: false },
-          { text: "Student Visa copy / I-20 Form (overseas studies)", mandatory: false },
-          { text: "Margin money proof / Bank statement", mandatory: false },
-          { text: "Processing fee cheque", mandatory: false }
-        ]
+          { text: "Valid student visa (I-20 / CAS / CoE)", mandatory: true },
+          { text: "Admission letter from foreign university", mandatory: true },
+          { text: "Admission letter from foreign university", mandatory: false, hidden: true },
+          { text: "GRE / GMAT / IELTS / TOEFL scores", mandatory: false },
+          { text: "Forex requirement estimate", mandatory: false }
+        ].filter(item => !item.hidden)
       }
     ]
   }
@@ -340,12 +357,12 @@ export default function LoanDocGuide() {
   };
 
   const tabsList = [
-    { id: "home", label: "Home Loan", icon: "🏠" },
-    { id: "lap", label: "LAP", icon: "🏢" },
-    { id: "personal", label: "Personal", icon: "💳" },
-    { id: "business", label: "Business", icon: "📦" },
-    { id: "vehicle", label: "Vehicle", icon: "🚗" },
-    { id: "education", label: "Education", icon: "🎓" }
+    { id: "home", label: "Home Loan", icon: Home },
+    { id: "lap", label: "LAP", icon: Building2 },
+    { id: "personal", label: "Personal", icon: CreditCard },
+    { id: "business", label: "Business", icon: Briefcase },
+    { id: "vehicle", label: "Vehicle", icon: Car },
+    { id: "education", label: "Education", icon: GraduationCap }
   ];
 
   return (
@@ -364,6 +381,7 @@ export default function LoanDocGuide() {
       {/* Tabs */}
       <div className="doc-tabs-row">
         {tabsList.map((tab) => {
+          const IconComp = tab.icon;
           const isActive = activeTab === tab.id;
           return (
             <button
@@ -372,7 +390,9 @@ export default function LoanDocGuide() {
               className={`doc-tab-btn ${isActive ? "active" : ""}`}
               onClick={() => setActiveTab(tab.id)}
             >
-              <span className="doc-tab-icon">{tab.icon}</span>
+              <span className="doc-tab-icon">
+                <IconComp size={15} strokeWidth={2.2} />
+              </span>
               <span>{tab.label}</span>
             </button>
           );
@@ -381,61 +401,69 @@ export default function LoanDocGuide() {
 
       {/* Cards Grid */}
       <div className={`doc-cards-grid ${currentDoc.layout || "grid-2"}`}>
-        {currentDoc.cards.map((card, idx) => (
-          <div key={idx} className="doc-card">
-            <div
-              className="doc-card-head"
-              style={{ backgroundColor: card.headerBg }}
-            >
-              <span className="doc-card-emoji">{card.icon}</span>
-              <span
-                className="doc-card-head-title"
-                style={{ color: card.titleColor || "#0F2942" }}
+        {currentDoc.cards.map((card, idx) => {
+          const CardIcon = card.icon;
+          return (
+            <div key={idx} className="doc-card">
+              <div
+                className="doc-card-head"
+                style={{ backgroundColor: card.headerBg }}
               >
-                {card.title}
-              </span>
-            </div>
+                <span
+                  className="doc-card-icon-wrap"
+                  style={{ color: card.titleColor || "#0F2942" }}
+                >
+                  <CardIcon size={16} strokeWidth={2.3} />
+                </span>
+                <span
+                  className="doc-card-head-title"
+                  style={{ color: card.titleColor || "#0F2942" }}
+                >
+                  {card.title}
+                </span>
+              </div>
 
-            <ul className="doc-card-list">
-              {card.items.map((item, itemIdx) => (
-                <li key={itemIdx} className="doc-card-item">
-                  {item.mandatory ? (
-                    <span className="doc-check-icon" title="Mandatory document">
-                      <svg
-                        width="11"
-                        height="11"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="#16A34A"
-                        strokeWidth="3.2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    </span>
-                  ) : (
-                    <span className="doc-hollow-circle" title="May be required (case-specific)"></span>
-                  )}
-                  <div className="doc-item-text-wrap">
-                    <span className="doc-item-label">{item.text}</span>
-                    {item.tag && (
-                      <span className="doc-tag-badge">
-                        {item.tag}
+              <ul className="doc-card-list">
+                {card.items.map((item, itemIdx) => (
+                  <li key={itemIdx} className="doc-card-item">
+                    {item.mandatory ? (
+                      <span className="doc-check-icon" title="Mandatory document">
+                        <svg
+                          width="11"
+                          height="11"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="#16A34A"
+                          strokeWidth="3.2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
                       </span>
+                    ) : (
+                      <span className="doc-hollow-circle" title="May be required (case-specific)"></span>
                     )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+                    <div className="doc-item-text-wrap">
+                      <span className="doc-item-label">{item.text}</span>
+                      {item.tag && (
+                        <span className="doc-tag-badge">
+                          {item.tag}
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Notice bar for Personal, Vehicle, etc. */}
+      {/* Notice bar */}
       {currentDoc.notice && (
         <div className="doc-notice-banner">
-          <span className="doc-notice-icon">💡</span>
+          <Lightbulb size={16} strokeWidth={2.2} className="doc-notice-icon" />
           <span className="doc-notice-text">{currentDoc.notice}</span>
         </div>
       )}

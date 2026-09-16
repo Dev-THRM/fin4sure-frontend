@@ -4,8 +4,8 @@
 
 .doc-guide-section {
   width: 100%;
-  margin-top: 42px;
-  margin-bottom: 24px;
+  margin-top: 14px;
+  margin-bottom: 32px;
   box-sizing: border-box;
 }
 
@@ -49,14 +49,25 @@
   max-width: 580px;
 }
 
-/* Horizontal loan type filter tabs */
+/* Horizontal loan type filter tabs - KEPT IN ONE SINGLE LINE */
 .doc-tabs-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
+  gap: 8px;
+  flex-wrap: nowrap;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+  padding: 4px 6px 16px;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+}
+
+.doc-tabs-row::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 
 .doc-tab-btn {
@@ -66,11 +77,13 @@
   background: #FFFFFF;
   border: 1px solid #E2E8F0;
   color: #334155;
-  padding: 8px 18px;
+  padding: 7px 15px;
   border-radius: 9999px;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
@@ -89,8 +102,19 @@
 }
 
 .doc-tab-icon {
-  font-size: 0.95rem;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748B;
+  transition: color 0.2s ease;
+}
+
+.doc-tab-btn:hover .doc-tab-icon {
+  color: #0F2942;
+}
+
+.doc-tab-btn.active .doc-tab-icon {
+  color: #FFFFFF;
 }
 
 /* Cards Grid Layouts */
@@ -131,9 +155,11 @@
   border-bottom: 1px solid rgba(0, 0, 0, 0.03);
 }
 
-.doc-card-emoji {
-  font-size: 1.15rem;
-  line-height: 1;
+.doc-card-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .doc-card-head-title {
@@ -217,24 +243,24 @@
   background: #FFFDF0;
   border: 1px solid #FEF08A;
   border-radius: 12px;
-  padding: 11px 18px;
+  padding: 12px 18px;
   color: #854D0E;
   font-size: 0.82rem;
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   margin-top: 14px;
   margin-bottom: 6px;
 }
 
 .doc-notice-icon {
-  font-size: 1rem;
-  line-height: 1;
+  color: #CA8A04;
+  flex-shrink: 0;
 }
 
 .doc-notice-text {
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 /* Legend row */
@@ -340,11 +366,7 @@
   }
   
   .doc-tabs-row {
-    gap: 6px;
-  }
-  
-  .doc-tab-btn {
-    padding: 6px 14px;
-    font-size: 0.78rem;
+    justify-content: flex-start;
+    padding-bottom: 12px;
   }
 }
