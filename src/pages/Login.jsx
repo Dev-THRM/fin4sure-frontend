@@ -475,7 +475,7 @@ export default function Login() {
 
               <div style={{ textAlign: "center", marginTop: "8px", fontSize: ".8rem", color: "var(--text2)" }}>
                 {activeTab === "borrower" ? (
-                  <>Don't have an account?{" "}<Link to="/signup" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Register here</Link></>
+                  <>Don't have an account?{" "}<Link to="/?view=borrower" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Register here</Link></>
                 ) : (
                   <>New partner?{" "}<Link to="/broker-register" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Apply here</Link></>
                 )}
@@ -579,7 +579,7 @@ export default function Login() {
 
               <div style={{ textAlign: "center", marginTop: "16px", fontSize: ".8rem", color: "var(--text2)" }}>
                 {activeTab === "borrower" ? (
-                  <>Don't have an account?{" "}<Link to="/signup" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Register here</Link></>
+                  <>Don't have an account?{" "}<Link to="/?view=borrower" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Register here</Link></>
                 ) : (
                   <>New partner?{" "}<Link to="/broker-register" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Apply here</Link></>
                 )}

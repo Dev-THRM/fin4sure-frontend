@@ -28,7 +28,7 @@ export default function AppRoutes() {
         <Route path="/products/:slug" element={<ProductDetail />} />
         <Route path="/apply" element={<Apply />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route path="/signup" element={<Navigate to="/?view=borrower" replace />} />
         <Route path="/admin" element={<AdminLogin />} />
         <Route path="/EMI-calculator" element={<Calculator />} />
         <Route path="/broker-register" element={<BrokerRegistration />} />
