@@ -705,6 +705,17 @@
   letter-spacing: 0.02em;
 }
 
+.cdds-opt-icon {
+  color: #64748B;
+  flex-shrink: 0;
+}
+
+.cdds-badge-opt {
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #E2E8F0;
+}
+
 .cdds-upload-btn {
   display: flex;
   align-items: center;

@@ -532,7 +532,7 @@ export default function ClientDashboard() {
   const docList = [
     { id: "pan", label: "PAN Card", isUploaded: hasPan },
     { id: "aadhaar", label: "Aadhaar Card", isUploaded: hasAadhaar },
-    { id: "salary", label: "Salary Slips (3 months)", isUploaded: hasSalary },
+    { id: "salary", label: "Salary Slips (3 months)", isUploaded: hasSalary, isOptional: true },
     { id: "bank", label: "Bank Statements (6 months)", isUploaded: hasBank },
   ];
 
@@ -819,12 +819,14 @@ export default function ClientDashboard() {
                         {doc.isUploaded ? (
                           <Check size={16} strokeWidth={2.5} className="cdds-check-icon" />
                         ) : (
-                          <CircleDot size={15} strokeWidth={2} className="cdds-pending-icon" />
+                          <CircleDot size={15} strokeWidth={2} className={doc.isOptional ? "cdds-opt-icon" : "cdds-pending-icon"} />
                         )}
                         <span className="cdds-label">{doc.label}</span>
                       </div>
                       {!doc.isUploaded && (
-                        <span className="cdds-badge">Pending</span>
+                        <span className={`cdds-badge ${doc.isOptional ? "cdds-badge-opt" : ""}`}>
+                          {doc.isOptional ? "Optional" : "Pending"}
+                        </span>
                       )}
                     </div>
                   ))}

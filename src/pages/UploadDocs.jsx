@@ -9,6 +9,8 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
+  RefreshCw,
+  Eye,
   Info
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -294,22 +296,117 @@ export default function UploadDocs() {
         </div>
         <p className="upd-card-desc">{desc}</p>
 
-        {isUploaded ? (
-          <div style={{ marginTop: '16px', padding: '10px', background: '#D1FAE5', color: '#065F46', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-            <CheckCircle2 size={16} color="#059669" /> {existing.status === 'verified' ? 'Verified' : 'Uploaded'}
-          </div>
-        ) : docs[key] ? (
+        {docs[key] ? (
           <div className="upd-file-info">
-            <span className="upd-file-name" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              <FileText size={14} /> {docs[key].name} ({(docs[key].size / (1024 * 1024)).toFixed(2)} MB)
+            <span className="upd-file-name" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <FileText size={15} color="#0284C7" />
+              <span style={{ fontWeight: 600 }}>{docs[key].name}</span>
+              <span style={{ fontSize: '0.72rem', color: '#64748B' }}>
+                ({(docs[key].size / (1024 * 1024)).toFixed(2)} MB)
+              </span>
             </span>
             <button 
               type="button" 
               className="upd-remove-btn" 
               onClick={() => setDocs(prev => ({ ...prev, [key]: null }))}
             >
-              &times; Remove
+              &times; Cancel
             </button>
+          </div>
+        ) : isUploaded ? (
+          <div style={{
+            marginTop: '12px',
+            padding: '12px 14px',
+            background: '#F8FAFC',
+            border: '1.5px solid #CBD5E1',
+            borderRadius: '10px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            width: '100%',
+            boxSizing: 'border-box'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
+                <FileText size={16} style={{ color: '#0284C7', flexShrink: 0 }} />
+                <span style={{
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  color: '#1E293B',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '170px'
+                }} title={existing.file_name || existing.name}>
+                  {existing.file_name || existing.name || `${title}.pdf`}
+                </span>
+              </div>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '0.70rem',
+                fontWeight: 700,
+                background: existing.status === 'verified' ? '#DCFCE7' : '#E0F2FE',
+                color: existing.status === 'verified' ? '#15803D' : '#0369A1',
+                padding: '2px 8px',
+                borderRadius: '6px',
+                flexShrink: 0
+              }}>
+                <CheckCircle2 size={12} /> {existing.status === 'verified' ? 'Verified' : 'Attached'}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', paddingTop: '6px', borderTop: '1px dashed #E2E8F0' }}>
+              {existing.file_url ? (
+                <a 
+                  href={existing.file_url} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  style={{
+                    fontSize: '0.75rem',
+                    color: '#0284C7',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <Eye size={12} /> View File
+                </a>
+              ) : (
+                <span style={{ fontSize: '0.72rem', color: '#64748B' }}>Attached on file</span>
+              )}
+
+              <label 
+                htmlFor={`file-${key}`} 
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  fontSize: '0.74rem',
+                  fontWeight: 600,
+                  color: '#0284C7',
+                  background: '#EFF6FF',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  border: '1px solid #BFDBFE',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <RefreshCw size={11} /> Change File
+              </label>
+              <input 
+                type="file" 
+                id={`file-${key}`} 
+                className="upd-file-input" 
+                accept=".pdf,image/*"
+                onClick={(e) => { e.target.value = null; }}
+                onChange={(e) => handleFileChange(key, e.target.files[0], e.target)} 
+              />
+            </div>
           </div>
         ) : (
           <div className="upd-upload-area">
@@ -326,6 +423,7 @@ export default function UploadDocs() {
               id={`file-${key}`} 
               className="upd-file-input" 
               accept=".pdf,image/*"
+              onClick={(e) => { e.target.value = null; }}
               onChange={(e) => handleFileChange(key, e.target.files[0], e.target)} 
             />
             <span className="upd-drop-lbl">or drag file here (Max 1 MB)</span>
@@ -408,20 +506,90 @@ export default function UploadDocs() {
 
               {/* If Aadhaar is already uploaded from DB and no new file selected */}
               {(isAadhaarCombinedUploaded || isAadhaarSeparateUploaded) && !docs.aadharCombined && !docs.aadharFront && !docs.aadharBack ? (
-                <div style={{ marginTop: '8px', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ padding: '10px 20px', background: '#D1FAE5', color: '#065F46', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: '80%' }}>
-                    <CheckCircle2 size={16} color="#059669" /> Uploaded
+                <div style={{
+                  marginTop: '12px',
+                  padding: '12px 14px',
+                  background: '#F8FAFC',
+                  border: '1.5px solid #CBD5E1',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  width: '100%',
+                  boxSizing: 'border-box'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
+                      <IdCard size={16} style={{ color: '#0284C7', flexShrink: 0 }} />
+                      <span style={{
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        color: '#1E293B',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        maxWidth: '170px'
+                      }}>
+                        {getExistingDoc("aadhar")?.file_name ||
+                         getExistingDoc("aadhar_combined")?.file_name ||
+                         (getExistingDoc("aadhar_front") && getExistingDoc("aadhar_back")
+                           ? `${getExistingDoc("aadhar_front")?.file_name || 'Front.pdf'} + ${getExistingDoc("aadhar_back")?.file_name || 'Back.pdf'}`
+                           : (getExistingDoc("aadhar_front")?.file_name || "Aadhaar Card Document"))}
+                      </span>
+                    </div>
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontSize: '0.70rem',
+                      fontWeight: 700,
+                      background: '#E0F2FE',
+                      color: '#0369A1',
+                      padding: '2px 8px',
+                      borderRadius: '6px',
+                      flexShrink: 0
+                    }}>
+                      <CheckCircle2 size={12} /> Attached
+                    </span>
                   </div>
-                  <button 
-                    type="button" 
-                    onClick={() => {
-                      setDocs(prev => ({ ...prev, aadharCombined: null, aadharFront: null, aadharBack: null }));
-                      setExistingDocs(prev => prev.filter(d => !normStr(d.document_type).includes('aadhar')));
-                    }}
-                    style={{ background: 'transparent', border: 'none', color: '#64748B', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline' }}
-                  >
-                    Change / Re-upload Aadhaar
-                  </button>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', paddingTop: '6px', borderTop: '1px dashed #E2E8F0' }}>
+                    {(getExistingDoc("aadhar")?.file_url || getExistingDoc("aadhar_combined")?.file_url || getExistingDoc("aadhar_front")?.file_url) ? (
+                      <a 
+                        href={getExistingDoc("aadhar")?.file_url || getExistingDoc("aadhar_combined")?.file_url || getExistingDoc("aadhar_front")?.file_url} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        style={{ fontSize: '0.75rem', color: '#0284C7', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <Eye size={12} /> View File
+                      </a>
+                    ) : (
+                      <span style={{ fontSize: '0.72rem', color: '#64748B' }}>Attached on file</span>
+                    )}
+
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        setDocs(prev => ({ ...prev, aadharCombined: null, aadharFront: null, aadharBack: null }));
+                        setExistingDocs(prev => prev.filter(d => !normStr(d.document_type || d.file_name).includes('aadhar') && !normStr(d.document_type || d.file_name).includes('aadhaar')));
+                      }}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '0.74rem',
+                        fontWeight: 600,
+                        color: '#0284C7',
+                        background: '#EFF6FF',
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        border: '1px solid #BFDBFE'
+                      }}
+                    >
+                      <RefreshCw size={11} /> Change File
+                    </button>
+                  </div>
                 </div>
               ) : (
                 /* Upload Pickers (Combined vs Separate) */
