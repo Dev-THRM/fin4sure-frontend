@@ -428,12 +428,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);min-height:100vh;d
 .input-wrap input:focus,.input-wrap select:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(2,132,199,.12);background:#fff}
 /* ═══ Region Picker (rgnPicker) ═══ */
 .rgn-picker{position:relative;width:100%}
-.rgn-trigger{display:flex;align-items:center;gap:10px;padding:0 14px;height:48px;border:1.5px solid var(--mist,#D8E5F3);border-radius:12px;background:#FAFBFD;cursor:pointer;transition:all .2s;user-select:none;font-family:'DM Sans',sans-serif}
+.rgn-trigger{position:relative;display:flex;align-items:center;width:100%;height:46px;border:1.5px solid #D8E5F3;border-radius:10px;background:#F8FBFF;padding:0 34px 0 40px;cursor:pointer;transition:border-color .2s,box-shadow .2s;user-select:none;font-family:'DM Sans',sans-serif;box-sizing:border-box}
 .rgn-trigger:hover{border-color:#7DD3FC;background:#fff}
-.rgn-trigger[aria-expanded='true']{border-color:var(--teal);box-shadow:0 0 0 3px rgba(2,132,199,.10);background:#fff}
-.rgn-trigger-text{flex:1;font-size:.88rem;color:#94A3B8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rgn-trigger[aria-expanded='true']{border-color:var(--teal);box-shadow:0 0 0 3px rgba(2,132,199,.12);background:#fff}
+.rgn-trigger-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;color:#94A3B8;pointer-events:none;z-index:1}
+.rgn-trigger-text{flex:1;font-size:.88rem;color:#94A3B8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
 .rgn-trigger-text.chosen{color:var(--navy);font-weight:600}
-.rgn-caret{font-size:1.1rem;color:#94A3B8;transition:transform .2s;flex-shrink:0}
+.rgn-caret{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:.88rem;color:#94A3B8;transition:transform .2s;flex-shrink:0;pointer-events:none}
 .rgn-panel{position:absolute;left:0;right:0;top:calc(100% + 6px);background:#fff;border:1.5px solid #E2E8F0;border-radius:16px;box-shadow:0 16px 48px rgba(15,23,42,.14),0 4px 16px rgba(15,23,42,.08);z-index:9999;overflow:hidden;animation:rgnSlideIn .18s ease}
 @keyframes rgnSlideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 .rgn-panel-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid #F1F5F9}

@@ -287,18 +287,7 @@ export default function PartnerStepper({ onBack }) {
                 {step === 1 && (
                     <div>
                         <div className="form-title" style={{ fontFamily: "Playfair Display, serif", fontSize: "1.45rem", fontWeight: 700, color: "var(--navy)", marginBottom: "4px" }}>Partner Profile</div>
-                        <div className="form-subtitle" style={{ color: "var(--text2)", fontSize: ".82rem", marginBottom: "8px" }}>Register as a Finn4sure distribution partner and start earning.</div>
-
-                        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "14px", fontSize: ".82rem", color: "var(--text2)" }}>
-                            Already registered?{" "}
-                            <button
-                                type="button"
-                                onClick={() => navigate("/login")}
-                                style={{ background: "none", border: "none", color: "#1D4ED8", fontWeight: 700, cursor: "pointer", marginLeft: "4px", padding: 0, fontSize: ".82rem", textDecoration: "underline" }}
-                            >
-                                Sign In
-                            </button>
-                        </div>
+                        <div className="form-subtitle" style={{ color: "var(--text2)", fontSize: ".82rem", marginBottom: "18px" }}>Register as a Finn4sure distribution partner and start earning.</div>
 
                         <div className="form-grid">
                             <div className="field">
@@ -365,6 +354,17 @@ export default function PartnerStepper({ onBack }) {
                         >
                             {otpSending ? "Sending OTP…" : "Send Email OTP →"}
                         </button>
+
+                        <div style={{ textAlign: "center", marginTop: "16px", fontSize: ".84rem", color: "var(--text2)" }}>
+                            Already registered?{" "}
+                            <button
+                                type="button"
+                                onClick={() => navigate("/login")}
+                                style={{ background: "none", border: "none", color: "#1D4ED8", fontWeight: 700, cursor: "pointer", marginLeft: "4px", padding: 0, fontSize: ".84rem", textDecoration: "underline" }}
+                            >
+                                Sign In
+                            </button>
+                        </div>
                     </div>
                 )}
 

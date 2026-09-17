@@ -163,12 +163,8 @@ export default function RegionPicker({
           }
         }}
         aria-expanded={isOpen}
-        style={{
-          borderColor: isOpen ? "var(--teal, #0f766e)" : undefined,
-          boxShadow: isOpen ? "0 0 0 3px rgba(15, 118, 110, 0.14)" : undefined,
-        }}
       >
-        <span className="icon" style={{ display: "flex", alignItems: "center", color: "#64748B" }}>
+        <span className="rgn-trigger-icon">
           <MapPin size={16} />
         </span>
         <span className={`rgn-trigger-text ${value ? "chosen" : ""}`}>
@@ -177,7 +173,7 @@ export default function RegionPicker({
         <span
           className="rgn-caret"
           style={{
-            transform: isOpen ? "rotate(180deg)" : "none",
+            transform: isOpen ? "translateY(-50%) rotate(180deg)" : "translateY(-50%)",
             transition: "transform 0.2s ease"
           }}
         >
