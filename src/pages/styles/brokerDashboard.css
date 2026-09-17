@@ -855,7 +855,7 @@
 
 .acm-grid-3 {
   display: grid;
-  grid-template-columns: 1.5fr 1.8fr 1fr;
+  grid-template-columns: 1.9fr 1.4fr 0.85fr;
   gap: 10px;
   align-items: start;
 }
