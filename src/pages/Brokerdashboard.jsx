@@ -1018,7 +1018,7 @@ export default function BrokerDashboard() {
 
               <button
                 className="pdash-qa-row"
-                onClick={() => window.open("/EMI-calculator", "_blank")}
+                onClick={() => navigate("/EMI-calculator")}
               >
                 <div className="pdash-qa-left">
                   <Calculator size={20} strokeWidth={2.2} className="pdash-qa-calc-icon" />
