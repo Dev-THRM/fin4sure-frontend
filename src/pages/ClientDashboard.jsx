@@ -536,6 +536,9 @@ export default function ClientDashboard() {
     { id: "bank", label: "Bank Statements (6 months)", isUploaded: hasBank },
   ];
 
+  // 3 mandatory documents attached condition: Aadhaar, PAN, and Bank Statement (Salary Slips optional)
+  const hasThreeDocs = Boolean(hasPan && hasAadhaar && hasBank);
+
   return (
     <div className="cdash-wrap">
       {/* ═══ DASHBOARD HEADER WITH TABS ═══ */}
@@ -627,7 +630,7 @@ export default function ClientDashboard() {
                         currentStepIndex = 4;
                       } else if (statusId === 4 || rawStatus.includes("submit")) {
                         currentStepIndex = 3;
-                      } else if (statusId === 3 || rawStatus.includes("credit") || rawStatus.includes("under review") || app.has_all_docs) {
+                      } else if (statusId === 3 || rawStatus.includes("credit") || rawStatus.includes("under review") || app.has_all_docs || app.has_three_docs || hasThreeDocs) {
                         currentStepIndex = 2;
                       } else if (app.has_uploaded_docs && statusId >= 2) {
                         currentStepIndex = 1;
@@ -699,6 +702,32 @@ export default function ClientDashboard() {
                             })}
                           </div>
                         </div>
+
+                        {/* Option to re-upload documents if 3 mandatory docs (Aadhaar, PAN, Bank Statement) are attached */}
+                        {(app.has_three_docs || hasThreeDocs) && (
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
+                            <Link 
+                              to={`/upload-docs/${app.id || app.application_no}`}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                fontSize: '0.80rem',
+                                fontWeight: '600',
+                                color: '#0284C7',
+                                textDecoration: 'none',
+                                padding: '6px 14px',
+                                background: '#F0F9FF',
+                                border: '1.2px solid #BAE6FD',
+                                borderRadius: '8px',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 2px 6px rgba(2, 132, 199, 0.08)'
+                              }}
+                            >
+                              <RefreshCw size={13} /> Re-upload Documents
+                            </Link>
+                          </div>
+                        )}
 
                         {/* Status Remark Alert */}
                         <div className="cdl-remark">
@@ -805,8 +834,8 @@ export default function ClientDashboard() {
                   to={targetAppId ? `/upload-docs/${targetAppId}` : "/apply"} 
                   className="cdds-upload-btn"
                 >
-                  <Upload size={15} />
-                  <span>Upload Documents</span>
+                  {hasThreeDocs ? <RefreshCw size={14} /> : <Upload size={15} />}
+                  <span>{hasThreeDocs ? "Re-upload Documents" : "Upload Documents"}</span>
                 </Link>
               </div>
 
