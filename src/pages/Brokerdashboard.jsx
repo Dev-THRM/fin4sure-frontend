@@ -539,15 +539,15 @@ export default function BrokerDashboard() {
     return "";
   };
 
-  const getLoanEmoji = (name = "") => {
-    const n = name.toLowerCase();
-    if (n.includes("home")) return "🏠";
-    if (n.includes("property") || n.includes("lap")) return "🏢";
-    if (n.includes("personal")) return "💳";
-    if (n.includes("business")) return "💼";
-    if (n.includes("car") || n.includes("auto")) return "🚗";
-    if (n.includes("education") || n.includes("study")) return "🎓";
-    return "📄";
+  const getProductIcon = (name = "") => {
+    const n = (name || "").toLowerCase();
+    if (n.includes("home")) return <Home size={22} color="#0D7A68" strokeWidth={2} />;
+    if (n.includes("property") || n.includes("lap")) return <Building2 size={22} color="#2563EB" strokeWidth={2} />;
+    if (n.includes("personal")) return <CreditCard size={22} color="#7C3AED" strokeWidth={2} />;
+    if (n.includes("business")) return <Briefcase size={22} color="#D97706" strokeWidth={2} />;
+    if (n.includes("car") || n.includes("auto") || n.includes("vehicle")) return <Car size={22} color="#059669" strokeWidth={2} />;
+    if (n.includes("education") || n.includes("study")) return <GraduationCap size={22} color="#4F46E5" strokeWidth={2} />;
+    return <FileText size={22} color="#64748B" strokeWidth={2} />;
   };
 
   // Add Client - Lender option list strictly matching reference image sorted by best ROI
@@ -889,7 +889,7 @@ export default function BrokerDashboard() {
                       <div className="pcard-top">
                         <div className="pcard-left">
                           <div className="pcard-thumb">
-                            {/* Empty clean thumbnail */}
+                            {getProductIcon(rawProduct)}
                           </div>
                           <div className="pcard-info">
                             <h4 className="pcard-title">{customerName}</h4>
@@ -1021,7 +1021,7 @@ export default function BrokerDashboard() {
                 onClick={() => window.open("/EMI-calculator", "_blank")}
               >
                 <div className="pdash-qa-left">
-                  <span className="pdash-qa-abacus" role="img" aria-label="EMI Calculator">🧮</span>
+                  <Calculator size={20} strokeWidth={2.2} className="pdash-qa-calc-icon" />
                   <span className="pdash-qa-label">EMI Calculator</span>
                 </div>
                 <ArrowRight size={18} strokeWidth={2.2} className="pdash-qa-arrow" />

@@ -171,9 +171,12 @@
 }
 
 .input-wrap .icon {
-  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-right: 8px;
-  color: var(--text2);
+  color: #64748B;
+  flex-shrink: 0;
 }
 
 .input-wrap input {

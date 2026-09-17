@@ -406,6 +406,9 @@
   border-radius: 14px;
   background: #F8FAFC;
   border: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
@@ -788,14 +791,12 @@
   flex-shrink: 0;
 }
 
-.pdash-qa-abacus {
-  font-size: 1.25rem;
-  line-height: 1;
-  display: inline-flex;
+.pdash-qa-calc-icon {
+  color: #EA580C;
+  flex-shrink: 0;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  flex-shrink: 0;
 }
 
 .pdash-qa-label {
