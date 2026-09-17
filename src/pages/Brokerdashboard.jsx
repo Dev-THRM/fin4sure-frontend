@@ -832,10 +832,15 @@ export default function BrokerDashboard() {
                 </div>
               ) : (
                 filteredLeads.map((lead, index) => {
-                  const customerName = lead.clientName || (lead.name ? lead.name.split(" - ")[0] : "Customer");
-                  const rawProduct = (lead.product || lead.loanTypeName || "loan").toLowerCase().replace(" loan", "");
-                  const formattedAmt = lead.amount ? `${Number(lead.amount)}` : "";
-                  const lender = lead.lenderName || "SBI";
+                  const customerName = lead.clientName || lead.name?.split(" - ")?.[0] || "Customer";
+                  const rawProduct = lead.product || lead.loanTypeName || "Loan";
+                  const amt = parseFloat(lead.amount) || 0;
+                  const formattedAmt = amt >= 10000000
+                    ? `₹${(amt / 10000000).toFixed(amt % 10000000 === 0 ? 0 : 1)} Cr`
+                    : amt >= 100000
+                    ? `₹${(amt / 100000).toFixed(amt % 100000 === 0 ? 0 : 1)} L`
+                    : amt > 0 ? `₹${amt.toLocaleString("en-IN")}` : "";
+                  const lender = lead.lenderName || "";
                   const dateStr = lead.createdAt
                     ? new Date(lead.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
                     : "10 Jan 2025";
