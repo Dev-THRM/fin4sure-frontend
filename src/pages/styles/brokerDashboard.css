@@ -855,7 +855,7 @@
 
 .acm-grid-3 {
   display: grid;
-  grid-template-columns: 2.2fr 1.3fr 0.75fr;
+  grid-template-columns: 3fr 1.1fr 0.65fr;
   gap: 10px;
   align-items: start;
 }
@@ -876,8 +876,8 @@
   height: 44px;
   border: 1.5px solid #E2E8F0;
   border-radius: 10px;
-  padding: 0 13px;
-  font-size: 0.92rem;
+  padding: 0 10px;
+  font-size: 0.88rem;
   font-weight: 500;
   color: #1E293B;
   background: #FFFFFF;
