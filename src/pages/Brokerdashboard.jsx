@@ -538,6 +538,17 @@ export default function BrokerDashboard() {
     return "";
   };
 
+  const getLoanEmoji = (name = "") => {
+    const n = name.toLowerCase();
+    if (n.includes("home")) return "🏠";
+    if (n.includes("property") || n.includes("lap")) return "🏢";
+    if (n.includes("personal")) return "💳";
+    if (n.includes("business")) return "💼";
+    if (n.includes("car") || n.includes("auto")) return "🚗";
+    if (n.includes("education") || n.includes("study")) return "🎓";
+    return "📄";
+  };
+
   // Add Client - Lender option list strictly matching reference image sorted by best ROI
   const lenderOptions = useMemo(() => {
     return REFERENCE_LENDERS.map((rl) => {
@@ -1234,7 +1245,7 @@ export default function BrokerDashboard() {
                   >
                     {displayLoanTypes.map((lt) => (
                       <option key={lt.id} value={String(lt.id)}>
-                        {lt.name}
+                        {getLoanEmoji(lt.name)} {lt.name}
                       </option>
                     ))}
                   </select>

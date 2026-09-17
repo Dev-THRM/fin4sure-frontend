@@ -758,7 +758,7 @@
   background: #FFFFFF;
   border-radius: 20px;
   width: 100%;
-  max-width: 580px;
+  max-width: 620px;
   overflow: hidden;
   box-shadow: 0 24px 50px -10px rgba(2, 44, 34, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.06);
   animation: acmPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -855,7 +855,7 @@
 
 .acm-grid-3 {
   display: grid;
-  grid-template-columns: 1.9fr 1.4fr 0.85fr;
+  grid-template-columns: 2.2fr 1.3fr 0.75fr;
   gap: 10px;
   align-items: start;
 }
