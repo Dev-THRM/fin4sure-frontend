@@ -26,6 +26,8 @@ import {
   MapPin,
   Key,
   CheckCircle2,
+  Check,
+  CircleDot,
   Info,
   Clock,
   Smartphone,
@@ -457,6 +459,12 @@ export default function ClientDashboard() {
     return status && status !== "disbursed" && status !== "rejected";
   }).length;
   const rejectedCount = applications.filter((app) => app.Status?.name?.toLowerCase() === "rejected").length;
+  const activeApp = applications.find((app) => {
+    const status = (app.Status?.name || app.stage || "").toLowerCase();
+    const statusId = Number(app.status_id || 1);
+    return statusId !== 7 && !status.includes("disburs") && !status.includes("reject");
+  }) || applications[0];
+  const targetAppId = activeApp?.id || activeApp?.application_no || "";
 
   return (
     <div className="cdash-wrap">
@@ -622,82 +630,6 @@ export default function ClientDashboard() {
                           </div>
                         </div>
 
-                        {/* Upload Documents / Re-upload Documents Action (above Application received text) */}
-                        {app.has_rejected_docs ? (
-                          <div style={{
-                            marginBottom: '14px',
-                            padding: '14px 18px',
-                            background: '#FEF2F2',
-                            border: '1.5px solid #FCA5A5',
-                            borderRadius: '12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            flexWrap: 'wrap',
-                            gap: '12px'
-                          }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <AlertTriangle size={24} className="text-red-600 shrink-0" />
-                              <div>
-                                <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#991B1B' }}>
-                                  Document Re-upload Required
-                                </div>
-                                <div style={{ fontSize: '0.80rem', color: '#B91C1C', marginTop: '2px' }}>
-                                  {app.rejected_count > 1 
-                                    ? `${app.rejected_count} documents were rejected by the admin. Please re-upload them to proceed to Credit evaluation.`
-                                    : `One of your documents was rejected by the admin. Please re-upload a clear copy to proceed to Credit evaluation.`}
-                                </div>
-                              </div>
-                            </div>
-                            <Link 
-                              to={`/upload-docs/${app.id}`} 
-                              style={{ 
-                                textDecoration: "none", 
-                                background: "linear-gradient(135deg, #DC2626, #EF4444)", 
-                                color: "#fff",
-                                fontSize: "0.82rem",
-                                fontWeight: "700",
-                                padding: "9px 18px",
-                                borderRadius: "8px",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "6px",
-                                boxShadow: "0 4px 12px rgba(239, 68, 68, 0.25)",
-                                transition: "all 0.2s ease"
-                              }}
-                            >
-                              <RefreshCw size={14} /> Re-upload Documents
-                            </Link>
-                          </div>
-                        ) : (statusId !== 7 && !rawStatus.includes("disburs") && !rawStatus.includes("reject")) ? (
-                          <div style={{ 
-                            marginBottom: '14px', 
-                            display: 'flex', 
-                            justifyContent: 'flex-end', 
-                            alignItems: 'center'
-                          }}>
-                            <Link 
-                              to={`/upload-docs/${app.id}`} 
-                              style={{ 
-                                textDecoration: "none", 
-                                background: "linear-gradient(135deg, #059669, #10B981)", 
-                                color: "#fff",
-                                fontSize: "0.82rem",
-                                fontWeight: "700",
-                                padding: "8px 16px",
-                                borderRadius: "8px",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "6px",
-                                boxShadow: "0 4px 12px rgba(16, 185, 129, 0.2)",
-                                transition: "all 0.2s ease"
-                              }}
-                            >
-                              <Upload size={14} /> Upload Documents
-                            </Link>
-                          </div>
-                        ) : null}
-
                         {/* Status Remark Alert */}
                         <div className="cdl-remark">
                           <Bell size={18} style={{ color: "#D97706", flexShrink: 0 }} />
@@ -774,6 +706,67 @@ export default function ClientDashboard() {
                 <div className="cdsm-hours">Mon–Sat · 9:30 AM – 6:30 PM IST</div>
               </div>
 
+              {/* Document Status Box */}
+              <div className="cd-doc-status-card">
+                <div className="cdds-head">
+                  <span className="cdds-icon">📋</span>
+                  <span className="cdds-title">Document Status</span>
+                </div>
+
+                <div className="cdds-list">
+                  <div className="cdds-item">
+                    <div className="cdds-item-left">
+                      <Check size={16} strokeWidth={2.5} className="cdds-check-icon" />
+                      <span className="cdds-label">PAN Card</span>
+                    </div>
+                  </div>
+
+                  <div className="cdds-item">
+                    <div className="cdds-item-left">
+                      <Check size={16} strokeWidth={2.5} className="cdds-check-icon" />
+                      <span className="cdds-label">Aadhaar Card</span>
+                    </div>
+                  </div>
+
+                  <div className="cdds-item">
+                    <div className="cdds-item-left">
+                      <Check size={16} strokeWidth={2.5} className="cdds-check-icon" />
+                      <span className="cdds-label">Salary Slips (3 months)</span>
+                    </div>
+                  </div>
+
+                  <div className="cdds-item">
+                    <div className="cdds-item-left">
+                      <Check size={16} strokeWidth={2.5} className="cdds-check-icon" />
+                      <span className="cdds-label">Bank Statements (6 months)</span>
+                    </div>
+                  </div>
+
+                  <div className="cdds-item">
+                    <div className="cdds-item-left">
+                      <CircleDot size={15} strokeWidth={2} className="cdds-pending-icon" />
+                      <span className="cdds-label">Sale Agreement</span>
+                    </div>
+                    <span className="cdds-badge">Pending</span>
+                  </div>
+
+                  <div className="cdds-item">
+                    <div className="cdds-item-left">
+                      <CircleDot size={15} strokeWidth={2} className="cdds-pending-icon" />
+                      <span className="cdds-label">Property Title Deed</span>
+                    </div>
+                    <span className="cdds-badge">Pending</span>
+                  </div>
+                </div>
+
+                <Link 
+                  to={targetAppId ? `/upload-docs/${targetAppId}` : "/apply"} 
+                  className="cdds-upload-btn"
+                >
+                  <Upload size={15} />
+                  <span>Upload Documents</span>
+                </Link>
+              </div>
 
             </div>
           </div>
