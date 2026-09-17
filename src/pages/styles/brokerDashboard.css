@@ -751,6 +751,71 @@
   background: #F1F5F9;
 }
 
+/* Quick Actions Card */
+.pdash-quick-actions {
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #E6EEF8;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.pdash-qa-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.pdash-qa-row:hover {
+  background: #F8FAFC;
+}
+
+.pdash-qa-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pdash-qa-icon--add {
+  background: #EEF2FF;
+  color: #4F46E5;
+}
+
+.pdash-qa-icon--emi {
+  background: #FFF7ED;
+  color: #EA580C;
+}
+
+.pdash-qa-label {
+  flex: 1;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.pdash-qa-arrow {
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+
+.pdash-qa-divider {
+  height: 1px;
+  background: #F1F5F9;
+  margin: 0 18px;
+}
+
 /* ═══════════════════════════════════════════
    NEW ADD CLIENT MODAL (EXACT MATCH TO 2ND IMAGE)
 ═══════════════════════════════════════════ */

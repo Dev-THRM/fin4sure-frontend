@@ -41,7 +41,8 @@ import {
   CheckCircle2,
   XCircle,
   ArrowLeft,
-  Navigation
+  Navigation,
+  Calculator
 } from "lucide-react";
 import "./styles/brokerDashboard.css";
 
@@ -1000,6 +1001,33 @@ export default function BrokerDashboard() {
                 <Clock size={13} />
                 <span>Mon–Sat, 9:30 AM — 6:30 PM IST</span>
               </div>
+            </div>
+
+            {/* Quick Actions Card */}
+            <div className="pdash-quick-actions">
+              <button
+                className="pdash-qa-row"
+                onClick={() => setShowAddClientModal(true)}
+              >
+                <span className="pdash-qa-icon pdash-qa-icon--add">
+                  <Plus size={16} />
+                </span>
+                <span className="pdash-qa-label">Add Client</span>
+                <ChevronRight size={16} className="pdash-qa-arrow" />
+              </button>
+
+              <div className="pdash-qa-divider" />
+
+              <button
+                className="pdash-qa-row"
+                onClick={() => window.open("https://emicalculator.net/", "_blank")}
+              >
+                <span className="pdash-qa-icon pdash-qa-icon--emi">
+                  <Calculator size={16} />
+                </span>
+                <span className="pdash-qa-label">EMI Calculator</span>
+                <ChevronRight size={16} className="pdash-qa-arrow" />
+              </button>
             </div>
           </div>
         </div>
