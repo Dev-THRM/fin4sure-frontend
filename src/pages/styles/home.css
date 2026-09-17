@@ -62,7 +62,7 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  gap: 20px;
+  gap: 32px;
   position: sticky;
   top: 24px;
   z-index: 1;
@@ -129,7 +129,7 @@
   letter-spacing: .03em;
   padding: 5px 12px;
   border-radius: 30px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .brand-panel.partner-mode .b-eyebrow {
@@ -140,9 +140,9 @@
 
 .b-hero h1 {
   font-family: 'Playfair Display', serif;
-  font-size: 2.25rem;
-  line-height: 1.18;
-  margin-bottom: 10px;
+  font-size: 2.35rem;
+  line-height: 1.2;
+  margin-bottom: 12px;
   font-weight: 700;
   letter-spacing: -.01em;
   color: #FFFFFF;
@@ -166,16 +166,16 @@
 
 .b-hero p {
   color: #94A3B8;
-  font-size: .92rem;
-  line-height: 1.55;
+  font-size: .94rem;
+  line-height: 1.6;
   max-width: 380px;
-  margin-bottom: 0;
+  margin-bottom: 6px;
 }
 
 .b-features {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 13px;
   position: relative;
   z-index: 1;
 }
@@ -183,15 +183,15 @@
 .b-feat {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: .84rem;
+  gap: 12px;
+  font-size: .88rem;
   font-weight: 500;
   color: #E2E8F0;
 }
 
 .b-feat-ic {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -201,7 +201,7 @@
   -webkit-backdrop-filter: blur(6px);
   border: 1px solid #334155;
   border-radius: 99px;
-  font-size: .9rem;
+  font-size: 1rem;
 }
 
 .b-stats {
@@ -213,8 +213,8 @@
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, .1);
-  border-radius: 14px;
-  padding: 12px 10px;
+  border-radius: 16px;
+  padding: 16px 12px;
 }
 
 .brand-panel.partner-mode .b-stats {
