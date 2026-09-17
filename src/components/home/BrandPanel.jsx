@@ -81,31 +81,31 @@ export default function BrandPanel({ mode = "borrower" }) {
           {isPartner ? (
             <>
               <div className="b-feat">
-                <span className="b-feat-ic"><Handshake size={15} /></span> Direct Client Referral
+                <span className="b-feat-ic"><Handshake size={17} /></span> Direct Client Referral
               </div>
               <div className="b-feat">
-                <span className="b-feat-ic"><BarChart3 size={15} /></span> Real-time Lead Tracking
+                <span className="b-feat-ic"><BarChart3 size={17} /></span> Real-time Lead Tracking
               </div>
               <div className="b-feat">
-                <span className="b-feat-ic"><CircleDollarSign size={15} /></span> High Payout Commission
+                <span className="b-feat-ic"><CircleDollarSign size={17} /></span> High Payout Commission
               </div>
             </>
           ) : (
             <>
               <div className="b-feat">
-                <span className="b-feat-ic"><Zap size={15} /></span> Live ROI Ticker
+                <span className="b-feat-ic"><Zap size={17} /></span> Live ROI Ticker
               </div>
               <div className="b-feat">
-                <span className="b-feat-ic"><Landmark size={15} /></span> Direct Lender Integrations
+                <span className="b-feat-ic"><Landmark size={17} /></span> Direct Lender Integrations
               </div>
               <div className="b-feat">
-                <span className="b-feat-ic"><ShieldCheck size={15} /></span> Bank-grade Data Encryption
+                <span className="b-feat-ic"><ShieldCheck size={17} /></span> Bank-grade Data Encryption
               </div>
               <div className="b-feat">
-                <span className="b-feat-ic"><Lightbulb size={15} /></span> EMI Saver
+                <span className="b-feat-ic"><Lightbulb size={17} /></span> EMI Saver
               </div>
               <div className="b-feat">
-                <span className="b-feat-ic"><RefreshCw size={15} /></span> Home Loan Top-ups & Balance Transfer
+                <span className="b-feat-ic"><RefreshCw size={17} /></span> Home Loan Top-ups & Balance Transfer
               </div>
             </>
           )}
