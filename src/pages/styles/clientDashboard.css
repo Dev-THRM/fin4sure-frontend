@@ -586,6 +586,16 @@
   font-weight: 600;
 }
 
+.cdsm-online.is-offline {
+  color: #94A3B8 !important;
+}
+
+.cdsm-online.is-offline .psc-dot {
+  background: #94A3B8 !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
 .cdsm-actions {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

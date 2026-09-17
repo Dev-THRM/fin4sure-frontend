@@ -45,20 +45,36 @@ export default function BrokerDashboard() {
   // Advisor business hours: Mon-Sat, 9:30 AM to 6:30 PM IST (Offline on Sunday, before 9:30 AM, or after 6:30 PM)
   const getAdvisorOnlineStatus = () => {
     try {
-      const now = new Date();
-      const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
-      const istDate = new Date(istString);
-      const day = istDate.getDay(); // 0 = Sunday
-      if (day === 0) return false;
-      const totalMinutes = istDate.getHours() * 60 + istDate.getMinutes();
-      const startMinutes = 9 * 60 + 30; // 9:30 AM IST
-      const endMinutes = 18 * 60 + 30;  // 6:30 PM IST
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Kolkata",
+        weekday: "short",
+        hour: "numeric",
+        minute: "numeric",
+        hourCycle: "h23"
+      }).formatToParts(new Date());
+
+      const partMap = {};
+      parts.forEach((p) => { partMap[p.type] = p.value; });
+
+      // Offline on Sunday
+      if (partMap.weekday === "Sun") return false;
+
+      const hour = parseInt(partMap.hour, 10);
+      const minute = parseInt(partMap.minute, 10);
+      const totalMinutes = hour * 60 + minute;
+
+      const startMinutes = 9 * 60 + 30; // 9:30 AM IST (570)
+      const endMinutes = 18 * 60 + 30;  // 6:30 PM IST (1110)
+
       return totalMinutes >= startMinutes && totalMinutes < endMinutes;
     } catch (e) {
       const now = new Date();
-      if (now.getDay() === 0) return false;
-      const totalMinutes = now.getHours() * 60 + now.getMinutes();
-      return totalMinutes >= (9 * 60 + 30) && totalMinutes < (18 * 60 + 30);
+      // IST is UTC + 5:30 (330 minutes)
+      const istMinutes = (now.getUTCHours() * 60 + now.getUTCMinutes() + 330) % 1440;
+      const istDaysFromEpoch = Math.floor((now.getTime() + 19800000) / 86400000);
+      const istDayOfWeek = (istDaysFromEpoch + 4) % 7; // 0 = Sunday
+      if (istDayOfWeek === 0) return false;
+      return istMinutes >= 570 && istMinutes < 1110;
     }
   };
 
@@ -827,8 +843,8 @@ export default function BrokerDashboard() {
                       <div className="cdsm-name">Mr. Rishabh Mathur</div>
                       <div className="cdsm-role" style={{ color: "rgba(255,255,255,.7)" }}>Mortgage Specialist</div>
                     </div>
-                    <span className="cdsm-online" style={{ color: isAdvisorOnline ? "#34D399" : "#94A3B8" }}>
-                      <span className="psc-dot" style={{ backgroundColor: isAdvisorOnline ? "#34D399" : "#94A3B8", boxShadow: isAdvisorOnline ? "0 0 8px rgba(52, 211, 153, 0.6)" : "none" }}></span>
+                    <span className={`cdsm-online ${isAdvisorOnline ? "is-online" : "is-offline"}`} style={{ color: isAdvisorOnline ? "#34D399" : "#94A3B8" }}>
+                      <span className="psc-dot" style={{ backgroundColor: isAdvisorOnline ? "#34D399" : "#94A3B8", boxShadow: isAdvisorOnline ? "0 0 8px rgba(52, 211, 153, 0.6)" : "none", animation: isAdvisorOnline ? "roiPulse 1.6s infinite" : "none" }}></span>
                       {isAdvisorOnline ? "Online" : "Offline"}
                     </span>
                   </div>

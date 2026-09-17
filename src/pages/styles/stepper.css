@@ -1586,6 +1586,8 @@ a.acc-row:hover{background:var(--teal-lt);border-color:#7DD3FC;transform:transla
 .cdsm-name{font-size:.9rem;font-weight:700;color:#fff}
 .cdsm-role{font-size:.72rem;color:rgba(255,255,255,.65)}
 .cdsm-online{display:inline-flex;align-items:center;gap:5px;font-size:.66rem;color:#4ADE80;margin-left:auto;font-weight:600}
+.cdsm-online.is-offline{color:#94A3B8!important}
+.cdsm-online.is-offline .psc-dot{background:#94A3B8!important;box-shadow:none!important;animation:none!important}
 .psc-dot{width:6px;height:6px;border-radius:50%;background:#4ADE80;display:inline-block}
 .cdsm-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;position:relative;z-index:1}
 .cdsm-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:10px;text-decoration:none;font-size:.68rem;font-weight:600;transition:all .2s;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.16)}
