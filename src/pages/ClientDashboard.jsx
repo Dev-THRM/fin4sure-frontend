@@ -54,11 +54,45 @@ export default function ClientDashboard() {
   // Local dashboard states
   const [user, setUser] = useState(null);
   const [applications, setApplications] = useState([]);
+  const [appDocs, setAppDocs] = useState([]);
   const [activeTab, setActiveTab] = useState("loans");
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [notification, setNotification] = useState(null); // { type, title, message, onClose, autoDismiss }
   const notificationTimeoutRef = useRef(null);
   const submittedLendersMapRef = useRef(new Map());
+
+  useEffect(() => {
+    const actApp = applications.find((app) => {
+      const status = (app.Status?.name || app.stage || "").toLowerCase();
+      const statusId = Number(app.status_id || 1);
+      return statusId !== 7 && !status.includes("disburs") && !status.includes("reject");
+    }) || applications[0];
+
+    const appId = actApp?.id || actApp?.application_no || "";
+    if (!appId) {
+      setAppDocs([]);
+      return;
+    }
+
+    const fetchAppDocs = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        const headers = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+        const res = await fetch(`/api/client/application-documents/${appId}`, {
+          credentials: "include",
+          headers
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) setAppDocs(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch application documents:", err);
+      }
+    };
+    fetchAppDocs();
+  }, [applications]);
 
   const closeNotification = () => {
     if (notificationTimeoutRef.current) {
@@ -466,6 +500,42 @@ export default function ClientDashboard() {
   }) || applications[0];
   const targetAppId = activeApp?.id || activeApp?.application_no || "";
 
+  const validAppDocs = (appDocs || []).filter((d) => d.status !== "rejected");
+  const normDocType = (d) =>
+    String(d.document_type || d.file_name || "")
+      .toLowerCase()
+      .replace(/[\s_-]+/g, "");
+
+  const hasPan = Boolean(
+    activeApp?.has_pan || validAppDocs.some((d) => normDocType(d).includes("pan"))
+  );
+
+  const hasAadhaar = Boolean(
+    activeApp?.has_aadhaar ||
+      validAppDocs.some(
+        (d) =>
+          normDocType(d).includes("aadhar") ||
+          normDocType(d).includes("aadhaar") ||
+          normDocType(d).includes("front")
+      )
+  );
+
+  const hasSalary = Boolean(
+    activeApp?.has_salary ||
+      validAppDocs.some((d) => normDocType(d).includes("salary"))
+  );
+
+  const hasBank = Boolean(
+    activeApp?.has_bank || validAppDocs.some((d) => normDocType(d).includes("bank"))
+  );
+
+  const docList = [
+    { id: "pan", label: "PAN Card", isUploaded: hasPan },
+    { id: "aadhaar", label: "Aadhaar Card", isUploaded: hasAadhaar },
+    { id: "salary", label: "Salary Slips (3 months)", isUploaded: hasSalary },
+    { id: "bank", label: "Bank Statements (6 months)", isUploaded: hasBank },
+  ];
+
   return (
     <div className="cdash-wrap">
       {/* ═══ DASHBOARD HEADER WITH TABS ═══ */}
@@ -714,49 +784,21 @@ export default function ClientDashboard() {
                 </div>
 
                 <div className="cdds-list">
-                  <div className="cdds-item">
-                    <div className="cdds-item-left">
-                      <Check size={16} strokeWidth={2.5} className="cdds-check-icon" />
-                      <span className="cdds-label">PAN Card</span>
+                  {docList.map((doc) => (
+                    <div key={doc.id} className="cdds-item">
+                      <div className="cdds-item-left">
+                        {doc.isUploaded ? (
+                          <Check size={16} strokeWidth={2.5} className="cdds-check-icon" />
+                        ) : (
+                          <CircleDot size={15} strokeWidth={2} className="cdds-pending-icon" />
+                        )}
+                        <span className="cdds-label">{doc.label}</span>
+                      </div>
+                      {!doc.isUploaded && (
+                        <span className="cdds-badge">Pending</span>
+                      )}
                     </div>
-                  </div>
-
-                  <div className="cdds-item">
-                    <div className="cdds-item-left">
-                      <Check size={16} strokeWidth={2.5} className="cdds-check-icon" />
-                      <span className="cdds-label">Aadhaar Card</span>
-                    </div>
-                  </div>
-
-                  <div className="cdds-item">
-                    <div className="cdds-item-left">
-                      <Check size={16} strokeWidth={2.5} className="cdds-check-icon" />
-                      <span className="cdds-label">Salary Slips (3 months)</span>
-                    </div>
-                  </div>
-
-                  <div className="cdds-item">
-                    <div className="cdds-item-left">
-                      <Check size={16} strokeWidth={2.5} className="cdds-check-icon" />
-                      <span className="cdds-label">Bank Statements (6 months)</span>
-                    </div>
-                  </div>
-
-                  <div className="cdds-item">
-                    <div className="cdds-item-left">
-                      <CircleDot size={15} strokeWidth={2} className="cdds-pending-icon" />
-                      <span className="cdds-label">Sale Agreement</span>
-                    </div>
-                    <span className="cdds-badge">Pending</span>
-                  </div>
-
-                  <div className="cdds-item">
-                    <div className="cdds-item-left">
-                      <CircleDot size={15} strokeWidth={2} className="cdds-pending-icon" />
-                      <span className="cdds-label">Property Title Deed</span>
-                    </div>
-                    <span className="cdds-badge">Pending</span>
-                  </div>
+                  ))}
                 </div>
 
                 <Link 
