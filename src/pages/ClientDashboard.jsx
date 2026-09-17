@@ -33,6 +33,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { LOAN_PRODUCTS } from "../utils/constants";
 import { states, districtsByState } from "../components/Statedata";
+import { fmtINR } from "../utils/formatters";
 import "./styles/clientDashboard.css";
 
 export default function ClientDashboard() {
@@ -383,15 +384,22 @@ export default function ClientDashboard() {
     return LOAN_PRODUCTS.find((p) => p.id === id)?.name || id;
   };
 
-  const getProductEmoji = (id) => {
-    const emojis = {
-      "home-loan": "🏠",
-      "loan-against-property": "🏢",
-      "personal-loan": "💳",
-      "business-loan": "📦",
-      "car-loan": "🚗",
-    };
-    return emojis[id] || "📄";
+  const getProductEmoji = (type) => {
+    const t = String(type || "").toLowerCase().replace(/[\s_-]+/g, "");
+    if (t.includes("home")) return "🏠";
+    if (t.includes("personal")) return "💼";
+    if (t.includes("lap") || t.includes("property")) return "🏢";
+    if (t.includes("business")) return "📦";
+    if (t.includes("vehicle") || t.includes("car") || t.includes("auto")) return "🚗";
+    if (t.includes("gold")) return "🪙";
+    if (t.includes("education")) return "🎓";
+    return "🏠";
+  };
+
+  const formatAppId = (app) => {
+    const rawNo = String(app.application_no || app.id || "3901").trim();
+    if (rawNo.toUpperCase().startsWith("F4S-")) return rawNo.toUpperCase();
+    return `F4S-${rawNo}`;
   };
 
   // Status arrays
@@ -495,25 +503,27 @@ export default function ClientDashboard() {
                         currentStepIndex = 3;
                       } else if (statusId === 3 || rawStatus.includes("credit") || rawStatus.includes("under review") || app.has_all_docs) {
                         currentStepIndex = 2;
-                      } else if (statusId === 2 || rawStatus.includes("doc")) {
+                      } else if (app.has_uploaded_docs && statusId >= 2) {
+                        currentStepIndex = 1;
+                      } else if (statusId === 2 && (app.has_all_docs || app.has_uploaded_docs)) {
                         currentStepIndex = 1;
                       } else {
                         currentStepIndex = 0;
                       }
 
-                      const steps = ['applied' , 'docs', 'credit', 'submitted', 'sanction', 'legal', 'disbursed'];
+                      const steps = ['Applied', 'Docs', 'Credit', 'Submitted', 'Sanction', 'Legal', 'Disbursed'];
                       
                       return (
                       <div key={app.id || app.application_no} className="cdl-card">
                         <div className="cdl-top">
                           <div className="cdl-left">
-                            <div className="cdl-type-icon" style={{ backgroundColor: "#F0F6FF", color: "#1E3A5F" }}>
-                              {getProductEmoji(app.Loan_type?.short_id || "document")}
+                            <div className="cdl-type-icon" style={{ backgroundColor: "#EEF6FF", fontSize: "1.5rem" }}>
+                              {getProductEmoji(app.Loan_type?.short_id || app.Loan_type?.name || "home")}
                             </div>
                             <div className="cdl-info">
-                              <h4>{app.Loan_type?.name || "Loan Application"}</h4>
+                              <h4>{app.Loan_type?.name || "Home Loan"}</h4>
                               <div className="cdl-meta">
-                                Submitted: {new Date(app.createdAt).toLocaleDateString()}
+                                {(app.bank_name || app.bank || "HDFC Bank")} · {fmtINR(Number(app.loan_amount || app.amount || 5000000))} · {formatAppId(app)}
                               </div>
                             </div>
                           </div>
@@ -529,19 +539,15 @@ export default function ClientDashboard() {
                               className={`cdl-status-chip ${
                                 statusId === 7 || rawStatus.includes("disburs")
                                   ? "cdl-chip-green"
-                                  : app.has_rejected_docs
-                                  ? "cdl-chip-amber"
                                   : rawStatus.includes("reject")
-                                  ? "cdl-chip-amber"
-                                  : "cdl-chip-blue"
+                                  ? "cdl-chip-red"
+                                  : "cdl-chip-amber"
                               }`}
                             >
                               <span className="cdl-chip-dot"></span>
                               <span>
                                 {statusId === 7 || rawStatus.includes("disburs")
                                   ? "Completed"
-                                  : app.has_rejected_docs
-                                  ? "Action Required"
                                   : rawStatus.includes("reject")
                                   ? "Rejected"
                                   : "In Progress"}
@@ -552,7 +558,7 @@ export default function ClientDashboard() {
 
                         {/* Journey tracker timeline visualization */}
                         <div className="cdl-journey">
-                          <div className="cdl-jlabel">Application Progress</div>
+                          <div className="cdl-jlabel">Loan Journey</div>
                           <div className="cdl-track">
                             {steps.map((step, index) => {
                               const isDone = index < currentStepIndex;
@@ -561,16 +567,40 @@ export default function ClientDashboard() {
                               return (
                                 <div key={step} className={`cdl-step ${isDone ? "done" : ""} ${isActive ? "active" : ""}`}>
                                   <div className="cdl-dot">{isDone ? "✓" : (index + 1)}</div>
-                                  <span className="cdl-step-lbl" style={{ textTransform: 'capitalize' }}>{step}</span>
+                                  <span className="cdl-step-lbl">{step}</span>
                                 </div>
                               );
                             })}
                           </div>
                         </div>
 
+                        {/* Status Remark Alert */}
+                        <div className="cdl-remark">
+                          <span style={{ fontSize: "1.05rem", flexShrink: 0, lineHeight: 1 }}>🔔</span>
+                          <span>
+                            {app.remark || 
+                             (app.has_rejected_docs 
+                               ? "One or more documents were rejected by the admin. Please re-upload them to proceed to Credit evaluation."
+                               : (currentStepIndex === 0 || currentStepIndex === 1)
+                               ? "Application received, we will shortly get in touch for further processing."
+                               : currentStepIndex === 2
+                               ? "Documents verified. Your application is currently under credit assessment."
+                               : currentStepIndex === 3
+                               ? "Application submitted to lenders. Awaiting sanction decision."
+                               : currentStepIndex === 4
+                               ? "Sanction approved! Proceeding to legal and technical verification."
+                               : currentStepIndex === 5
+                               ? "Legal verification in progress. Loan agreement nearing disbursement."
+                               : currentStepIndex === 6
+                               ? "Loan disbursed successfully to your bank account."
+                               : "Application received, we will shortly get in touch for further processing.")
+                            }
+                          </span>
+                        </div>
+
                         {app.has_rejected_docs ? (
                           <div style={{
-                            marginTop: '20px',
+                            marginTop: '14px',
                             padding: '14px 18px',
                             background: '#FEF2F2',
                             border: '1.5px solid #FCA5A5',
@@ -614,11 +644,9 @@ export default function ClientDashboard() {
                               <RefreshCw size={14} /> Re-upload Documents
                             </Link>
                           </div>
-                        ) : (currentStepIndex === 0 || currentStepIndex === 1) ? (
+                        ) : (statusId !== 7 && !rawStatus.includes("disburs") && !rawStatus.includes("reject")) ? (
                           <div style={{ 
-                            marginTop: '20px', 
-                            paddingTop: '16px', 
-                            borderTop: '1px solid #E6EEF8', 
+                            marginTop: '16px', 
                             display: 'flex', 
                             justifyContent: 'flex-end', 
                             alignItems: 'center'

@@ -348,7 +348,127 @@
   color: #92400E;
 }
 
-/* Stats Card Panel */
+.cdl-chip-amber .cdl-chip-dot {
+  background: #B45309;
+}
+
+.cdl-chip-red {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.cdl-chip-red .cdl-chip-dot {
+  background: #DC2626;
+}
+
+/* Loan Journey Stepper Tracker */
+.cdl-journey {
+  background: linear-gradient(135deg, #F8FBFF, #F0F7FF);
+  border: 1px solid #E6EEF8;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-top: 6px;
+  margin-bottom: 14px;
+}
+
+.cdl-jlabel {
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #64748B;
+  margin-bottom: 14px;
+}
+
+.cdl-track {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  gap: 4px;
+}
+
+.cdl-track::before {
+  content: '';
+  position: absolute;
+  top: 13px;
+  left: 14px;
+  right: 14px;
+  height: 2px;
+  background: #D8E5F3;
+  z-index: 0;
+}
+
+.cdl-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  z-index: 1;
+  flex: 1;
+}
+
+.cdl-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .74rem;
+  font-weight: 700;
+  background: #fff;
+  border: 2px solid #D8E5F3;
+  color: #64748B;
+  transition: all .3s;
+}
+
+.cdl-step.done .cdl-dot {
+  background: linear-gradient(135deg, #059669, #10B981);
+  border-color: #059669;
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(5, 150, 105, .3);
+}
+
+.cdl-step.active .cdl-dot {
+  background: linear-gradient(135deg, #0D2B6B, #0284C7);
+  border-color: #0284C7;
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, .15);
+}
+
+.cdl-step-lbl {
+  font-size: .62rem;
+  color: #64748B;
+  text-align: center;
+  font-weight: 600;
+  line-height: 1.2;
+  max-width: 65px;
+  margin-top: 4px;
+}
+
+.cdl-step.done .cdl-step-lbl,
+.cdl-step.active .cdl-step-lbl {
+  color: #0D2B6B;
+  font-weight: 700;
+}
+
+/* Status Remark Alert */
+.cdl-remark {
+  font-size: .84rem;
+  font-weight: 600;
+  color: #7C2D12;
+  background: linear-gradient(135deg, #FFF7ED, #FFFBEB);
+  border: 1.5px solid #FED7AA;
+  border-radius: 12px;
+  padding: 12px 16px;
+  line-height: 1.55;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, .08);
+}
+
 .cd-stats-card {
   background: #fff;
   border: 1px solid #E6EEF8;
