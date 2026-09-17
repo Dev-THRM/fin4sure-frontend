@@ -219,7 +219,11 @@ export default function PartnerStepper({ onBack }) {
                 if (data.accessToken) {
                     localStorage.setItem("accessToken", data.accessToken);
                 }
-                login(data.user);
+                const partnerUser = {
+                    ...data.user,
+                    role: "partner",
+                };
+                login(partnerUser);
                 setStep(4);
                 setTimeout(() => {
                     navigate("/broker-dashboard");

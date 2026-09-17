@@ -195,7 +195,11 @@ export default function BrokerRegistration() {
       if (data.accessToken) {
         localStorage.setItem("accessToken", data.accessToken);
       }
-      login(data.user || data);
+      const partnerUser = {
+        ...(data.user || data),
+        role: "partner",
+      };
+      login(partnerUser);
       await fetchProfile();
       navigate("/broker-dashboard");
     } catch (err) {
