@@ -42,6 +42,35 @@ export default function BrokerDashboard() {
   const [showAddClientModal, setShowAddClientModal] = useState(false);
   const [workspaceTab, setWorkspaceTab] = useState("dashboard"); // "dashboard" | "profile"
 
+  // Advisor business hours: Mon-Sat, 9:30 AM to 6:30 PM IST (Offline on Sunday, before 9:30 AM, or after 6:30 PM)
+  const getAdvisorOnlineStatus = () => {
+    try {
+      const now = new Date();
+      const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+      const istDate = new Date(istString);
+      const day = istDate.getDay(); // 0 = Sunday
+      if (day === 0) return false;
+      const totalMinutes = istDate.getHours() * 60 + istDate.getMinutes();
+      const startMinutes = 9 * 60 + 30; // 9:30 AM IST
+      const endMinutes = 18 * 60 + 30;  // 6:30 PM IST
+      return totalMinutes >= startMinutes && totalMinutes < endMinutes;
+    } catch (e) {
+      const now = new Date();
+      if (now.getDay() === 0) return false;
+      const totalMinutes = now.getHours() * 60 + now.getMinutes();
+      return totalMinutes >= (9 * 60 + 30) && totalMinutes < (18 * 60 + 30);
+    }
+  };
+
+  const [isAdvisorOnline, setIsAdvisorOnline] = useState(getAdvisorOnlineStatus);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIsAdvisorOnline(getAdvisorOnlineStatus());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
   // Partner Profile States
   const [profName, setProfName] = useState("");
   const [profCity, setProfCity] = useState("");
@@ -798,8 +827,9 @@ export default function BrokerDashboard() {
                       <div className="cdsm-name">Mr. Rishabh Mathur</div>
                       <div className="cdsm-role" style={{ color: "rgba(255,255,255,.7)" }}>Mortgage Specialist</div>
                     </div>
-                    <span className="cdsm-online" style={{ color: "#34D399" }}>
-                      <span className="psc-dot" style={{ backgroundColor: "#34D399" }}></span>Online
+                    <span className="cdsm-online" style={{ color: isAdvisorOnline ? "#34D399" : "#94A3B8" }}>
+                      <span className="psc-dot" style={{ backgroundColor: isAdvisorOnline ? "#34D399" : "#94A3B8", boxShadow: isAdvisorOnline ? "0 0 8px rgba(52, 211, 153, 0.6)" : "none" }}></span>
+                      {isAdvisorOnline ? "Online" : "Offline"}
                     </span>
                   </div>
                   <div className="cdsm-actions">
