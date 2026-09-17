@@ -18,7 +18,30 @@ import {
   ArrowRight,
   LogOut,
   MapPin,
-  Plus
+  Plus,
+  X,
+  Home,
+  Building2,
+  CreditCard,
+  Briefcase,
+  Car,
+  GraduationCap,
+  Coins,
+  FileText,
+  UserCheck,
+  Heart,
+  ChevronDown,
+  User,
+  Edit3,
+  Lock,
+  Key,
+  Smartphone,
+  AtSign,
+  Pencil,
+  CheckCircle2,
+  XCircle,
+  ArrowLeft,
+  Navigation
 } from "lucide-react";
 import "./styles/brokerDashboard.css";
 
@@ -40,16 +63,16 @@ const REFERENCE_LENDERS = [
   { name: "Union Bank", rate: 7.90 },
 ];
 
-const getLoanEmoji = (name = "") => {
+const getLoanIcon = (name = "", size = 16, color = "#0D7A68") => {
   const n = (name || "").toLowerCase();
-  if (n.includes("home")) return "🏠";
-  if (n.includes("property") || n.includes("lap")) return "🏢";
-  if (n.includes("personal")) return "💳";
-  if (n.includes("business")) return "📦";
-  if (n.includes("car") || n.includes("vehicle") || n.includes("auto")) return "🚗";
-  if (n.includes("education")) return "🎓";
-  if (n.includes("gold")) return "🪙";
-  return "📄";
+  if (n.includes("home")) return <Home size={size} color={color} />;
+  if (n.includes("property") || n.includes("lap")) return <Building2 size={size} color={color} />;
+  if (n.includes("personal")) return <CreditCard size={size} color={color} />;
+  if (n.includes("business")) return <Briefcase size={size} color={color} />;
+  if (n.includes("car") || n.includes("vehicle") || n.includes("auto")) return <Car size={size} color={color} />;
+  if (n.includes("education")) return <GraduationCap size={size} color={color} />;
+  if (n.includes("gold")) return <Coins size={size} color={color} />;
+  return <FileText size={size} color={color} />;
 };
 
 export default function BrokerDashboard() {
@@ -511,14 +534,8 @@ export default function BrokerDashboard() {
   };
 
   const getProductEmoji = (id) => {
-    const emojis = {
-      "home-loan": "🏠",
-      "loan-against-property": "🏢",
-      "personal-loan": "💳",
-      "business-loan": "📦",
-      "car-loan": "🚗",
-    };
-    return emojis[id] || "📄";
+    // kept for legacy compatibility, returns empty string (icons used in render)
+    return "";
   };
 
   // Add Client - Lender option list strictly matching reference image sorted by best ROI
@@ -666,7 +683,7 @@ export default function BrokerDashboard() {
               <div className="pdash-name">Partner</div>
               <div className="pdash-meta">
                 <span className="pdash-badge">PARTNER</span>
-                <span className="pdash-city">📍 {user?.city || user?.district || "City"}</span>
+                <span className="pdash-city"><MapPin size={11} style={{ display: 'inline-block', marginRight: '4px', verticalAlign: '-1px' }} />{user?.city || user?.district || "City"}</span>
                 <span className="pdash-id">ID: {user?.brokerId || user?.partner_id || user?.id || user?._id ? `F4S-${String(user.brokerId || user.partner_id || user.id || user._id).padStart(5, '0')}` : 'F4S-20847'}</span>
               </div>
             </div>
@@ -884,7 +901,7 @@ export default function BrokerDashboard() {
 
                             return (
                               <div key={step} className={`cdl-step ${isDone ? "done" : ""} ${isActive ? "active" : ""}`}>
-                                <div className="cdl-dot">{isDone ? "✓" : (idx + 1)}</div>
+                                <div className="cdl-dot">{isDone ? <Check size={11} strokeWidth={3} /> : (idx + 1)}</div>
                                 <span className="cdl-step-lbl" style={{ textTransform: "capitalize" }}>{step}</span>
                               </div>
                             );
@@ -976,12 +993,12 @@ export default function BrokerDashboard() {
         <div className="cdPanelProfile animate-fade-up" style={{ maxWidth: "600px", margin: "0 auto", padding: "10px 0 30px" }}>
           <div style={{ marginBottom: "16px" }}>
             <button type="button" onClick={() => setWorkspaceTab("dashboard")} style={{ background: "transparent", border: "none", color: "#0D7A68", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}>
-              ← Back to Referral Dashboard
+              <ArrowLeft size={16} /> Back to Referral Dashboard
             </button>
           </div>
             <div className="cpro-card" style={{ background: "#fff", borderRadius: "18px", border: "1px solid #E6EEF8", padding: "30px", boxShadow: "0 4px 20px rgba(0,0,0,0.04)" }}>
               <div className="cpro-head" style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px", paddingBottom: "16px", borderBottom: "1px solid #F1F5F9" }}>
-                <span style={{ fontSize: "1.8rem" }}>👤</span>
+                <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "2.2rem", height: "2.2rem", background: "#EEF2FF", borderRadius: "10px", color: "#4F46E5" }}><User size={22} /></span>
                 <div>
                   <div style={{ fontFamily: "Playfair Display, serif", fontSize: "1.4rem", fontWeight: 700, color: "var(--navy)" }}>Partner Profile</div>
                   <div style={{ fontSize: ".82rem", color: "var(--text2)" }}>Manage your partner account details</div>
@@ -993,7 +1010,7 @@ export default function BrokerDashboard() {
                 <div>
                   <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>Full Name</label>
                   <div className="input-wrap">
-                    <span className="icon">👤</span>
+                    <span className="icon"><User size={16} /></span>
                     <input
                       type="text"
                       placeholder="Full Name"
@@ -1009,7 +1026,7 @@ export default function BrokerDashboard() {
                 <div>
                   <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>City</label>
                   <div className="input-wrap">
-                    <span className="icon">🏙️</span>
+                    <span className="icon"><Navigation size={16} /></span>
                     <input
                       type="text"
                       placeholder="City"
@@ -1025,7 +1042,7 @@ export default function BrokerDashboard() {
                 <div>
                   <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>WhatsApp Number</label>
                   <div className="input-wrap">
-                    <span className="icon">📱</span>
+                    <span className="icon"><Smartphone size={16} /></span>
                     <input
                       type="text"
                       placeholder="10-digit WhatsApp number"
@@ -1071,7 +1088,7 @@ export default function BrokerDashboard() {
                 <div>
                   <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>Email Address</label>
                   <div className="input-wrap">
-                    <span className="icon">📧</span>
+                    <span className="icon"><AtSign size={16} /></span>
                     <input
                       type="email"
                       placeholder="Email Address"
@@ -1121,7 +1138,7 @@ export default function BrokerDashboard() {
                       }}
                       style={{ height: "42px", padding: "0 24px" }}
                     >
-                      ✏️ Edit Profile Details
+                      <Pencil size={15} style={{ marginRight: 6 }} /> Edit Profile Details
                     </button>
                   )}
                 </div>
@@ -1146,21 +1163,21 @@ export default function BrokerDashboard() {
                     <div>
                       <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>Current Password</label>
                       <div className="input-wrap">
-                        <span className="icon">🔑</span>
+                        <span className="icon"><Key size={16} /></span>
                         <input type="password" placeholder="Current password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} required />
                       </div>
                     </div>
                     <div>
                       <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>New Password</label>
                       <div className="input-wrap">
-                        <span className="icon">🔒</span>
+                        <span className="icon"><Lock size={16} /></span>
                         <input type="password" placeholder="New password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
                       </div>
                     </div>
                     <div>
                       <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>Confirm New Password</label>
                       <div className="input-wrap">
-                        <span className="icon">🔒</span>
+                        <span className="icon"><Lock size={16} /></span>
                         <input type="password" placeholder="Confirm new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
                       </div>
                     </div>
@@ -1196,7 +1213,7 @@ export default function BrokerDashboard() {
                 onClick={() => setShowAddClientModal(false)}
                 title="Close"
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
 
@@ -1217,7 +1234,7 @@ export default function BrokerDashboard() {
                   >
                     {displayLoanTypes.map((lt) => (
                       <option key={lt.id} value={String(lt.id)}>
-                        {getLoanEmoji(lt.name)} {lt.name}
+                        {lt.name}
                       </option>
                     ))}
                   </select>
@@ -1350,14 +1367,14 @@ export default function BrokerDashboard() {
                     className={`acm-reach-tab ${acReachMode === "direct" ? "active" : ""}`}
                     onClick={() => setAcReachMode("direct")}
                   >
-                    <span>🎴</span> Reach Customer Directly
+                    <ArrowRight size={15} style={{ flexShrink: 0 }} /> Reach Customer Directly
                   </button>
                   <button
                     type="button"
                     className={`acm-reach-tab ${acReachMode === "partner" ? "active" : ""}`}
                     onClick={() => setAcReachMode("partner")}
                   >
-                    <span>💛</span> Reach Through Me (Partner)
+                    <Users size={15} style={{ flexShrink: 0 }} /> Reach Through Me (Partner)
                   </button>
                 </div>
                 <div className="acm-reach-notice">
@@ -1373,7 +1390,7 @@ export default function BrokerDashboard() {
                 className="acm-submit-btn"
                 disabled={submitting}
               >
-                {submitting ? "Adding Client..." : "Add Client →"}
+                {submitting ? "Adding Client..." : <><span>Add Client</span><ArrowRight size={16} style={{ marginLeft: 6 }} /></>}
               </button>
             </form>
           </div>
@@ -1397,14 +1414,14 @@ export default function BrokerDashboard() {
                 </div>
               </div>
               <a href="tel:9217624627" className="cdm-contact-row">
-                <div className="cdm-ci" style={{ backgroundColor: "#EEF6FF", color: "#1B4D8E" }}>📞</div>
+                <div className="cdm-ci" style={{ backgroundColor: "#EEF6FF", color: "#1B4D8E" }}><Phone size={18} /></div>
                 <div>
                   <div className="cdm-cl" style={{ fontSize: ".66rem", color: "var(--text2)", textTransform: "uppercase" }}>Phone Support</div>
                   <div className="cdm-cv">92176 24627</div>
                 </div>
               </a>
               <a href="mailto:support@finn4sure.com" className="cdm-contact-row">
-                <div className="cdm-ci" style={{ backgroundColor: "#F0FDF4", color: "#16A34A" }}>📧</div>
+                <div className="cdm-ci" style={{ backgroundColor: "#F0FDF4", color: "#16A34A" }}><Mail size={18} /></div>
                 <div>
                   <div className="cdm-cl" style={{ fontSize: ".66rem", color: "var(--text2)", textTransform: "uppercase" }}>Email Support</div>
                   <div className="cdm-cv">support@finn4sure.com</div>
@@ -1419,7 +1436,7 @@ export default function BrokerDashboard() {
       {toast && (
         <div className={`pdash-toast pdash-toast--${toast.type}`}>
           <div className="pdash-toast-icon">
-            {toast.type === "success" ? "✓" : "✕"}
+            {toast.type === "success" ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
           </div>
           <div className="pdash-toast-msg">{toast.message}</div>
           <button className="pdash-toast-close" onClick={() => setToast(null)}>×</button>
