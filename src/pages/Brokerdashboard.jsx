@@ -4,6 +4,23 @@ import { useAuth } from "../context/AuthContext";
 import { districtsByState, states } from "../components/Statedata";
 import { fmtINR } from "../utils/formatters";
 import { LOAN_PRODUCTS } from "../utils/constants";
+import {
+  Users,
+  Check,
+  Clock,
+  AlertCircle,
+  Shield,
+  Sparkles,
+  Phone,
+  PhoneCall,
+  Mail,
+  MessageSquare,
+  ChevronRight,
+  ArrowRight,
+  LogOut,
+  MapPin,
+  Plus
+} from "lucide-react";
 import "./styles/brokerDashboard.css";
 
 const DEFAULT_CITIES = [
@@ -427,15 +444,102 @@ export default function BrokerDashboard() {
     }
   };
 
+  // KPI Metrics Calculation from referred leads
+  const totalReferrals = leads.length;
+
+  const disbursedCount = useMemo(() => {
+    return leads.filter((l) => {
+      const s = (l.statusName || l.status || "").toLowerCase();
+      const sid = Number(l.status_id || 0);
+      return sid === 7 || s.includes("disburs") || s.includes("complet");
+    }).length;
+  }, [leads]);
+
+  const inProgressCount = useMemo(() => {
+    return leads.filter((l) => {
+      const s = (l.statusName || l.status || "").toLowerCase();
+      const sid = Number(l.status_id || 0);
+      return (
+        (sid >= 3 && sid < 7) ||
+        s.includes("progress") ||
+        s.includes("credit") ||
+        s.includes("submit") ||
+        s.includes("sanction") ||
+        s.includes("legal")
+      );
+    }).length;
+  }, [leads]);
+
+  const pendingDocsCount = useMemo(() => {
+    return leads.filter((l) => {
+      const s = (l.statusName || l.status || "").toLowerCase();
+      const sid = Number(l.status_id || 0);
+      return (
+        sid === 1 ||
+        sid === 2 ||
+        s.includes("doc") ||
+        s.includes("applied") ||
+        s.includes("pending")
+      );
+    }).length;
+  }, [leads]);
+
+  const loanVolumeFormatted = useMemo(() => {
+    const totalAmt = leads.reduce((sum, l) => sum + (parseFloat(l.amount) || 0), 0);
+    if (totalAmt >= 10000000) {
+      return `₹${(totalAmt / 10000000).toFixed(1)}Cr`;
+    }
+    if (totalAmt >= 100000) {
+      return `₹${(totalAmt / 100000).toFixed(1)}L`;
+    }
+    if (totalAmt > 0) {
+      return `₹${totalAmt.toLocaleString("en-IN")}`;
+    }
+    return "₹0";
+  }, [leads]);
+
   // Filter leads based on tab choice
   const filteredLeads = useMemo(() => {
     if (activeFilter === "all") return leads;
 
-    return leads.filter(
-      (lead) =>
-        String(lead.status_id) === String(activeFilter) ||
-        String(lead.status?.id) === String(activeFilter)
-    );
+    if (activeFilter === "in-progress") {
+      return leads.filter((l) => {
+        const s = (l.statusName || l.status || "").toLowerCase();
+        const sid = Number(l.status_id || 0);
+        return (
+          (sid >= 3 && sid < 7) ||
+          s.includes("progress") ||
+          s.includes("credit") ||
+          s.includes("submit") ||
+          s.includes("sanction") ||
+          s.includes("legal")
+        );
+      });
+    }
+
+    if (activeFilter === "disbursed") {
+      return leads.filter((l) => {
+        const s = (l.statusName || l.status || "").toLowerCase();
+        const sid = Number(l.status_id || 0);
+        return sid === 7 || s.includes("disburs") || s.includes("complet");
+      });
+    }
+
+    if (activeFilter === "pending-docs") {
+      return leads.filter((l) => {
+        const s = (l.statusName || l.status || "").toLowerCase();
+        const sid = Number(l.status_id || 0);
+        return (
+          sid === 1 ||
+          sid === 2 ||
+          s.includes("doc") ||
+          s.includes("applied") ||
+          s.includes("pending")
+        );
+      });
+    }
+
+    return leads;
   }, [leads, activeFilter]);
 
   const getProductTitle = (id) => {
@@ -592,293 +696,325 @@ export default function BrokerDashboard() {
         <div className="pdash-header-inner">
           <div className="pdash-greeting">
             <div className="pdash-avatar">
-              {user.name ? user.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) : "PT"}
+              {user.name ? user.name.charAt(0).toUpperCase() : "P"}
             </div>
             <div>
-              <div className="cdash-welcome">Partner Workspace 👋</div>
-              <div className="pdash-name">{user.name}</div>
+              <div className="pdash-name">Partner</div>
               <div className="pdash-meta">
-                <span className="pdash-badge">Finn4sure Partner</span>
-                <span className="pdash-id">ID: {user?.brokerId || user?.partner_id || user?.id || user?._id ? `F4S-P${String(user.brokerId || user.partner_id || user.id || user._id).padStart(3, '0')}` : 'F4S-P001'}</span>
+                <span className="pdash-badge">PARTNER</span>
+                <span className="pdash-city">📍 {user?.city || user?.district || "City"}</span>
+                <span className="pdash-id">ID: {user?.brokerId || user?.partner_id || user?.id || user?._id ? `F4S-${String(user.brokerId || user.partner_id || user.id || user._id).padStart(5, '0')}` : 'F4S-20847'}</span>
               </div>
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
-            <button className="pdash-support-pill" onClick={() => setShowSupportModal(true)}>
-              <span className="csp-dot"></span> Support
+          <div className="pdash-header-actions">
+            <button className="pdash-help-btn" onClick={() => setShowSupportModal(true)}>
+              <span className="csp-dot"></span> Need Help?
             </button>
             <button className="pdash-logout" onClick={handleSignOut}>
-              <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
+              <LogOut size={13} />
               Sign Out
             </button>
           </div>
-        </div>
-
-        {/* Workspace banner tabs */}
-        <div className="pdash-tab-bar">
-          <button 
-            className={`pdash-tab ${workspaceTab === "dashboard" ? "active" : ""}`}
-            onClick={() => setWorkspaceTab("dashboard")}
-          >
-            📊 Referral Dashboard
-          </button>
-          <button 
-            className={`pdash-tab ${workspaceTab === "profile" ? "active" : ""}`}
-            onClick={() => setWorkspaceTab("profile")}
-          >
-            👤 Edit Profile
-          </button>
         </div>
       </div>
 
       {/* ═══ BODY WORKSPACE ═══ */}
       <div className="pdash-body">
-        {workspaceTab === "dashboard" ? (
+        {workspaceTab !== "profile" ? (
           <>
-            {/* KPI stat metrics row */}
+            {/* KPI stat metrics row (5 cards) */}
             <div className="pdash-kpi-row animate-fade-up">
+          <div className="pdash-kpi-card">
+            <div className="pkpi-icon pkpi-icon-blue">
+              <Users size={20} />
+            </div>
+            <div className="pkpi-content">
+              <div className="pkpi-val">{totalReferrals}</div>
+              <div className="pkpi-lbl">TOTAL REFERRALS</div>
+            </div>
+          </div>
+
+          <div className="pdash-kpi-card">
+            <div className="pkpi-icon pkpi-icon-green">
+              <Check size={20} />
+            </div>
+            <div className="pkpi-content">
+              <div className="pkpi-val">{disbursedCount}</div>
+              <div className="pkpi-lbl">DISBURSED</div>
+            </div>
+          </div>
+
+          <div className="pdash-kpi-card">
+            <div className="pkpi-icon pkpi-icon-amber">
+              <Clock size={20} />
+            </div>
+            <div className="pkpi-content">
+              <div className="pkpi-val">{inProgressCount}</div>
+              <div className="pkpi-lbl">IN PROGRESS</div>
+            </div>
+          </div>
+
+          <div className="pdash-kpi-card">
+            <div className="pkpi-icon pkpi-icon-red">
+              <AlertCircle size={20} />
+            </div>
+            <div className="pkpi-content">
+              <div className="pkpi-val">{pendingDocsCount}</div>
+              <div className="pkpi-lbl">PENDING DOCS</div>
+            </div>
+          </div>
+
+          <div className="pdash-kpi-card">
+            <div className="pkpi-icon pkpi-icon-shield">
+              <Shield size={20} />
+            </div>
+            <div className="pkpi-content">
+              <div className="pkpi-val">{loanVolumeFormatted}</div>
+              <div className="pkpi-lbl">LOAN VOLUME</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Eye-catching Got a new client banner */}
+        <div className="pdash-addclient-banner animate-fade-up" onClick={openReferralModal}>
+          <div className="pacb-left">
+            <div className="pacb-icon">
+              <Sparkles size={24} />
+            </div>
+            <div className="pacb-txt">
+              <div className="pacb-title">Got a new client?</div>
+              <div className="pacb-sub">Add their details in under a minute — pick loan type, amount &amp; how to reach them</div>
+            </div>
+          </div>
+          <button className="pacb-btn" onClick={(e) => { e.stopPropagation(); openReferralModal(); }}>
+            + Add Client
+          </button>
+        </div>
+
+        {/* Main Dashboard Workspace Grid */}
+        <div className="pdash-main-grid animate-fade-up">
+          {/* Left Column */}
+          <div className="pdash-left">
+            <div className="pdash-section-head">
+              <h3>Referred Customers</h3>
+              <button className="pdash-add-btn" onClick={openReferralModal}>
+                <Plus size={14} /> Add Client
+              </button>
             </div>
 
-            {/* Eye-catching Refer Client banner */}
-            <div className="pdash-addclient-banner animate-fade-up" onClick={openReferralModal}>
-              <div className="pacb-glow"></div>
-              <div className="pacb-left">
-                <div className="pacb-icon">✨</div>
-                <div className="pacb-txt">
-                  <div className="pacb-title">Got a new borrower client?</div>
-                  <div className="pacb-sub">Refer their details in 1 minute — pick loan asset, size &amp; Preferred Lenders list</div>
-                </div>
-              </div>
-              <button className="pacb-btn">+ Refer Client</button>
+            {/* Filter Tabs */}
+            <div className="pdash-filter-row">
+              <button
+                className={`pdash-ftab ${activeFilter === "all" ? "active" : ""}`}
+                onClick={() => setActiveFilter("all")}
+              >
+                All ({totalReferrals})
+              </button>
+              <button
+                className={`pdash-ftab ${activeFilter === "in-progress" ? "active" : ""}`}
+                onClick={() => setActiveFilter("in-progress")}
+              >
+                In Progress ({inProgressCount})
+              </button>
+              <button
+                className={`pdash-ftab ${activeFilter === "disbursed" ? "active" : ""}`}
+                onClick={() => setActiveFilter("disbursed")}
+              >
+                Disbursed ({disbursedCount})
+              </button>
+              <button
+                className={`pdash-ftab ${activeFilter === "pending-docs" ? "active" : ""}`}
+                onClick={() => setActiveFilter("pending-docs")}
+              >
+                Pending Docs ({pendingDocsCount})
+              </button>
             </div>
 
-            {/* Main Dashboard Workspace Grid */}
-            <div className="pdash-main-grid animate-fade-up">
-              {/* Left Column */}
-              <div className="pdash-left">
-                <div className="pdash-section-head">
-                  <h3>Referred Clients &amp; Status</h3>
-                  <button className="pdash-add-btn" onClick={openReferralModal}>
-                    + Add Referral
-                  </button>
+            {/* Referral Cards List */}
+            <div className="cd-loan-list">
+              {filteredLeads.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "36px", background: "#fff", border: "1px solid #E6EEF8", borderRadius: "18px", color: "var(--text2)", fontSize: ".88rem" }}>
+                  No referred customers found for this filter tab.
                 </div>
+              ) : (
+                filteredLeads.map((lead, index) => {
+                  const customerName = lead.clientName || (lead.name ? lead.name.split(" - ")[0] : "Customer");
+                  const rawProduct = (lead.product || lead.loanTypeName || "loan").toLowerCase().replace(" loan", "");
+                  const formattedAmt = lead.amount ? `${Number(lead.amount)}` : "";
+                  const lender = lead.lenderName || "SBI";
+                  const dateStr = lead.createdAt
+                    ? new Date(lead.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+                    : "10 Jan 2025";
+                  const refCode = lead.application_no
+                    ? (String(lead.application_no).startsWith("F4S") ? lead.application_no : `F4S-${lead.application_no}`)
+                    : (lead.appId ? `F4S-R${String(lead.appId).padStart(3, "0")}` : `F4S-R00${index + 1}`);
 
-                {/* Filter Tabs */}
-                <div className="pdash-filter-row">
-                  <button
-                    className={`pdash-ftab ${activeFilter === "all" ? "active" : ""}`}
-                    onClick={() => setActiveFilter("all")}
-                  >
-                    All Referrals ({leads.length})
-                  </button>
-                </div>
-                {/* Referral Cards List */}
-                <div className="cd-loan-list">
-                  {filteredLeads.length === 0 ? (
-                    <div style={{ textAlign: "center", padding: "30px", background: "#fff", border: "1px solid #E6EEF8", borderRadius: "18px", color: "var(--text2)", fontSize: ".88rem" }}>
-                      No referred leads found for this filter tab.
-                    </div>
-                  ) : (
-                    filteredLeads.map((lead) => {
-                      const rawSt = (lead.statusName || lead.status || lead.stage || '').toLowerCase();
-                      const sId = Number(lead.status_id || 1);
-                      let currentStepIndex = 0;
-                      if (sId === 7 || rawSt.includes('disburs') || rawSt.includes('complet')) currentStepIndex = 6;
-                      else if (sId === 6 || rawSt.includes('legal')) currentStepIndex = 5;
-                      else if (sId === 5 || rawSt.includes('sanction')) currentStepIndex = 4;
-                      else if (sId === 4 || rawSt.includes('submit')) currentStepIndex = 3;
-                      else if (sId === 3 || rawSt.includes('credit') || rawSt.includes('review')) currentStepIndex = 2;
-                      else if (sId === 2 || rawSt.includes('doc')) currentStepIndex = 1;
-                      else currentStepIndex = 0;
+                  const rawSt = (lead.statusName || lead.status || lead.stage || "").toLowerCase();
+                  const sId = Number(lead.status_id || 1);
+                  let currentStepIndex = 1;
+                  if (sId === 7 || rawSt.includes("disburs") || rawSt.includes("complet")) currentStepIndex = 6;
+                  else if (sId === 6 || rawSt.includes("legal")) currentStepIndex = 5;
+                  else if (sId === 5 || rawSt.includes("sanction")) currentStepIndex = 4;
+                  else if (sId === 4 || rawSt.includes("submit")) currentStepIndex = 3;
+                  else if (sId === 3 || rawSt.includes("credit") || rawSt.includes("review")) currentStepIndex = 2;
+                  else if (sId === 2 || rawSt.includes("doc")) currentStepIndex = 1;
+                  else currentStepIndex = 0;
 
-                      const steps = ['applied' , 'docs', 'credit', 'submitted', 'sanction', 'legal', 'disbursed'];
+                  let chipLabel = "In Progress";
+                  let chipClass = "pchip-blue";
+                  if (sId === 7 || rawSt.includes("disburs") || rawSt.includes("complet")) {
+                    chipLabel = "Disbursed";
+                    chipClass = "pchip-green";
+                  } else if (rawSt.includes("reject")) {
+                    chipLabel = "Rejected";
+                    chipClass = "pchip-red";
+                  } else if (sId === 2 || rawSt.includes("doc")) {
+                    chipLabel = "Pending Docs";
+                    chipClass = "pchip-amber";
+                  }
 
-                      return (
-                      <div key={lead.id || lead._id} className="cdl-card">
-                        <div className="cdl-top">
-                          <div className="cdl-left">
-                            <div className="cdl-type-icon" style={{ backgroundColor: "#ECFDF5", color: "#0F766E" }}>
-                              {getProductEmoji(lead.product)}
-                            </div>
-                            <div className="cdl-info">
-                              <h4>{lead.name}</h4>
-                              <div className="cdl-meta">
-                                {lead.product} · Referred: {new Date(lead.createdAt).toLocaleDateString()}
-                                {lead.amount ? ` · ₹${Number(lead.amount).toLocaleString("en-IN")}` : ""}
-                              </div>
-                            </div>
+                  let remarkText = lead.remark || "";
+                  if (!remarkText) {
+                    if (sId === 7 || rawSt.includes("disburs")) remarkText = "Loan disbursed successfully to client account.";
+                    else if (sId === 6 || rawSt.includes("legal")) remarkText = "Legal and technical verification in progress.";
+                    else if (sId === 5 || rawSt.includes("sanction")) remarkText = "Loan sanction letter issued by bank.";
+                    else if (sId === 4 || rawSt.includes("submit")) remarkText = "Documents submitted.";
+                    else if (sId === 3 || rawSt.includes("credit")) remarkText = "Application under credit appraisal with lenders.";
+                    else if (sId === 2 || rawSt.includes("doc")) remarkText = "Documents pending verification.";
+                    else remarkText = "Documents submitted.";
+                  }
+
+                  return (
+                    <div key={lead.id || lead._id || index} className="pcard-referral">
+                      <div className="pcard-top">
+                        <div className="pcard-left">
+                          <div className="pcard-thumb">
+                            {/* Empty clean thumbnail */}
                           </div>
-                          <div className="cdl-right">
-                            {lead.isApp ? (
-                              <>
-                                <div className="cdl-bank" style={{ textTransform: 'uppercase', fontSize: '.74rem', color: '#64748B', fontWeight: 'bold', marginBottom: '4px' }}>
-                                  {lead.statusName === "disbursed"
-                                    ? "COMPLETED"
-                                    : lead.statusName === "rejected"
-                                    ? "REJECTED"
-                                    : "ACTIVE"}
-                                </div>
-                                <span
-                                  className={`cdl-status-chip ${
-                                    lead.statusName === "disbursed"
-                                      ? "cdl-chip-green"
-                                      : "cdl-chip-amber"
-                                  }`}
-                                >
-                                  <span className="cdl-chip-dot"></span>
-                                  <span>
-                                    {lead.statusName === "disbursed"
-                                      ? "Completed"
-                                      : lead.statusName === "rejected"
-                                      ? "Rejected"
-                                      : "In Progress"}
-                                  </span>
-                                </span>
-                              </>
-                            ) : (
-                              <span
-                                className={`cdl-status-chip ${lead.status === "approved"
-                                  ? "cdl-chip-green"
-                                  : lead.status === "rejected"
-                                    ? "cdl-chip-amber"
-                                    : "cdl-chip-blue"
-                                  }`}
-                              >
-                                <span className="cdl-chip-dot"></span>
-                                {lead.status === "approved"
-                                  ? "Approved"
-                                  : lead.status === "rejected"
-                                    ? "Rejected"
-                                    : "Processing"}
-                              </span>
-                            )}
+                          <div className="pcard-info">
+                            <h4 className="pcard-title">{customerName}</h4>
+                            <div className="pcard-sub1">
+                              {rawProduct} · {formattedAmt} · {lender}
+                            </div>
+                            <div className="pcard-sub2">
+                              {dateStr} · {refCode}
+                            </div>
                           </div>
                         </div>
-
-                        {/* Journey tracker timeline visualization for referred apps */}
-                        {lead.isApp && (
-                          <div className="cdl-journey" style={{ marginTop: '20px', borderTop: '1px solid #F1F5F9', paddingTop: '16px' }}>
-                            <div className="cdl-jlabel">Loan Journey</div>
-                            <div className="cdl-track">
-                              {['applied' , 'docs', 'credit', 'submitted', 'sanction', 'legal', 'disbursed'].map((step, index) => {
-                                const steps = ['applied' , 'docs', 'credit', 'submitted', 'sanction', 'legal', 'disbursed'];
-                                let currentStepIndex = steps.indexOf(lead.statusName) !== -1 ? steps.indexOf(lead.statusName) : 0;
-                                if (lead.statusName === 'applied') {
-                                  currentStepIndex = 1;
-                                }
-                                const isDone = index < currentStepIndex;
-                                const isActive = index === currentStepIndex;
-                                
-                                return (
-                                  <div key={step} className={`cdl-step ${isDone ? "done" : ""} ${isActive ? "active" : ""}`}>
-                                    <div className="cdl-dot">{isDone ? "✓" : (index + 1)}</div>
-                                    <span className="cdl-step-lbl" style={{ textTransform: 'capitalize' }}>{step}</span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-
-                        {lead.isApp && lead.client_preference !== 'direct_reach' && lead.client_preference !== 'direct' && (lead.statusName === 'applied' || lead.statusName === 'docs') && (
-                          <div style={{ 
-                            marginTop: '20px', 
-                            paddingTop: '16px', 
-                            borderTop: '1px solid #F1F5F9', 
-                            display: 'flex', 
-                            justifyContent: 'flex-end', 
-                            alignItems: 'center'
-                          }}>
-                            <Link 
-                              to={`/upload-docs/${lead.appId}`} 
-                              style={{ 
-                                textDecoration: "none", 
-                                background: "linear-gradient(135deg, #059669, #10B981)", 
-                                color: "#fff",
-                                fontSize: "0.82rem",
-                                fontWeight: "700",
-                                padding: "8px 16px",
-                                borderRadius: "8px",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "6px",
-                                boxShadow: "0 4px 12px rgba(16, 185, 129, 0.2)",
-                                transition: "all 0.2s ease"
-                              }}
-                            >
-                              📤 Upload Documents
-                            </Link>
-                          </div>
-                        )}
-
-                        {lead.client_preference && (
-                          <div className="cdl-remark" style={{ fontSize: ".76rem", background: "#F4FBF7", border: "1px solid #A7F3D0", color: "#065F46" }}>
-                            🛡️ {lead.client_preference === "partner_routing" ? "Partner Routing — you will be contacted" : "Direct Reach — team will contact client"}
-                          </div>
-                        )}
-                        {lead.remark && (
-                          <div className="cdl-remark" style={{ fontSize: ".76rem", background: "#F4FBF7", border: "1px solid #A7F3D0", color: "#065F46" }}>
-                            💡 {lead.remark}
-                          </div>
-                        )}
+                        <div className="pcard-right">
+                          <span className={`pcard-chip ${chipClass}`}>
+                            <span className="pcard-chip-dot"></span>
+                            {chipLabel}
+                          </span>
+                        </div>
                       </div>
-                    )})
-                  )}
-                </div>
+
+                      {/* Loan Journey Tracker */}
+                      <div className="pcard-journey">
+                        <div className="cdl-track">
+                          {["applied", "docs", "credit", "submitted", "sanction", "legal", "disbursed"].map((step, idx) => {
+                            const isDone = idx < currentStepIndex;
+                            const isActive = idx === currentStepIndex;
+
+                            return (
+                              <div key={step} className={`cdl-step ${isDone ? "done" : ""} ${isActive ? "active" : ""}`}>
+                                <div className="cdl-dot">{isDone ? "✓" : (idx + 1)}</div>
+                                <span className="cdl-step-lbl" style={{ textTransform: "capitalize" }}>{step}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Status / Remark callout */}
+                      <div className="pcard-remark">
+                        <MessageSquare size={15} className="pcard-remark-icon" />
+                        <span>{remarkText}</span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="cdash-right">
+            {/* Dedicated Support Card */}
+            <div className="pdash-support-card">
+              <div className="pdash-support-head">
+                <PhoneCall size={14} />
+                <span>YOUR DEDICATED SUPPORT</span>
               </div>
 
-              {/* Right Column */}
-              <div className="cdash-right">
-                {/* Dedicated advisor support */}
-                <div className="pdash-support-card">
-                  <div className="cdsm-head" style={{ color: "rgba(255,255,255,.65)" }}>Your Support Manager</div>
-                  <div className="cdsm-person">
-                    <div className="cdsm-avatar" style={{ background: "linear-gradient(135deg, #A7F3D0, #34D399)", color: "#064E3B" }}>RM</div>
-                    <div>
-                      <div className="cdsm-name">Mr. Rishabh Mathur</div>
-                      <div className="cdsm-role" style={{ color: "rgba(255,255,255,.7)" }}>Mortgage Specialist</div>
-                    </div>
-                    <span className={`cdsm-online ${isAdvisorOnline ? "is-online" : "is-offline"}`} style={{ color: isAdvisorOnline ? "#34D399" : "#94A3B8" }}>
-                      <span className="psc-dot" style={{ backgroundColor: isAdvisorOnline ? "#34D399" : "#94A3B8", boxShadow: isAdvisorOnline ? "0 0 8px rgba(52, 211, 153, 0.6)" : "none", animation: isAdvisorOnline ? "roiPulse 1.6s infinite" : "none" }}></span>
-                      {isAdvisorOnline ? "Online" : "Offline"}
-                    </span>
-                  </div>
-                  <div className="cdsm-actions">
-                    <a className="cdsm-btn" href="tel:9217624627">
-                      📞 Call
-                    </a>
-                    <a className="cdsm-btn" href="mailto:support@finn4sure.com">
-                      📧 Email
-                    </a>
-                    <a className="cdsm-btn" href="https://wa.me/919217624627" target="_blank" rel="noreferrer">
-                      📱 WhatsApp
-                    </a>
-                  </div>
-                  <div className="cdsm-hours" style={{ color: "rgba(255,255,255,.55)" }}>Mon–Sat · 9:30 AM – 6:30 PM IST</div>
+              <div className="cdsm-person">
+                <div className="cdsm-avatar" style={{ background: "#34D399", color: "#064E3B", fontWeight: 700, borderRadius: "12px", width: "44px", height: "44px" }}>
+                  RM
                 </div>
+                <div>
+                  <div className="cdsm-name" style={{ fontSize: "0.95rem", fontWeight: 700, color: "#fff" }}>Mr. Rishabh Mathur</div>
+                  <div className="cdsm-role" style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.74rem" }}>Manager — Mortgages</div>
+                </div>
+                <span className={`cdsm-online ${isAdvisorOnline ? "is-online" : "is-offline"}`} style={{ color: isAdvisorOnline ? "#34D399" : "#94A3B8" }}>
+                  <span className="psc-dot" style={{ backgroundColor: isAdvisorOnline ? "#34D399" : "#94A3B8", boxShadow: isAdvisorOnline ? "0 0 8px rgba(52, 211, 153, 0.6)" : "none", animation: isAdvisorOnline ? "roiPulse 1.6s infinite" : "none" }}></span>
+                  {isAdvisorOnline ? "Online" : "Offline"}
+                </span>
+              </div>
 
-                {/* Quick Links */}
-                <div className="pdash-quick-links">
-                  <div className="pql-item" onClick={openReferralModal}>
-                    <span>➕ Refer New Client</span>
-                    <span>→</span>
+              {/* 3 Contact Action Rows */}
+              <div className="pdash-actions-list">
+                <a className="pdash-action-row" href="tel:9910507574">
+                  <div className="par-icon par-white">
+                    <Phone size={16} />
                   </div>
-                  <Link to="/EMI-calculator" className="pql-item" style={{ textDecoration: "none" }}>
-                    <span>🧮 Open EMI Calculator</span>
-                    <span>→</span>
-                  </Link>
-                </div>
+                  <div className="par-details">
+                    <div className="par-lbl">MOBILE</div>
+                    <div className="par-val">99105 07574</div>
+                  </div>
+                  <ChevronRight size={18} className="par-arrow" />
+                </a>
+
+                <a className="pdash-action-row" href="mailto:support@finn4sure.com">
+                  <div className="par-icon par-white">
+                    <Mail size={16} />
+                  </div>
+                  <div className="par-details">
+                    <div className="par-lbl">EMAIL</div>
+                    <div className="par-val">support@finn4sure.com</div>
+                  </div>
+                  <ChevronRight size={18} className="par-arrow" />
+                </a>
+
+                <a className="pdash-action-row" href="https://wa.me/919910507574" target="_blank" rel="noreferrer">
+                  <div className="par-icon par-green">
+                    <MessageSquare size={16} />
+                  </div>
+                  <div className="par-details">
+                    <div className="par-lbl">WHATSAPP</div>
+                    <div className="par-val">Chat Now</div>
+                  </div>
+                  <ChevronRight size={18} className="par-arrow" />
+                </a>
+              </div>
+
+              <div className="pdash-support-hours">
+                <Clock size={13} />
+                <span>Mon–Sat, 9:30 AM — 6:30 PM IST</span>
               </div>
             </div>
-          </>
-        ) : (
-          /* Edit Profile Tab */
-          <div className="cdPanelProfile animate-fade-up" style={{ maxWidth: "600px", margin: "0 auto", padding: "10px 0 30px" }}>
+          </div>
+        </div>
+      </>
+    ) : (
+        /* Edit Profile Tab */
+        <div className="cdPanelProfile animate-fade-up" style={{ maxWidth: "600px", margin: "0 auto", padding: "10px 0 30px" }}>
+          <div style={{ marginBottom: "16px" }}>
+            <button type="button" onClick={() => setWorkspaceTab("dashboard")} style={{ background: "transparent", border: "none", color: "#0D7A68", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}>
+              ← Back to Referral Dashboard
+            </button>
+          </div>
             <div className="cpro-card" style={{ background: "#fff", borderRadius: "18px", border: "1px solid #E6EEF8", padding: "30px", boxShadow: "0 4px 20px rgba(0,0,0,0.04)" }}>
               <div className="cpro-head" style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px", paddingBottom: "16px", borderBottom: "1px solid #F1F5F9" }}>
                 <span style={{ fontSize: "1.8rem" }}>👤</span>
