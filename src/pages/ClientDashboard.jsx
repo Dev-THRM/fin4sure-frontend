@@ -748,31 +748,6 @@ export default function ClientDashboard() {
                           </div>
                         </div>
 
-                        {/* Option to re-upload documents if 3 mandatory docs (Aadhaar, PAN, Bank Statement) are attached */}
-                        {(app.has_three_docs || hasThreeDocs) && (
-                          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
-                            <Link 
-                              to={`/upload-docs/${app.id || app.application_no}`}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                fontSize: '0.80rem',
-                                fontWeight: '600',
-                                color: '#0284C7',
-                                textDecoration: 'none',
-                                padding: '6px 14px',
-                                background: '#F0F9FF',
-                                border: '1.2px solid #BAE6FD',
-                                borderRadius: '8px',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 2px 6px rgba(2, 132, 199, 0.08)'
-                              }}
-                            >
-                              <RefreshCw size={13} /> Re-upload Documents
-                            </Link>
-                          </div>
-                        )}
 
                         {/* Status Remark Alert */}
                         <div className="cdl-remark">
