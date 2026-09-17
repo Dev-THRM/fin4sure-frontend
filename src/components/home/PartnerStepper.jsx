@@ -216,6 +216,9 @@ export default function PartnerStepper({ onBack }) {
             if (!res.ok) throw new Error(data.message || "Failed to register partner");
 
             if (data.success && data.user) {
+                if (data.accessToken) {
+                    localStorage.setItem("accessToken", data.accessToken);
+                }
                 login(data.user);
                 setStep(4);
                 setTimeout(() => {

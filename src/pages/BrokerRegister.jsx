@@ -192,7 +192,10 @@ export default function BrokerRegistration() {
       if (!res.ok) throw new Error(data.message || "Signup failed");
 
       // Auto-login after successful signup
-      login(data);
+      if (data.accessToken) {
+        localStorage.setItem("accessToken", data.accessToken);
+      }
+      login(data.user || data);
       await fetchProfile();
       navigate("/broker-dashboard");
     } catch (err) {
