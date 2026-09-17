@@ -466,11 +466,15 @@ export default function Apply() {
     const targetLenders = selectedLenders.length > 0 ? selectedLenders : [1, 2];
 
     try {
+      const chosenNames = selectedLenders.map(id => mergedLendersList.find(l => l.id === id)?.name || id);
+
       const res = await axios.post("/api/client/apply-loan", {
         product: loanType,
         loanAmount: amount,
         tenure: tenure,
         selectedLenders: targetLenders,
+        selectedLenderNames: chosenNames,
+        lenderNames: chosenNames,
         loan_purpose: applicantData?.loanPurpose || `${currentTitle} Application`
       }, { withCredentials: true });
 

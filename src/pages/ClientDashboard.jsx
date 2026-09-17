@@ -56,6 +56,7 @@ export default function ClientDashboard() {
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [notification, setNotification] = useState(null); // { type, title, message, onClose, autoDismiss }
   const notificationTimeoutRef = useRef(null);
+  const submittedLendersMapRef = useRef(new Map());
 
   const closeNotification = () => {
     if (notificationTimeoutRef.current) {
@@ -99,19 +100,20 @@ export default function ClientDashboard() {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [number, setNumber] = useState("");
   const [address, setAddress] = useState("");
   const [pincode, setPincode] = useState("");
   const [state, setState] = useState("");
   const [district, setDistrict] = useState("");
-  const [number, setNumber] = useState("");
+
+  const [districts, setDistricts] = useState([]);
+  const [pincodeStatus, setPincodeStatus] = useState("idle");
+  const [pincodeError, setPincodeError] = useState("");
+
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
-  const [otpVerified, setOtpVerified] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
-  // Change Password States
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passLoading, setPassLoading] = useState(false);
 
@@ -124,6 +126,12 @@ export default function ClientDashboard() {
   useEffect(() => {
     if (location.state?.appSubmitted) {
       const { appId, loanName, lenderNames } = location.state;
+      if (appId && Array.isArray(lenderNames) && lenderNames.length > 0) {
+        const banksStr = lenderNames.join(", ");
+        submittedLendersMapRef.current.set(String(appId).toUpperCase(), banksStr);
+        const cleanId = String(appId).replace(/^F4S-?/i, "").trim();
+        if (cleanId) submittedLendersMapRef.current.set(cleanId, banksStr);
+      }
       const lendersText = lenderNames && lenderNames.length > 0 ? ` to ${lenderNames.join(", ")}` : "";
       showNotification(
         "Application Submitted!",
@@ -422,6 +430,26 @@ export default function ClientDashboard() {
     return `F4S-${rawNo}`;
   };
 
+  const formatBankNames = (app) => {
+    const rawNo = String(app.application_no || app.id || "").trim();
+    const formatted = formatAppId(app);
+    const cleanNo = rawNo.replace(/^F4S-?/i, "").trim();
+    if (submittedLendersMapRef.current.has(formatted)) {
+      return submittedLendersMapRef.current.get(formatted);
+    }
+    if (submittedLendersMapRef.current.has(cleanNo)) {
+      return submittedLendersMapRef.current.get(cleanNo);
+    }
+    if (app.id && submittedLendersMapRef.current.has(String(app.id))) {
+      return submittedLendersMapRef.current.get(String(app.id));
+    }
+    if (Array.isArray(app.banks) && app.banks.length > 0) return app.banks.join(", ");
+    if (Array.isArray(app.lender_names) && app.lender_names.length > 0) return app.lender_names.join(", ");
+    if (typeof app.bank_name === "string" && app.bank_name.trim()) return app.bank_name;
+    if (typeof app.bank === "string" && app.bank.trim()) return app.bank;
+    return "HDFC Bank";
+  };
+
   // Status arrays
   const disbursedCount = applications.filter((app) => app.Status?.name?.toLowerCase() === "disbursed").length;
   const activeCount = applications.filter((app) => {
@@ -543,7 +571,7 @@ export default function ClientDashboard() {
                             <div className="cdl-info">
                               <h4>{app.Loan_type?.name || "Home Loan"}</h4>
                               <div className="cdl-meta">
-                                {(app.bank_name || app.bank || "HDFC Bank")} · {fmtINR(Number(app.loan_amount || app.amount || 5000000))} · {formatAppId(app)}
+                                {formatBankNames(app)} · {fmtINR(Number(app.loan_amount || app.amount || 5000000))} · {formatAppId(app)}
                               </div>
                             </div>
                           </div>
