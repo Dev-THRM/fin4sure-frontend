@@ -21,7 +21,7 @@ import { useEmiCalculator } from "../hooks/useEmiCalculator";
 import { useSliderPaint } from "../hooks/useSliderPaint";
 import { fmtINR, fmtINRFull } from "../utils/formatters";
 import { calcEMI } from "../utils/emiCalculator";
-import { getLenderTypePriority } from "../utils/loanConstants";
+import { getLenderTypePriority, normalizeLenderCategory } from "../utils/loanConstants";
 import "./styles/calculator.css";
 
 export default function Calculator() {
@@ -225,12 +225,7 @@ export default function Calculator() {
 
       // Only include lenders that have genuine rate records in the database
       if (minR !== null && !isNaN(minR) && minR > 0) {
-        const typeUpper = l.type ? (
-          l.type.toUpperCase() === 'PSU' ? 'PSU' :
-          (l.type.toLowerCase().includes('nbfc') || l.type.toLowerCase().includes('hfc')) ? 'NBFC/HFC' :
-          (l.type.toLowerCase().includes('small') || l.type.toLowerCase().includes('sfb')) ? 'SFB' :
-          'PRIVATE'
-        ) : 'PRIVATE';
+        const typeUpper = normalizeLenderCategory(l.type, l.name);
 
         result.push({
           id: l.id || l.lenderId,
@@ -313,42 +308,39 @@ export default function Calculator() {
     if (lenderFilter !== "All") {
       const fl = lenderFilter.toLowerCase();
       list = list.filter(l => {
-        const rawType = String(l.type || 'PRIVATE').toLowerCase();
+        const cat = normalizeLenderCategory(l.type, l.name);
         if (fl === "psu") {
-          return rawType === "psu" || rawType.includes("psu") || rawType.includes("public") || rawType.includes("govt");
+          return cat === "PSU";
         }
         if (fl === "private") {
-          return rawType === "private";
+          return cat === "PRIVATE";
         }
         if (fl === "nbfc/hfc" || fl === "nbfc" || fl === "hfc") {
-          return rawType.includes("nbfc") || rawType.includes("hfc");
+          return cat === "NBFC/HFC";
         }
         if (fl === "sfb" || fl === "small") {
-          return rawType.includes("sfb") || rawType.includes("small");
+          return cat === "SFB";
         }
         return true;
       });
     }
 
     // Type priority order: Private → NBFC/HFC → SFB → PSU
-    const typeOrder = { 'private': 0, 'nbfc/hfc': 1, 'nbfc': 1, 'hfc': 1, 'sfb': 2, 'psu': 3 };
-    const getTypeOrder = (type) => {
-      const t = (type || '').toLowerCase();
-      for (const key of Object.keys(typeOrder)) {
-        if (t.includes(key)) return typeOrder[key];
-      }
-      return 99;
+    const typeOrder = { 'private': 0, 'nbfc/hfc': 1, 'sfb': 2, 'psu': 3 };
+    const getTypeOrder = (lender) => {
+      const cat = normalizeLenderCategory(lender.type, lender.name).toLowerCase();
+      return typeOrder[cat] !== undefined ? typeOrder[cat] : 99;
     };
 
     if (lenderSort === "rate_asc") {
       list.sort((a, b) => {
         if (a.rate !== b.rate) return a.rate - b.rate;
-        return getTypeOrder(a.type) - getTypeOrder(b.type);
+        return getTypeOrder(a) - getTypeOrder(b);
       });
     } else if (lenderSort === "rate_desc") {
       list.sort((a, b) => {
         if (b.rate !== a.rate) return b.rate - a.rate;
-        return getTypeOrder(a.type) - getTypeOrder(b.type);
+        return getTypeOrder(a) - getTypeOrder(b);
       });
     } else if (lenderSort === "emi_asc") {
       list.sort((a, b) => {
@@ -1396,10 +1388,11 @@ export default function Calculator() {
                   ) : (
                     filteredAndSortedLenders.map((lender, idx) => {
                       const lEmi = calcEMI(amount, lender.rate, tenure);
-                      const rowKey = `calc-lender-${lender.name}-${lender.type}-${lenderFilter}-${rateType}-${loanType}`;
-                      const isPsu = lender.type === 'PSU';
-                      const isNbfc = lender.type === 'NBFC/HFC';
-                      const isSfb = lender.type === 'SFB';
+                      const cat = normalizeLenderCategory(lender.type, lender.name);
+                      const rowKey = `calc-lender-${lender.name}-${cat}-${lenderFilter}-${rateType}-${loanType}`;
+                      const isPsu = cat === 'PSU';
+                      const isNbfc = cat === 'NBFC/HFC';
+                      const isSfb = cat === 'SFB';
                       const isSel = selectedLenders.includes(lender.id);
 
                       // Check contiguous run logic for 2+ selected lenders
@@ -1469,7 +1462,7 @@ export default function Calculator() {
                                     padding: '1px 6px',
                                     borderRadius: '4px'
                                   }}>
-                                    {lender.type || 'PRIVATE'}
+                                    {normalizeLenderCategory(lender.type, lender.name)}
                                   </span>
                                 </div>
                               </div>

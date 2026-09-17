@@ -24,7 +24,7 @@ import { useEmiCalculator } from "../hooks/useEmiCalculator";
 import { useSliderPaint } from "../hooks/useSliderPaint";
 import { fmtINR, fmtINRFull } from "../utils/formatters";
 import { calcEMI } from "../utils/emiCalculator";
-import { getLenderTypePriority } from "../utils/loanConstants";
+import { getLenderTypePriority, normalizeLenderCategory } from "../utils/loanConstants";
 import "./styles/calculator.css";
 import "./styles/apply.css";
 
@@ -335,12 +335,7 @@ export default function Apply() {
 
       // Only include lenders that have genuine rate records in the database
       if (minR !== null && !isNaN(minR) && minR > 0) {
-        const typeUpper = l.type ? (
-          l.type.toUpperCase() === 'PSU' ? 'PSU' :
-          (l.type.toLowerCase().includes('nbfc') || l.type.toLowerCase().includes('hfc')) ? 'NBFC/HFC' :
-          (l.type.toLowerCase().includes('small') || l.type.toLowerCase().includes('sfb')) ? 'SFB' :
-          'PRIVATE'
-        ) : 'PRIVATE';
+        const typeUpper = normalizeLenderCategory(l.type, l.name);
 
         result.push({
           id: l.id || l.lenderId,
@@ -369,18 +364,18 @@ export default function Apply() {
     if (lenderFilter !== "All") {
       const fl = lenderFilter.toLowerCase();
       list = list.filter(l => {
-        const rawType = String(l.type || 'PRIVATE').toLowerCase();
+        const cat = normalizeLenderCategory(l.type, l.name);
         if (fl === "psu") {
-          return rawType === "psu" || rawType.includes("psu") || rawType.includes("public") || rawType.includes("govt");
+          return cat === "PSU";
         }
         if (fl === "private") {
-          return rawType === "private";
+          return cat === "PRIVATE";
         }
         if (fl === "nbfc/hfc" || fl === "nbfc" || fl === "hfc") {
-          return rawType.includes("nbfc") || rawType.includes("hfc");
+          return cat === "NBFC/HFC";
         }
         if (fl === "sfb" || fl === "small") {
-          return rawType.includes("sfb") || rawType.includes("small");
+          return cat === "SFB";
         }
         return true;
       });
@@ -874,13 +869,14 @@ export default function Apply() {
                   const isSel = selectedLenders.includes(lender.id);
                   const lEmi = calcEMI(amount, lender.rate, tenure);
                   const isBest = idx === 0;
-                  const isPsu = lender.type === 'PSU';
-                  const isNbfc = lender.type === 'NBFC/HFC';
-                  const isSfb = lender.type === 'SFB';
+                  const cat = normalizeLenderCategory(lender.type, lender.name);
+                  const isPsu = cat === 'PSU';
+                  const isNbfc = cat === 'NBFC/HFC';
+                  const isSfb = cat === 'SFB';
 
                   return (
                     <div
-                      key={`apply-lender-${lender.name}-${lender.type}-${lenderFilter}-${loanType}-${rateType}`}
+                      key={`apply-lender-${lender.name}-${cat}-${lenderFilter}-${loanType}-${rateType}`}
                       className={`calc-lender-card ${isSel ? "selected" : ""}`}
                       onClick={() => toggleLenderSelection(lender.id)}
                     >
@@ -915,7 +911,7 @@ export default function Apply() {
                               padding: '1px 6px',
                               borderRadius: '4px'
                             }}>
-                              {lender.type || 'PRIVATE'}
+                              {normalizeLenderCategory(lender.type, lender.name)}
                             </span>
                             <span className="clc-bullet">·</span>
                             <span className="clc-pf">PF applicable*</span>

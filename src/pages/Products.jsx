@@ -20,6 +20,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { normalizeLenderCategory } from '../utils/loanConstants';
 import './styles/stepper.css';
 
 const LOAN_TYPE_MAPPING = {
@@ -155,49 +156,10 @@ export default function Products() {
   };
 
   const getLenderCategoryLabel = (lender) => {
-    const name = String(lender.name || '').toUpperCase();
-    const type = String(lender.type || '').toLowerCase();
-    if (
-      type === 'psu' ||
-      name.includes('SBI') ||
-      name.includes('STATE BANK') ||
-      name.includes('PNB') ||
-      name.includes('PUNJAB NATIONAL') ||
-      name.includes('BOB') ||
-      name.includes('BANK OF BARODA') ||
-      name.includes('CANARA') ||
-      name.includes('UNION BANK') ||
-      name.includes('UBI') ||
-      name.includes('BANK OF INDIA') ||
-      name.includes('BOI') ||
-      name.includes('INDIAN BANK') ||
-      name.includes('CENTRAL BANK') ||
-      name.includes('UCO') ||
-      name.includes('MAHARASHTRA') ||
-      name.includes('PUNJAB & SIND') ||
-      name.includes('IDBI')
-    ) {
-      return 'PSU Bank';
-    }
-    if (
-      type === 'nbfc' ||
-      name.includes('HOUSING') ||
-      name.includes('FINSERV') ||
-      name.includes('FINANCE') ||
-      name.includes('CAPITAL') ||
-      name.includes('MUTHOOT') ||
-      name.includes('MANAPPURAM') ||
-      name.includes('CHOLA') ||
-      name.includes('PIRAMAL') ||
-      name.includes('AAVAS') ||
-      name.includes('HOMEFIRST') ||
-      name.includes('NAVI')
-    ) {
-      return 'NBFC / HFC';
-    }
-    if (type === 'small' || type === 'sfb' || name.includes('SMALL FINANCE') || name.includes('SFB')) {
-      return 'SFB Bank';
-    }
+    const cat = normalizeLenderCategory(lender.type, lender.name);
+    if (cat === 'SFB') return 'SFB Bank';
+    if (cat === 'PSU') return 'PSU Bank';
+    if (cat === 'NBFC/HFC') return 'NBFC / HFC';
     return 'Private Bank';
   };
 

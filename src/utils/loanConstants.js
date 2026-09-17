@@ -6,12 +6,80 @@ export const LOAN_PARAMS = {
   vehicle: { amtMin: 100000, amtMax: 10000000, defaultAmount: 1000000, rateMin: 7.5, rateMax: 16, defaultRate: 8.75, tenureMin: 12, tenureMax: 96, defaultTenure: 60, label: 'Vehicle Loan', startingRate: '8.75%' }
 };
 
-export function getLenderTypePriority(type) {
-  const t = String(type || '').toLowerCase();
-  if (t.includes('private')) return 1;
-  if (t.includes('nbfc') || t.includes('hfc') || t.includes('housing finance')) return 2;
-  if (t.includes('sfb') || t.includes('small')) return 3;
-  if (t.includes('psu') || t.includes('public') || t.includes('govt')) return 4;
+export function normalizeLenderCategory(type = '', name = '') {
+  const t = String(type || '').toLowerCase().trim();
+  const n = String(name || '').toLowerCase().trim();
+
+  // 1. Small Finance Banks (SFB)
+  if (
+    t === 'sfb' ||
+    t.includes('sfb') ||
+    t.includes('small') ||
+    n.includes('small finance') ||
+    n.includes('sfb') ||
+    n.includes('au small') ||
+    n.includes('equitas') ||
+    n.includes('ujjivan') ||
+    n.includes('suryoday') ||
+    n.includes('utkarsh') ||
+    n.includes('jana') ||
+    n.includes('esaf') ||
+    n.includes('fincare') ||
+    n.includes('shivalik') ||
+    n.includes('capital small') ||
+    n.includes('unity small')
+  ) {
+    return 'SFB';
+  }
+
+  // 2. Public Sector Banks (PSU)
+  const isPsuName =
+    n.includes('state bank') || n.includes('sbi') ||
+    n.includes('punjab national') || (n.includes('pnb') && !n.includes('housing')) ||
+    n.includes('bank of baroda') || n.includes('bob') ||
+    n.includes('canara') ||
+    n.includes('union bank') ||
+    n.includes('bank of india') || (n.includes('boi') && !n.includes('housing')) ||
+    n.includes('indian bank') ||
+    n.includes('central bank') || n.includes('cbi') ||
+    n.includes('indian overseas') || n.includes('iob') ||
+    n.includes('uco bank') || n.includes('uco') ||
+    n.includes('bank of maharashtra') || n.includes('bom') ||
+    n.includes('punjab & sind') || n.includes('punjab and sind') || n.includes('psb') ||
+    n.includes('idbi');
+
+  if (t === 'psu' || t.includes('psu') || t.includes('public') || t.includes('govt') || isPsuName) {
+    return 'PSU';
+  }
+
+  // 3. NBFC / Housing Finance Companies (NBFC/HFC)
+  const isNbfcName =
+    n.includes('housing finance') || n.includes('hfc') || n.includes('nbfc') ||
+    n.includes('finserv') || n.includes('bajaj') || n.includes('lic housing') || n.includes('pnb housing') ||
+    n.includes('aditya birla') || n.includes('abfl') || n.includes('abhfl') ||
+    n.includes('l&t finance') || n.includes('tata capital') || n.includes('tchf') ||
+    n.includes('sundaram') || n.includes('iifl') || n.includes('navi') ||
+    n.includes('gic housing') || n.includes('repco') || n.includes('poonawalla') ||
+    n.includes('chola') || n.includes('hero fincorp') || n.includes('shriram') ||
+    n.includes('piramal') || n.includes('manappuram') || n.includes('muthoot') ||
+    n.includes('home first') || n.includes('aavas') || n.includes('aadhar') ||
+    n.includes('godrej') || n.includes('indiabulls') || n.includes('fedbank') ||
+    n.includes('mahindra finance');
+
+  if (t.includes('nbfc') || t.includes('hfc') || isNbfcName) {
+    return 'NBFC/HFC';
+  }
+
+  // 4. Default: PRIVATE
+  return 'PRIVATE';
+}
+
+export function getLenderTypePriority(type, name = '') {
+  const cat = normalizeLenderCategory(type, name);
+  if (cat === 'PRIVATE') return 1;
+  if (cat === 'NBFC/HFC') return 2;
+  if (cat === 'SFB') return 3;
+  if (cat === 'PSU') return 4;
   return 5;
 }
 

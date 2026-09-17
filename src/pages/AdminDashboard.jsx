@@ -47,7 +47,7 @@ import {
   X
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { LENDERS, getLenderTypePriority } from "../utils/loanConstants";
+import { LENDERS, getLenderTypePriority, normalizeLenderCategory } from "../utils/loanConstants";
 import "./styles/adminDashboard.css";
 
 function cleanOfferText(str = "") {
@@ -81,12 +81,7 @@ function buildCategoryRates(catKey, backendRates = []) {
     const rateObj = l.rates?.[mapKey];
     const defaultFlow = rateObj ? rateObj.f : null;
     const defaultFix = rateObj ? rateObj.x : null;
-    const typeUpper = l.type ? (
-      l.type.toUpperCase() === 'PSU' ? 'PSU' :
-      (l.type.toLowerCase().includes('nbfc') || l.type.toLowerCase().includes('hfc')) ? 'NBFC/HFC' :
-      (l.type.toLowerCase().includes('small') || l.type.toLowerCase().includes('sfb')) ? 'SFB' :
-      'Private'
-    ) : 'Private';
+    const typeUpper = normalizeLenderCategory(l.type, l.name);
 
     // Find any backend override
     const br = backendMap.get(l.name.toLowerCase().trim()) || (l.short ? backendMap.get(l.short.toLowerCase().trim()) : null);
@@ -150,14 +145,14 @@ function getLoanIcon(name, size = 16) {
 }
 
 function getLenderIcon(lender, size = 16) {
-  const typeStr = String(lender?.type || '').toLowerCase();
-  if (typeStr.includes('psu') || typeStr.includes('public')) {
+  const cat = normalizeLenderCategory(lender?.type, lender?.name || lender?.short);
+  if (cat === 'PSU') {
     return <Landmark size={size} />;
   }
-  if (typeStr.includes('nbfc') || typeStr.includes('hfc')) {
+  if (cat === 'NBFC/HFC') {
     return <Building2 size={size} />;
   }
-  if (typeStr.includes('sfb') || typeStr.includes('small')) {
+  if (cat === 'SFB') {
     return <Zap size={size} />;
   }
   return <Landmark size={size} />;
@@ -1452,18 +1447,18 @@ export default function AdminDashboard() {
 
     return activeList.filter(r => {
       if (!r) return false;
-      const rawType = String(r.type || 'Private').toLowerCase().trim();
+      const cat = normalizeLenderCategory(r.type, r.name || r.short);
       const filterType = String(selectedRateType || 'all_types').toLowerCase().trim();
 
       let matchType = true;
       if (filterType === "psu") {
-        matchType = rawType === "psu" || rawType.includes("psu") || rawType.includes("public") || rawType.includes("govt");
+        matchType = cat === "PSU";
       } else if (filterType === "private") {
-        matchType = rawType === "private";
+        matchType = cat === "PRIVATE";
       } else if (filterType === "nbfc_hfc" || filterType === "nbfc") {
-        matchType = rawType.includes("nbfc") || rawType.includes("hfc") || rawType.includes("housing finance");
+        matchType = cat === "NBFC/HFC";
       } else if (filterType === "sfb") {
-        matchType = rawType.includes("sfb") || rawType.includes("small");
+        matchType = cat === "SFB";
       }
 
       if (!matchType) return false;
@@ -2246,10 +2241,10 @@ export default function AdminDashboard() {
                             const barWidth = Math.max(8, Math.round((countNum / maxCount) * 100));
                             const sharePct = Math.round((countNum / totalApps) * 100);
 
-                            const typeStr = String(lender.type || '').toLowerCase();
-                            const isPsu = typeStr.includes('psu') || typeStr.includes('public');
-                            const isNbfc = typeStr.includes('nbfc') || typeStr.includes('hfc');
-                            const isSfb = typeStr.includes('sfb') || typeStr.includes('small');
+                            const cat = normalizeLenderCategory(lender.type, lender.name || lender.lender_name);
+                            const isPsu = cat === 'PSU';
+                            const isNbfc = cat === 'NBFC/HFC';
+                            const isSfb = cat === 'SFB';
 
                             const theme = isPsu
                               ? { bg: '#DCFCE7', text: '#15803D', border: '#BBF7D0', grad: 'linear-gradient(90deg, #10B981 0%, #059669 100%)', icon: <Landmark size={15} />, label: 'PSU BANK' }
