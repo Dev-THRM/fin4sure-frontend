@@ -1245,7 +1245,7 @@ export default function BrokerDashboard() {
                   >
                     {displayLoanTypes.map((lt) => (
                       <option key={lt.id} value={String(lt.id)}>
-                        {getLoanEmoji(lt.name)} {lt.name}
+                        {lt.name}
                       </option>
                     ))}
                   </select>
