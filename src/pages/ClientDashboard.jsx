@@ -28,7 +28,15 @@ import {
   CheckCircle2,
   Info,
   Clock,
-  Smartphone
+  Smartphone,
+  Briefcase,
+  Building2,
+  Building,
+  Car,
+  Coins,
+  GraduationCap,
+  FileText,
+  Bell
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { LOAN_PRODUCTS } from "../utils/constants";
@@ -384,16 +392,28 @@ export default function ClientDashboard() {
     return LOAN_PRODUCTS.find((p) => p.id === id)?.name || id;
   };
 
-  const getProductEmoji = (type) => {
+  const getProductIcon = (type) => {
     const t = String(type || "").toLowerCase().replace(/[\s_-]+/g, "");
-    if (t.includes("home")) return "🏠";
-    if (t.includes("personal")) return "💼";
-    if (t.includes("lap") || t.includes("property")) return "🏢";
-    if (t.includes("business")) return "📦";
-    if (t.includes("vehicle") || t.includes("car") || t.includes("auto")) return "🚗";
-    if (t.includes("gold")) return "🪙";
-    if (t.includes("education")) return "🎓";
-    return "🏠";
+    if (t.includes("home")) return <Home size={24} color="#0284C7" strokeWidth={2.2} />;
+    if (t.includes("personal")) return <Briefcase size={24} color="#4F46E5" strokeWidth={2.2} />;
+    if (t.includes("lap") || t.includes("property")) return <Building2 size={24} color="#0D9488" strokeWidth={2.2} />;
+    if (t.includes("business")) return <Building size={24} color="#D97706" strokeWidth={2.2} />;
+    if (t.includes("vehicle") || t.includes("car") || t.includes("auto")) return <Car size={24} color="#EA580C" strokeWidth={2.2} />;
+    if (t.includes("gold")) return <Coins size={24} color="#CA8A04" strokeWidth={2.2} />;
+    if (t.includes("education")) return <GraduationCap size={24} color="#7C3AED" strokeWidth={2.2} />;
+    return <FileText size={24} color="#0284C7" strokeWidth={2.2} />;
+  };
+
+  const getProductIconBg = (type) => {
+    const t = String(type || "").toLowerCase().replace(/[\s_-]+/g, "");
+    if (t.includes("home")) return "#EEF6FF";
+    if (t.includes("personal")) return "#EEF2FF";
+    if (t.includes("lap") || t.includes("property")) return "#F0FDFA";
+    if (t.includes("business")) return "#FFFBEB";
+    if (t.includes("vehicle") || t.includes("car") || t.includes("auto")) return "#FFF7ED";
+    if (t.includes("gold")) return "#FEFCE8";
+    if (t.includes("education")) return "#F5F3FF";
+    return "#EEF6FF";
   };
 
   const formatAppId = (app) => {
@@ -517,8 +537,8 @@ export default function ClientDashboard() {
                       <div key={app.id || app.application_no} className="cdl-card">
                         <div className="cdl-top">
                           <div className="cdl-left">
-                            <div className="cdl-type-icon" style={{ backgroundColor: "#EEF6FF", fontSize: "1.5rem" }}>
-                              {getProductEmoji(app.Loan_type?.short_id || app.Loan_type?.name || "home")}
+                            <div className="cdl-type-icon" style={{ backgroundColor: getProductIconBg(app.Loan_type?.short_id || app.Loan_type?.name || "home") }}>
+                              {getProductIcon(app.Loan_type?.short_id || app.Loan_type?.name || "home")}
                             </div>
                             <div className="cdl-info">
                               <h4>{app.Loan_type?.name || "Home Loan"}</h4>
@@ -574,33 +594,10 @@ export default function ClientDashboard() {
                           </div>
                         </div>
 
-                        {/* Status Remark Alert */}
-                        <div className="cdl-remark">
-                          <span style={{ fontSize: "1.05rem", flexShrink: 0, lineHeight: 1 }}>🔔</span>
-                          <span>
-                            {app.remark || 
-                             (app.has_rejected_docs 
-                               ? "One or more documents were rejected by the admin. Please re-upload them to proceed to Credit evaluation."
-                               : (currentStepIndex === 0 || currentStepIndex === 1)
-                               ? "Application received, we will shortly get in touch for further processing."
-                               : currentStepIndex === 2
-                               ? "Documents verified. Your application is currently under credit assessment."
-                               : currentStepIndex === 3
-                               ? "Application submitted to lenders. Awaiting sanction decision."
-                               : currentStepIndex === 4
-                               ? "Sanction approved! Proceeding to legal and technical verification."
-                               : currentStepIndex === 5
-                               ? "Legal verification in progress. Loan agreement nearing disbursement."
-                               : currentStepIndex === 6
-                               ? "Loan disbursed successfully to your bank account."
-                               : "Application received, we will shortly get in touch for further processing.")
-                            }
-                          </span>
-                        </div>
-
+                        {/* Upload Documents / Re-upload Documents Action (above Application received text) */}
                         {app.has_rejected_docs ? (
                           <div style={{
-                            marginTop: '14px',
+                            marginBottom: '14px',
                             padding: '14px 18px',
                             background: '#FEF2F2',
                             border: '1.5px solid #FCA5A5',
@@ -646,7 +643,7 @@ export default function ClientDashboard() {
                           </div>
                         ) : (statusId !== 7 && !rawStatus.includes("disburs") && !rawStatus.includes("reject")) ? (
                           <div style={{ 
-                            marginTop: '16px', 
+                            marginBottom: '14px', 
                             display: 'flex', 
                             justifyContent: 'flex-end', 
                             alignItems: 'center'
@@ -672,6 +669,30 @@ export default function ClientDashboard() {
                             </Link>
                           </div>
                         ) : null}
+
+                        {/* Status Remark Alert */}
+                        <div className="cdl-remark">
+                          <Bell size={18} style={{ color: "#D97706", flexShrink: 0 }} />
+                          <span>
+                            {app.remark || 
+                             (app.has_rejected_docs 
+                               ? "One or more documents were rejected by the admin. Please re-upload them to proceed to Credit evaluation."
+                               : (currentStepIndex === 0 || currentStepIndex === 1)
+                               ? "Application received, we will shortly get in touch for further processing."
+                               : currentStepIndex === 2
+                               ? "Documents verified. Your application is currently under credit assessment."
+                               : currentStepIndex === 3
+                               ? "Application submitted to lenders. Awaiting sanction decision."
+                               : currentStepIndex === 4
+                               ? "Sanction approved! Proceeding to legal and technical verification."
+                               : currentStepIndex === 5
+                               ? "Legal verification in progress. Loan agreement nearing disbursement."
+                               : currentStepIndex === 6
+                               ? "Loan disbursed successfully to your bank account."
+                               : "Application received, we will shortly get in touch for further processing.")
+                            }
+                          </span>
+                        </div>
                       </div>
                     )})
                   )}
