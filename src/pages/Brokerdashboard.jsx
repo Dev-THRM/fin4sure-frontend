@@ -1009,24 +1009,22 @@ export default function BrokerDashboard() {
                 className="pdash-qa-row"
                 onClick={() => setShowAddClientModal(true)}
               >
-                <span className="pdash-qa-icon pdash-qa-icon--add">
-                  <Plus size={16} />
-                </span>
-                <span className="pdash-qa-label">Add Client</span>
-                <ChevronRight size={16} className="pdash-qa-arrow" />
+                <div className="pdash-qa-left">
+                  <Plus size={20} strokeWidth={3} className="pdash-qa-plus" />
+                  <span className="pdash-qa-label">Add Client</span>
+                </div>
+                <ArrowRight size={18} strokeWidth={2.2} className="pdash-qa-arrow" />
               </button>
-
-              <div className="pdash-qa-divider" />
 
               <button
                 className="pdash-qa-row"
-                onClick={() => window.open("https://emicalculator.net/", "_blank")}
+                onClick={() => window.open("/EMI-calculator", "_blank")}
               >
-                <span className="pdash-qa-icon pdash-qa-icon--emi">
-                  <Calculator size={16} />
-                </span>
-                <span className="pdash-qa-label">EMI Calculator</span>
-                <ChevronRight size={16} className="pdash-qa-arrow" />
+                <div className="pdash-qa-left">
+                  <span className="pdash-qa-abacus" role="img" aria-label="EMI Calculator">🧮</span>
+                  <span className="pdash-qa-label">EMI Calculator</span>
+                </div>
+                <ArrowRight size={18} strokeWidth={2.2} className="pdash-qa-arrow" />
               </button>
             </div>
           </div>
