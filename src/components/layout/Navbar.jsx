@@ -45,14 +45,23 @@ export default function Navbar() {
     <>
       {/* ═══ ROW 1: Logo bar ═══ */}
       <header className="navbar-top">
-        <Link to="/" className="nav-logo">
+        <a
+          href="/"
+          className="nav-logo"
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.href = "/";
+          }}
+          title="Finn4sure Home"
+          style={{ cursor: "pointer" }}
+        >
           <img src={logo} className="nav-logo-img" alt="Finn4sure Logo" />
           <div className="nav-logo-name">
             <span className="nl-finn">Finn</span>
             <span className="nl-4">4</span>
             <span className="nl-sure">sure</span>
           </div>
-        </Link>
+        </a>
         <div className="nav-top-right">
           <a className="nav-phone" href={`tel:${(supportPhone || '').replace(/\D/g, '')}`}>
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -93,7 +102,13 @@ export default function Navbar() {
           to="/" 
           end 
           className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
-          onClick={() => setMobileMenuOpen(false)}
+          onClick={(e) => {
+            setMobileMenuOpen(false);
+            if (window.location.pathname === "/") {
+              e.preventDefault();
+              window.location.href = "/";
+            }
+          }}
         >
           <Home size={15} strokeWidth={2} style={{ opacity: 0.85 }} />
           <span>Home</span>

@@ -34,14 +34,23 @@ export default function BrandPanel({ mode = "borrower" }) {
   return (
     <aside className={`brand-panel ${isPartner ? "partner-mode" : ""}`} id="brandPanel">
       {/* Brand logo */}
-      <Link to="/" className="nav-logo">
+      <a
+        href="/"
+        className="nav-logo"
+        onClick={(e) => {
+          e.preventDefault();
+          window.location.href = "/";
+        }}
+        title="Finn4sure Home"
+        style={{ cursor: "pointer" }}
+      >
         <img
           src={logo}
           className="brand-panel-logo"
           alt="Finn4sure Logo"
           fetchPriority="high"
         />
-      </Link>
+      </a>
 
       {/* Brand hero text */}
       <div className="b-hero">
