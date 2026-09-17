@@ -15,6 +15,7 @@ import {
   Handshake
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import RegionPicker from "../common/RegionPicker";
 import "../../pages/styles/stepper.css";
 
 const DEFAULT_CITIES = [
@@ -235,7 +236,7 @@ export default function PartnerStepper({ onBack }) {
             <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
                 <button className="btn-back" onClick={onBack} style={{ marginRight: "16px" }}>← Back</button>
                 <div className="mode-badge partner" style={{ margin: 0, display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                    <Handshake size={15} /> Partner Onboarding
+                    <Handshake size={15} /> PARTNER REGISTRATION
                 </div>
             </div>
 
@@ -244,7 +245,7 @@ export default function PartnerStepper({ onBack }) {
                 <div className="steps-bar">
                     <div className="step-item">
                         <div className={`step-circle partner-step ${step >= 1 ? "active" : ""} ${step > 1 ? "done" : ""}`}>1</div>
-                        <div className={`step-label partner-step ${step >= 1 ? "active" : ""}`}>Details</div>
+                        <div className={`step-label partner-step ${step >= 1 ? "active" : ""}`}>PROFILE</div>
                     </div>
                     <div className="step-connector">
                         <div className="fill" style={{ width: step > 1 ? "100%" : "0%" }}></div>
@@ -252,7 +253,7 @@ export default function PartnerStepper({ onBack }) {
 
                     <div className="step-item">
                         <div className={`step-circle partner-step ${step >= 2 ? "active" : ""} ${step > 2 ? "done" : ""}`}>2</div>
-                        <div className={`step-label partner-step ${step >= 2 ? "active" : ""}`}>Verify</div>
+                        <div className={`step-label partner-step ${step >= 2 ? "active" : ""}`}>VERIFY OTP</div>
                     </div>
                     <div className="step-connector">
                         <div className="fill" style={{ width: step > 2 ? "100%" : "0%" }}></div>
@@ -260,7 +261,7 @@ export default function PartnerStepper({ onBack }) {
 
                     <div className="step-item">
                         <div className={`step-circle partner-step ${step >= 3 ? "active" : ""} ${step > 3 ? "done" : ""}`}>3</div>
-                        <div className={`step-label partner-step ${step >= 3 ? "active" : ""}`}>Password</div>
+                        <div className={`step-label partner-step ${step >= 3 ? "active" : ""}`}>DONE</div>
                     </div>
                 </div>
 
@@ -285,8 +286,19 @@ export default function PartnerStepper({ onBack }) {
                 {/* Step 1: Details */}
                 {step === 1 && (
                     <div>
-                        <div className="form-title">Partner Registration</div>
-                        <div className="form-subtitle">Fill in your basic registration details to get started</div>
+                        <div className="form-title" style={{ fontFamily: "Playfair Display, serif", fontSize: "1.45rem", fontWeight: 700, color: "var(--navy)", marginBottom: "4px" }}>Partner Profile</div>
+                        <div className="form-subtitle" style={{ color: "var(--text2)", fontSize: ".82rem", marginBottom: "8px" }}>Register as a Finn4sure distribution partner and start earning.</div>
+
+                        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "14px", fontSize: ".82rem", color: "var(--text2)" }}>
+                            Already registered?{" "}
+                            <button
+                                type="button"
+                                onClick={() => navigate("/login")}
+                                style={{ background: "none", border: "none", color: "#1D4ED8", fontWeight: 700, cursor: "pointer", marginLeft: "4px", padding: 0, fontSize: ".82rem", textDecoration: "underline" }}
+                            >
+                                Sign In
+                            </button>
+                        </div>
 
                         <div className="form-grid">
                             <div className="field">
@@ -303,193 +315,16 @@ export default function PartnerStepper({ onBack }) {
                                 </div>
                             </div>
 
-                            <div className="field" ref={cityDropdownRef} style={{ position: "relative" }}>
-                                <label>City <span style={{ color: "#DC2626" }}>*</span></label>
-                                <div 
-                                    className="input-wrap" 
-                                    style={{ 
-                                        display: "flex", 
-                                        alignItems: "center", 
-                                        cursor: "pointer", 
-                                        position: "relative",
-                                        borderColor: isCityOpen ? "var(--teal, #0f766e)" : undefined,
-                                        boxShadow: isCityOpen ? "0 0 0 3px rgba(15, 118, 110, 0.12)" : undefined
+                            <div className="field">
+                                <label>City / Area of Operation <span style={{ color: "#DC2626" }}>*</span></label>
+                                <RegionPicker
+                                    value={city}
+                                    onChange={(newCity) => {
+                                        setCity(newCity);
+                                        saveNewCityIfCustom(newCity);
                                     }}
-                                    onClick={() => setIsCityOpen(true)}
-                                >
-                                    <span className="icon"><Building size={16} /></span>
-                                    <input
-                                        type="text"
-                                        placeholder="Select or type your city"
-                                        value={city}
-                                        onChange={(e) => {
-                                            setCity(e.target.value);
-                                            setIsCityOpen(true);
-                                        }}
-                                        onFocus={() => setIsCityOpen(true)}
-                                        required
-                                        autoComplete="off"
-                                        style={{ 
-                                            border: "none", 
-                                            outline: "none", 
-                                            background: "transparent", 
-                                            width: "100%", 
-                                            fontSize: ".88rem", 
-                                            fontWeight: 600, 
-                                            color: "var(--navy)",
-                                            paddingRight: "28px"
-                                        }}
-                                    />
-                                    {city ? (
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setCity("");
-                                                setIsCityOpen(true);
-                                            }}
-                                            style={{
-                                                position: "absolute",
-                                                right: "26px",
-                                                top: "50%",
-                                                transform: "translateY(-50%)",
-                                                background: "#E2E8F0",
-                                                border: "none",
-                                                borderRadius: "50%",
-                                                width: "18px",
-                                                height: "18px",
-                                                fontSize: "10px",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                cursor: "pointer",
-                                                color: "#64748B"
-                                            }}
-                                            title="Clear city"
-                                        >
-                                            ✕
-                                        </button>
-                                    ) : null}
-                                    <span 
-                                        style={{ 
-                                            position: "absolute", 
-                                            right: "10px", 
-                                            top: "50%", 
-                                            transform: `translateY(-50%) rotate(${isCityOpen ? "180deg" : "0deg"})`, 
-                                            transition: "transform 0.2s ease",
-                                            fontSize: "10px",
-                                            color: "#64748B",
-                                            pointerEvents: "none"
-                                        }}
-                                    >
-                                        ▼
-                                    </span>
-                                </div>
-
-                                {/* Custom Dropdown Menu */}
-                                {isCityOpen && (
-                                    <div 
-                                        style={{
-                                            position: "absolute",
-                                            top: "calc(100% + 4px)",
-                                            left: 0,
-                                            right: 0,
-                                            background: "#FFFFFF",
-                                            borderRadius: "12px",
-                                            border: "1px solid #E2E8F0",
-                                            boxShadow: "0 14px 34px -4px rgba(15, 23, 42, 0.16), 0 4px 12px -2px rgba(15, 23, 42, 0.08)",
-                                            zIndex: 9999,
-                                            maxHeight: "230px",
-                                            overflowY: "auto",
-                                            padding: "6px"
-                                        }}
-                                    >
-                                        {(() => {
-                                            const searchLower = (city || "").toLowerCase().trim();
-                                            const filtered = cityList.filter(c => c.toLowerCase().includes(searchLower));
-                                            const exactMatch = cityList.some(c => c.toLowerCase() === searchLower);
-
-                                            return (
-                                                <>
-                                                    {searchLower && !exactMatch && (
-                                                        <div
-                                                            onClick={() => {
-                                                                const customName = city.trim();
-                                                                saveNewCityIfCustom(customName);
-                                                                setIsCityOpen(false);
-                                                            }}
-                                                            style={{
-                                                                padding: "9px 12px",
-                                                                borderRadius: "8px",
-                                                                background: "#F0FDF4",
-                                                                border: "1px dashed #86EFAC",
-                                                                color: "#166534",
-                                                                fontSize: "0.82rem",
-                                                                fontWeight: 700,
-                                                                cursor: "pointer",
-                                                                marginBottom: "4px",
-                                                                display: "flex",
-                                                                alignItems: "center",
-                                                                gap: "8px",
-                                                                transition: "all 0.15s ease"
-                                                            }}
-                                                            onMouseEnter={(e) => e.currentTarget.style.background = "#DCFCE7"}
-                                                            onMouseLeave={(e) => e.currentTarget.style.background = "#F0FDF4"}
-                                                        >
-                                                            <Sparkles size={14} />
-                                                            <span>Add custom city: <strong style={{ textDecoration: "underline" }}>"{city.trim()}"</strong></span>
-                                                        </div>
-                                                    )}
-
-                                                    {filtered.length === 0 && !searchLower && (
-                                                        <div style={{ padding: "12px", textAlign: "center", color: "#94A3B8", fontSize: "0.82rem" }}>
-                                                            Start typing to search cities...
-                                                        </div>
-                                                    )}
-
-                                                    {filtered.map((c) => {
-                                                        const isSelected = city.toLowerCase().trim() === c.toLowerCase();
-                                                        return (
-                                                            <div
-                                                                key={c}
-                                                                onClick={() => {
-                                                                    setCity(c);
-                                                                    saveNewCityIfCustom(c);
-                                                                    setIsCityOpen(false);
-                                                                }}
-                                                                style={{
-                                                                    padding: "8px 12px",
-                                                                    borderRadius: "8px",
-                                                                    fontSize: "0.84rem",
-                                                                    fontWeight: isSelected ? 700 : 500,
-                                                                    color: isSelected ? "#0F766E" : "#1E293B",
-                                                                    background: isSelected ? "#F0FDFA" : "transparent",
-                                                                    cursor: "pointer",
-                                                                    display: "flex",
-                                                                    alignItems: "center",
-                                                                    justifyContent: "space-between",
-                                                                    transition: "background 0.12s ease"
-                                                                }}
-                                                                onMouseEnter={(e) => {
-                                                                    if (!isSelected) e.currentTarget.style.background = "#F8FAFC";
-                                                                }}
-                                                                onMouseLeave={(e) => {
-                                                                    if (!isSelected) e.currentTarget.style.background = "transparent";
-                                                                }}
-                                                            >
-                                                                <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                                                    <MapPin size={13} className="text-slate-400" />
-                                                                    {c}
-                                                                </span>
-                                                                {isSelected && <Check size={14} color="#0F766E" strokeWidth={3} />}
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </>
-                                            );
-                                        })()}
-                                    </div>
-                                )}
+                                    required
+                                />
                             </div>
 
                             <div className="field">

@@ -16,7 +16,9 @@ import {
   XCircle,
   Check
 } from "lucide-react";
+import RegionPicker from "../components/common/RegionPicker";
 import "./styles/login.css";
+import "./styles/stepper.css";
 
 export default function BrokerRegistration() {
   const navigate = useNavigate();
@@ -24,6 +26,7 @@ export default function BrokerRegistration() {
 
   // ---------------- FORM STATES ----------------
   const [fullName, setFullName] = useState("");
+  const [city, setCity] = useState("");
   const [email, setEmail] = useState("");
   const [number, setNumber] = useState("");
   const [receivedOtp, setReceivedOtp] = useState("");
@@ -171,10 +174,11 @@ export default function BrokerRegistration() {
         password: password.trim(),
         role: "broker",
         dob,
-        address,
+        address: address || city,
+        city: city || district,
         pincode,
-        state,
-        district,
+        state: state || "India",
+        district: district || city,
       };
 
       const res = await fetch(`/api/auth/signup`, {
@@ -340,6 +344,21 @@ export default function BrokerRegistration() {
                   required
                 />
               </div>
+            </div>
+
+            {/* OPERATING CITY / REGION SELECTOR */}
+            <div>
+              <label style={{ fontSize: ".8rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>
+                City / Area of Operation <span style={{ color: "#DC2626" }}>*</span>
+              </label>
+              <RegionPicker
+                value={city}
+                onChange={(selectedCity) => {
+                  setCity(selectedCity);
+                  if (!district) setdistrict(selectedCity);
+                }}
+                required
+              />
             </div>
 
             {/* STATE & DISTRICT SELECTORS */}
