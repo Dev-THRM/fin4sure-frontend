@@ -1272,8 +1272,6 @@ export default function BrokerDashboard() {
                     >
                       <option value="Lakh">Lakh</option>
                       <option value="Crore">Crore</option>
-                      <option value="Thousand">Thousand</option>
-                      <option value="₹">₹</option>
                     </select>
                   </div>
                 </div>
@@ -1396,13 +1394,15 @@ export default function BrokerDashboard() {
               </div>
 
               {/* Row 6: Submit Button */}
-              <button
-                type="submit"
-                className="acm-submit-btn"
-                disabled={submitting}
-              >
-                {submitting ? "Adding Client..." : <><span>Add Client</span><ArrowRight size={16} style={{ marginLeft: 6 }} /></>}
-              </button>
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <button
+                  type="submit"
+                  className="acm-submit-btn"
+                  disabled={submitting}
+                >
+                  {submitting ? "Adding Client..." : <><span>Add Client</span><ArrowRight size={16} style={{ marginLeft: 6 }} /></>}
+                </button>
+              </div>
             </form>
           </div>
         </div>
