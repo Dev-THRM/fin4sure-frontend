@@ -692,7 +692,7 @@ export default function BrokerDashboard() {
               {user.name ? user.name.charAt(0).toUpperCase() : "P"}
             </div>
             <div>
-              <div className="pdash-name">Partner</div>
+              <div className="pdash-name">{user?.name || "Partner"}</div>
               <div className="pdash-meta">
                 <span className="pdash-badge">PARTNER</span>
                 <span className="pdash-city"><MapPin size={11} style={{ display: 'inline-block', marginRight: '4px', verticalAlign: '-1px' }} />{user?.city || user?.district || "City"}</span>
@@ -710,6 +710,22 @@ export default function BrokerDashboard() {
               Sign Out
             </button>
           </div>
+        </div>
+
+        {/* Workspace Tabs */}
+        <div className="pdash-tab-bar">
+          <button
+            className={`pdash-tab ${workspaceTab === "dashboard" ? "active" : ""}`}
+            onClick={() => setWorkspaceTab("dashboard")}
+          >
+            My Referrals
+          </button>
+          <button
+            className={`pdash-tab ${workspaceTab === "profile" ? "active" : ""}`}
+            onClick={() => setWorkspaceTab("profile")}
+          >
+            Profile &amp; Security
+          </button>
         </div>
       </div>
 

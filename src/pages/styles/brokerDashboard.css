@@ -149,6 +149,44 @@
   border-color: rgba(239, 68, 68, .5);
 }
 
+/* Tab Bar */
+.pdash-tab-bar {
+  display: flex;
+  gap: 8px;
+  max-width: 1140px;
+  margin: 18px auto 0;
+  padding: 0 20px;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.15);
+  box-sizing: border-box;
+}
+
+.pdash-tab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 18px;
+  border: none;
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .84rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all .2s;
+  margin-bottom: -1.5px;
+}
+
+.pdash-tab:hover {
+  color: #fff;
+}
+
+.pdash-tab.active {
+  color: #fff;
+  border-bottom-color: #34D399;
+  font-weight: 700;
+}
+
 /* Body + layout */
 .pdash-body {
   max-width: 1140px;
