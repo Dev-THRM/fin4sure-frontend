@@ -146,8 +146,8 @@ export default function BrokerDashboard() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Add Client Form States (matching new screenshot design)
-  const [acLoanType, setAcLoanType] = useState("");
+  // Add Client Form States (matching 2nd image design)
+  const [acLoanType, setAcLoanType] = useState("1");
   const [acAmt, setAcAmt] = useState("20");
   const [acAmtUnit, setAcAmtUnit] = useState("Lakh");
   const [acTenureYears, setAcTenureYears] = useState("15");
@@ -166,6 +166,8 @@ export default function BrokerDashboard() {
       await fetchProfile();
       await fetchClients();
       await fetchLeads();
+      await fetchLoanTypes();
+      await fetchLenders();
     };
     loadAllData();
   }, []);
@@ -519,46 +521,30 @@ export default function BrokerDashboard() {
     return emojis[id] || "📄";
   };
 
-  // Add Client - Lender option list sorted by best ROI
+  // Add Client - Lender option list strictly matching reference image sorted by best ROI
   const lenderOptions = useMemo(() => {
-    const map = new Map();
-
-    // 1. Initialize with canonical lenders and competitive ROI benchmarks
-    REFERENCE_LENDERS.forEach((rl) => {
-      map.set(rl.name.toLowerCase(), { id: null, name: rl.name, rate: rl.rate });
+    return REFERENCE_LENDERS.map((rl) => {
+      const match = (allLenders || []).find((l) => {
+        const lName = (l.name || "").toLowerCase().replace(" bank", "").trim();
+        const rName = rl.name.toLowerCase().replace(" bank", "").trim();
+        return lName === rName || lName.includes(rName) || rName.includes(lName);
+      });
+      return {
+        id: match ? match.id : null,
+        name: rl.name,
+        rate: rl.rate,
+      };
     });
-
-    // 2. Merge with lenders from DB if available
-    (allLenders || []).forEach((l) => {
-      const matchingRate = (l.loanRates || []).find(
-        (r) => r.loan_type_id === parseInt(acLoanType)
-      );
-      const existing = map.get(l.name.toLowerCase());
-      if (existing) {
-        existing.id = l.id;
-        if (matchingRate?.min_rate) existing.rate = parseFloat(matchingRate.min_rate);
-      } else {
-        map.set(l.name.toLowerCase(), {
-          id: l.id,
-          name: l.name,
-          rate: matchingRate?.min_rate ? parseFloat(matchingRate.min_rate) : 7.95
-        });
-      }
-    });
-
-    const list = Array.from(map.values());
-    list.sort((a, b) => (a.rate || 99) - (b.rate || 99));
-    return list;
-  }, [acLoanType, allLenders]);
+  }, [allLenders]);
 
   const displayLoanTypes = useMemo(() => {
     if (loanTypes && loanTypes.length > 0) return loanTypes;
     return [
-      { id: 1, name: "Home Loan" },
-      { id: 2, name: "Loan Against Property" },
-      { id: 3, name: "Personal Loan" },
-      { id: 4, name: "Business Loan" },
-      { id: 5, name: "Car Loan" },
+      { id: "1", name: "Home Loan" },
+      { id: "2", name: "Loan Against Property" },
+      { id: "3", name: "Personal Loan" },
+      { id: "4", name: "Business Loan" },
+      { id: "5", name: "Car Loan" },
     ];
   }, [loanTypes]);
 
@@ -1222,7 +1208,7 @@ export default function BrokerDashboard() {
                   <label className="acm-label">Loan Type</label>
                   <select
                     className="acm-select"
-                    value={acLoanType}
+                    value={acLoanType || String(displayLoanTypes[0]?.id || "1")}
                     onChange={(e) => {
                       setAcLoanType(e.target.value);
                       setSelectedLenders([]);
@@ -1230,7 +1216,7 @@ export default function BrokerDashboard() {
                     required
                   >
                     {displayLoanTypes.map((lt) => (
-                      <option key={lt.id} value={lt.id}>
+                      <option key={lt.id} value={String(lt.id)}>
                         {getLoanEmoji(lt.name)} {lt.name}
                       </option>
                     ))}
@@ -1364,7 +1350,7 @@ export default function BrokerDashboard() {
                     className={`acm-reach-tab ${acReachMode === "direct" ? "active" : ""}`}
                     onClick={() => setAcReachMode("direct")}
                   >
-                    <span>🏦</span> Reach Customer Directly
+                    <span>🎴</span> Reach Customer Directly
                   </button>
                   <button
                     type="button"
