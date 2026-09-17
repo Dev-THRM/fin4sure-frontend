@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { districtsByState, states } from "../components/Statedata";
 import { fmtINR } from "../utils/formatters";
 import { LOAN_PRODUCTS } from "../utils/constants";
 import {
@@ -23,16 +22,35 @@ import {
 } from "lucide-react";
 import "./styles/brokerDashboard.css";
 
-const DEFAULT_CITIES = [
-  "Mumbai", "Delhi", "Bengaluru", "Kolkata", "Chennai", "Hyderabad",
-  "Pune", "Ahmedabad", "Surat", "Jaipur", "Lucknow", "Kanpur",
-  "Nagpur", "Indore", "Thane", "Bhopal", "Visakhapatnam", "Patna",
-  "Vadodara", "Ghaziabad", "Ludhiana", "Agra", "Nashik", "Faridabad",
-  "Meerut", "Rajkot", "Kalyan-Dombivli", "Vasai-Virar", "Varanasi",
-  "Srinagar", "Aurangabad", "Dhanbad", "Amritsar", "Navi Mumbai",
-  "Allahabad", "Ranchi", "Howrah", "Coimbatore", "Jabalpur",
-  "Gwalior", "Vijayawada", "Jodhpur", "Madurai", "Raipur", "Kota"
+const REFERENCE_LENDERS = [
+  { name: "HDFC Bank", rate: 7.20 },
+  { name: "ICICI Bank", rate: 7.25 },
+  { name: "Bajaj Finserv", rate: 7.25 },
+  { name: "Axis Bank", rate: 7.30 },
+  { name: "Kotak Mahindra", rate: 7.40 },
+  { name: "Yes Bank", rate: 7.45 },
+  { name: "PNB Housing", rate: 7.50 },
+  { name: "LIC Housing", rate: 7.50 },
+  { name: "IndusInd Bank", rate: 7.55 },
+  { name: "State Bank of India", rate: 7.60 },
+  { name: "Bank of Baroda", rate: 7.65 },
+  { name: "Tata Capital", rate: 7.75 },
+  { name: "IDFC First Bank", rate: 7.80 },
+  { name: "Federal Bank", rate: 7.85 },
+  { name: "Union Bank", rate: 7.90 },
 ];
+
+const getLoanEmoji = (name = "") => {
+  const n = (name || "").toLowerCase();
+  if (n.includes("home")) return "🏠";
+  if (n.includes("property") || n.includes("lap")) return "🏢";
+  if (n.includes("personal")) return "💳";
+  if (n.includes("business")) return "📦";
+  if (n.includes("car") || n.includes("vehicle") || n.includes("auto")) return "🚗";
+  if (n.includes("education")) return "🎓";
+  if (n.includes("gold")) return "🪙";
+  return "📄";
+};
 
 export default function BrokerDashboard() {
   const { logout } = useAuth();
@@ -128,72 +146,16 @@ export default function BrokerDashboard() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Add Client Form States
+  // Add Client Form States (matching new screenshot design)
+  const [acLoanType, setAcLoanType] = useState("");
+  const [acAmt, setAcAmt] = useState("20");
+  const [acAmtUnit, setAcAmtUnit] = useState("Lakh");
+  const [acTenureYears, setAcTenureYears] = useState("15");
+  const [selectedLenders, setSelectedLenders] = useState([]);
   const [acName, setAcName] = useState("");
   const [acMobile, setAcMobile] = useState("");
   const [acEmail, setAcEmail] = useState("");
-  const [acDob, setAcDob] = useState("");
-  const [acGender, setAcGender] = useState("");
-  const [acAmt, setAcAmt] = useState("");
-  const [acLoanPurpose, setAcLoanPurpose] = useState("");
-  const [acTenure, setAcTenure] = useState(""); // months
-  const [acLoanType, setAcLoanType] = useState("");
   const [acReachMode, setAcReachMode] = useState("direct");
-  const [acAddress, setAcAddress] = useState("");
-  const [acPincode, setAcPincode] = useState("");
-  const [acState, setAcState] = useState("");
-  const [acDistrict, setAcDistrict] = useState("");
-  const [acCity, setAcCity] = useState("");
-  const [cityList, setCityList] = useState(DEFAULT_CITIES.slice().sort());
-  const [isAcCityOpen, setIsAcCityOpen] = useState(false);
-  const acCityDropdownRef = useRef(null);
-  const [selectedLenders, setSelectedLenders] = useState([]);
-
-  // Close city dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (acCityDropdownRef.current && !acCityDropdownRef.current.contains(e.target)) {
-        setIsAcCityOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Fetch dynamic cities from backend DB
-  useEffect(() => {
-    const fetchCities = async () => {
-      try {
-        const res = await fetch("/api/locations/all-cities");
-        if (res.ok) {
-          const json = await res.json();
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-            const merged = Array.from(new Set([...DEFAULT_CITIES, ...json.data])).sort();
-            setCityList(merged);
-          }
-        }
-      } catch (err) {
-        console.warn("Cities fetch notice:", err.message);
-      }
-    };
-    fetchCities();
-  }, []);
-
-  // Save custom city to backend if not already existing
-  const saveNewCityIfCustom = async (cityName) => {
-    if (!cityName || !cityName.trim()) return;
-    const clean = cityName.trim();
-    try {
-      const res = await fetch("/api/locations/create-city", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: clean })
-      });
-      if (res.ok) {
-        setCityList(prev => Array.from(new Set([...prev, clean])).sort());
-      }
-    } catch (_) {}
-  };
 
   // DB-driven data
   const [loanTypes, setLoanTypes] = useState([]);
@@ -557,20 +519,48 @@ export default function BrokerDashboard() {
     return emojis[id] || "📄";
   };
 
-  // Add Client - Lender option list based on selected loan type (from DB)
+  // Add Client - Lender option list sorted by best ROI
   const lenderOptions = useMemo(() => {
-    if (!acLoanType) return allLenders.map((l) => ({ id: l.id, name: l.name, rate: null }));
-    return allLenders
-      .map((l) => {
-        const matchingRate = (l.loanRates || []).find(
-          (r) => r.loan_type_id === parseInt(acLoanType)
-        );
-        return matchingRate
-          ? { id: l.id, name: l.name, rate: matchingRate.min_rate }
-          : null;
-      })
-      .filter(Boolean);
+    const map = new Map();
+
+    // 1. Initialize with canonical lenders and competitive ROI benchmarks
+    REFERENCE_LENDERS.forEach((rl) => {
+      map.set(rl.name.toLowerCase(), { id: null, name: rl.name, rate: rl.rate });
+    });
+
+    // 2. Merge with lenders from DB if available
+    (allLenders || []).forEach((l) => {
+      const matchingRate = (l.loanRates || []).find(
+        (r) => r.loan_type_id === parseInt(acLoanType)
+      );
+      const existing = map.get(l.name.toLowerCase());
+      if (existing) {
+        existing.id = l.id;
+        if (matchingRate?.min_rate) existing.rate = parseFloat(matchingRate.min_rate);
+      } else {
+        map.set(l.name.toLowerCase(), {
+          id: l.id,
+          name: l.name,
+          rate: matchingRate?.min_rate ? parseFloat(matchingRate.min_rate) : 7.95
+        });
+      }
+    });
+
+    const list = Array.from(map.values());
+    list.sort((a, b) => (a.rate || 99) - (b.rate || 99));
+    return list;
   }, [acLoanType, allLenders]);
+
+  const displayLoanTypes = useMemo(() => {
+    if (loanTypes && loanTypes.length > 0) return loanTypes;
+    return [
+      { id: 1, name: "Home Loan" },
+      { id: 2, name: "Loan Against Property" },
+      { id: 3, name: "Personal Loan" },
+      { id: 4, name: "Business Loan" },
+      { id: 5, name: "Car Loan" },
+    ];
+  }, [loanTypes]);
 
   const handleToggleLender = (name) => {
     if (selectedLenders.includes(name)) {
@@ -588,49 +578,47 @@ export default function BrokerDashboard() {
     }
   };
 
-  const selectedLoanTypeName = loanTypes.find((t) => String(t.id) === String(acLoanType))?.name || acLoanType;
+  const selectedLoanTypeName = displayLoanTypes.find((t) => String(t.id) === String(acLoanType))?.name || acLoanType;
 
   const [submitting, setSubmitting] = useState(false);
 
   const submitAddClient = async (e) => {
     e.preventDefault();
-    if (!acName || !acMobile) {
-      showToast("error", "Please enter client name and mobile number");
+    if (!acName.trim() || !acMobile.trim()) {
+      showToast("error", "Please enter client name and 10-digit mobile number");
+      return;
+    }
+    if (acMobile.trim().length !== 10) {
+      showToast("error", "Please enter a valid 10-digit mobile number");
       return;
     }
     if (!acAmt || parseFloat(acAmt) <= 0) {
       showToast("error", "Please enter a valid loan amount");
       return;
     }
-    if (!acAddress || !acPincode || acPincode.length !== 6) {
-      showToast("error", "Please enter a valid address and 6-digit pincode");
-      return;
-    }
 
     setSubmitting(true);
     try {
+      const unitMultiplier = acAmtUnit === "Crore" ? 10000000 : acAmtUnit === "Thousand" ? 1000 : acAmtUnit === "₹" ? 1 : 100000;
+      const finalAmount = parseFloat(acAmt) * unitMultiplier;
+      const finalTenureMonths = acTenureYears ? Math.round(parseFloat(acTenureYears) * 12) : null;
+
       // Pick first selected lender's id (if any)
       const firstSelectedLender = lenderOptions.find((l) => selectedLenders.includes(l.name));
+      const targetLoanTypeId = acLoanType || (displayLoanTypes[0]?.id ? String(displayLoanTypes[0].id) : "1");
 
       const payload = {
-        name: acName,
-        number: acMobile,
-        email: acEmail,
-        loan_type_id: acLoanType,
-        loan_amount: parseFloat(acAmt),
-        loan_purpose: acLoanPurpose || selectedLoanTypeName,
+        name: acName.trim(),
+        number: acMobile.trim(),
+        email: acEmail.trim() || null,
+        loan_type_id: targetLoanTypeId,
+        loan_amount: finalAmount,
+        loan_purpose: selectedLoanTypeName || "General",
         preferred_lender_id: firstSelectedLender?.id || null,
         selected_lenders: selectedLenders,
         selectedLenders: selectedLenders,
         client_preference: acReachMode,
-        address: acAddress,
-        pincode: acPincode,
-        state: acState,
-        district: acDistrict,
-        city: acCity,
-        tenure: acTenure,
-        dob: acDob,
-        gender: acGender,
+        tenure: finalTenureMonths,
       };
 
       const res = await fetch("/api/broker/referClient", {
@@ -647,31 +635,21 @@ export default function BrokerDashboard() {
         return;
       }
 
-      showToast("success", `Referral for "${acName}" submitted! Application saved to database.`);
+      showToast("success", `Referral for "${acName.trim()}" submitted! Application saved.`);
       setShowAddClientModal(false);
 
       // Reset form
-      // if (data.waCredentials) {
-      //   console.log(`[WHATSAPP SIMULATION] Message to 91${acMobile}`);
-      //   console.log(`Your Fin4Sure account has been created.\nUsername: ${data.waCredentials.username}\nPassword: ${data.waCredentials.password}\n\nPlease log in and change your password if you want.`);
-      // }12
       setAcName("");
       setAcMobile("");
       setAcEmail("");
-      setAcDob("");
-      setAcGender("");
-      setAcAmt("");
-      setAcLoanPurpose("");
-      setAcTenure("");
-      setAcAddress("");
-      setAcPincode("");
-      setAcState("");
-      setAcDistrict("");
-      setAcCity("");
+      setAcAmt("20");
+      setAcAmtUnit("Lakh");
+      setAcTenureYears("15");
       setSelectedLenders([]);
-      if (loanTypes.length > 0) setAcLoanType(String(loanTypes[0].id));
+      setAcReachMode("direct");
+      if (displayLoanTypes.length > 0) setAcLoanType(String(displayLoanTypes[0].id));
 
-      // Refresh dashboard data (stay on same page)
+      // Refresh dashboard data
       fetchClients();
       fetchLeads();
     } catch (e) {
@@ -1216,463 +1194,202 @@ export default function BrokerDashboard() {
         )}
       </div>
 
-      {/* ═══ REFER CLIENT MODAL ═══ */}
+      {/* ═══ ADD CLIENT MODAL (MATCHING SCREENSHOT) ═══ */}
       {showAddClientModal && (
         <div className="cd-modal" onClick={() => setShowAddClientModal(false)}>
-          <div className="cd-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "540px" }}>
-            <div className="cd-modal-head" style={{ background: "linear-gradient(135deg,#042F2A,#064E3B 50%,#0F766E)" }}>
-              <span>➕ Refer Client Form</span>
-              <button onClick={() => setShowAddClientModal(false)}>&times;</button>
+          <div className="acm-card" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="acm-header">
+              <div className="acm-header-title">
+                <span className="acm-plus-icon">+</span>
+                <span className="acm-title-text">Add Client</span>
+              </div>
+              <button
+                type="button"
+                className="acm-close-btn"
+                onClick={() => setShowAddClientModal(false)}
+                title="Close"
+              >
+                ✕
+              </button>
             </div>
-            <div className="cd-modal-body" style={{ maxHeight: "78vh", overflowY: "auto" }}>
-              <form onSubmit={submitAddClient} className="apply-form">
-                <div className="apply-form-group">
-                  <label>Client Full Name *</label>
-                  <div className="input-wrap">
-                    <span className="icon">👤</span>
+
+            {/* Modal Form Body */}
+            <form onSubmit={submitAddClient} className="acm-body">
+              {/* Row 1: Loan Type, Amount, Tenure */}
+              <div className="acm-grid-3">
+                <div className="acm-form-group">
+                  <label className="acm-label">Loan Type</label>
+                  <select
+                    className="acm-select"
+                    value={acLoanType}
+                    onChange={(e) => {
+                      setAcLoanType(e.target.value);
+                      setSelectedLenders([]);
+                    }}
+                    required
+                  >
+                    {displayLoanTypes.map((lt) => (
+                      <option key={lt.id} value={lt.id}>
+                        {getLoanEmoji(lt.name)} {lt.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="acm-form-group">
+                  <label className="acm-label">Amount</label>
+                  <div className="acm-amount-box">
+                    <span className="acm-currency-prefix">₹</span>
                     <input
-                      type="text"
-                      placeholder="Customer Name"
-                      value={acName}
-                      onChange={(e) => setAcName(e.target.value)}
+                      type="number"
+                      step="any"
+                      min="1"
+                      className="acm-amount-input"
+                      value={acAmt}
+                      onChange={(e) => setAcAmt(e.target.value)}
+                      placeholder="20"
                       required
                     />
+                    <select
+                      className="acm-amount-unit-select"
+                      value={acAmtUnit}
+                      onChange={(e) => setAcAmtUnit(e.target.value)}
+                    >
+                      <option value="Lakh">Lakh</option>
+                      <option value="Crore">Crore</option>
+                      <option value="Thousand">Thousand</option>
+                      <option value="₹">₹</option>
+                    </select>
                   </div>
                 </div>
 
-                <div className="apply-form-row">
-                  <div className="apply-form-group">
-                    <label>WhatsApp Mobile *</label>
-                    <div className="input-wrap">
-                      <span className="icon">📱</span>
-                      <input
-                        type="text"
-                        placeholder="10-digit number"
-                        maxLength={10}
-                        value={acMobile}
-                        onChange={(e) => setAcMobile(e.target.value.replace(/\D/g, ""))}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="apply-form-group">
-                    <label>Email Address</label>
-                    <div className="input-wrap">
-                      <span className="icon">📧</span>
-                      <input
-                        type="email"
-                        placeholder="customer@email.com"
-                        value={acEmail}
-                        onChange={(e) => setAcEmail(e.target.value)}
-                      />
-                    </div>
-                  </div>
+                <div className="acm-form-group">
+                  <label className="acm-label">Tenure (yrs)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="40"
+                    className="acm-input"
+                    placeholder="15"
+                    value={acTenureYears}
+                    onChange={(e) => setAcTenureYears(e.target.value)}
+                  />
                 </div>
-                
-                <div className="apply-form-row">
-                  <div className="apply-form-group">
-                    <label>Date of Birth *</label>
-                    <div className="input-wrap">
-                      <span className="icon">📅</span>
-                      <input
-                        type="date"
-                        value={acDob}
-                        onChange={(e) => setAcDob(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
+              </div>
 
-                  <div className="apply-form-group">
-                    <label>Gender *</label>
-                    <div className="input-wrap" style={{ padding: "0 10px" }}>
-                      <select
-                        value={acGender}
-                        onChange={(e) => setAcGender(e.target.value)}
-                        required
-                        style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".88rem", fontWeight: 600, color: "var(--navy)" }}
+              {/* Row 2: Preferred Lenders (sorted by best ROI) */}
+              <div className="acm-form-group">
+                <label className="acm-label">
+                  Preferred Lenders <span className="acm-label-sub">(sorted by best ROI)</span>
+                </label>
+                <div className="acm-lenders-box">
+                  {lenderOptions.map((l) => {
+                    const isSel = selectedLenders.includes(l.name);
+                    return (
+                      <div
+                        key={l.name}
+                        className={`acm-lender-chip ${isSel ? "selected" : ""}`}
+                        onClick={() => handleToggleLender(l.name)}
                       >
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="apply-form-row">
-                  <div className="apply-form-group">
-                    <label>Full Address *</label>
-                    <div className="input-wrap">
-                      <span className="icon">🏠</span>
-                      <input
-                        type="text"
-                        placeholder="Client Address"
-                        value={acAddress}
-                        onChange={(e) => setAcAddress(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="apply-form-group">
-                    <label>Pincode *</label>
-                    <div className="input-wrap">
-                      <span className="icon">📍</span>
-                      <input
-                        type="text"
-                        placeholder="6-digit Pincode"
-                        maxLength={6}
-                        value={acPincode}
-                        onChange={(e) => setAcPincode(e.target.value.replace(/\D/g, ""))}
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="apply-form-row">
-                  <div className="apply-form-group">
-                    <label>State *</label>
-                    <div className="input-wrap" style={{ padding: "0 10px" }}>
-                      <select
-                        value={acState}
-                        onChange={(e) => {
-                          setAcState(e.target.value);
-                          setAcDistrict("");
-                        }}
-                        required
-                        style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".88rem", fontWeight: 600, color: "var(--navy)" }}
-                      >
-                        <option value="">Select State</option>
-                        {states.map((s) => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="apply-form-group">
-                    <label>District *</label>
-                    <div className="input-wrap" style={{ padding: "0 10px" }}>
-                      <select
-                        value={acDistrict}
-                        disabled={!acState}
-                        onChange={(e) => setAcDistrict(e.target.value)}
-                        required
-                        style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".88rem", fontWeight: 600, color: "var(--navy)" }}
-                      >
-                        <option value="">Select District</option>
-                        {acState && districtsByState[acState]?.map((d) => (
-                          <option key={d} value={d}>{d}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="apply-form-row">
-                  <div className="apply-form-group" style={{ position: "relative" }} ref={acCityDropdownRef}>
-                    <label>City *</label>
-                    <div className="input-wrap" style={{ position: "relative" }}>
-                      <span className="icon">🏙️</span>
-                      <input
-                        type="text"
-                        placeholder="Search or enter city..."
-                        value={acCity}
-                        onChange={(e) => {
-                          setAcCity(e.target.value);
-                          setIsAcCityOpen(true);
-                        }}
-                        onFocus={() => setIsAcCityOpen(true)}
-                        required
-                        style={{ paddingRight: acCity ? "45px" : "28px" }}
-                      />
-                      {acCity ? (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setAcCity("");
-                            setIsAcCityOpen(true);
-                          }}
-                          style={{
-                            position: "absolute",
-                            right: "26px",
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            background: "#E2E8F0",
-                            border: "none",
-                            color: "#64748B",
-                            width: "18px",
-                            height: "18px",
-                            borderRadius: "50%",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "10px",
-                            fontWeight: 800,
-                            padding: 0
-                          }}
-                          title="Clear city"
-                        >
-                          ✕
-                        </button>
-                      ) : null}
-                      <span 
-                        style={{ 
-                          position: "absolute", 
-                          right: "10px", 
-                          top: "50%", 
-                          transform: `translateY(-50%) rotate(${isAcCityOpen ? "180deg" : "0deg"})`, 
-                          transition: "transform 0.2s ease",
-                          fontSize: "10px",
-                          color: "#64748B",
-                          pointerEvents: "none"
-                        }}
-                      >
-                        ▼
-                      </span>
-                    </div>
-
-                    {/* Custom Dropdown Menu */}
-                    {isAcCityOpen && (
-                      <div 
-                        style={{
-                          position: "absolute",
-                          top: "calc(100% + 4px)",
-                          left: 0,
-                          right: 0,
-                          background: "#FFFFFF",
-                          borderRadius: "12px",
-                          border: "1px solid #E2E8F0",
-                          boxShadow: "0 14px 34px -4px rgba(15, 23, 42, 0.16), 0 4px 12px -2px rgba(15, 23, 42, 0.08)",
-                          zIndex: 9999,
-                          maxHeight: "220px",
-                          overflowY: "auto",
-                          padding: "6px"
-                        }}
-                      >
-                        {(() => {
-                          const searchLower = (acCity || "").toLowerCase().trim();
-                          const filtered = cityList.filter(c => c.toLowerCase().includes(searchLower));
-                          const exactMatch = cityList.some(c => c.toLowerCase() === searchLower);
-
-                          return (
-                            <>
-                              {searchLower && !exactMatch && (
-                                <div
-                                  onClick={() => {
-                                    const customName = acCity.trim();
-                                    saveNewCityIfCustom(customName);
-                                    setIsAcCityOpen(false);
-                                  }}
-                                  style={{
-                                    padding: "9px 12px",
-                                    borderRadius: "8px",
-                                    background: "#F0FDF4",
-                                    border: "1px dashed #86EFAC",
-                                    color: "#166534",
-                                    fontSize: "0.82rem",
-                                    fontWeight: 700,
-                                    cursor: "pointer",
-                                    marginBottom: "4px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "8px",
-                                    transition: "all 0.15s ease"
-                                  }}
-                                  onMouseEnter={(e) => e.currentTarget.style.background = "#DCFCE7"}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = "#F0FDF4"}
-                                >
-                                  <span style={{ fontSize: "1rem" }}>✨</span>
-                                  <span>Add custom city: <strong style={{ textDecoration: "underline" }}>"{acCity.trim()}"</strong></span>
-                                </div>
-                              )}
-
-                              {filtered.length === 0 && !searchLower && (
-                                <div style={{ padding: "12px", textAlign: "center", color: "#94A3B8", fontSize: "0.82rem" }}>
-                                  Start typing to search cities...
-                                </div>
-                              )}
-
-                              {filtered.map((c) => {
-                                const isSelected = acCity.toLowerCase().trim() === c.toLowerCase();
-                                return (
-                                  <div
-                                    key={c}
-                                    onClick={() => {
-                                      setAcCity(c);
-                                      saveNewCityIfCustom(c);
-                                      setIsAcCityOpen(false);
-                                    }}
-                                    style={{
-                                      padding: "8px 12px",
-                                      borderRadius: "6px",
-                                      background: isSelected ? "#0F766E" : "transparent",
-                                      color: isSelected ? "#FFFFFF" : "#1E293B",
-                                      fontSize: "0.84rem",
-                                      fontWeight: isSelected ? 700 : 500,
-                                      cursor: "pointer",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "space-between",
-                                      transition: "all 0.12s ease"
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      if (!isSelected) e.currentTarget.style.background = "#F1F5F9";
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      if (!isSelected) e.currentTarget.style.background = "transparent";
-                                    }}
-                                  >
-                                    <span>🏙️ {c}</span>
-                                    {isSelected && <span style={{ fontSize: "0.75rem" }}>✓</span>}
-                                  </div>
-                                );
-                              })}
-                            </>
-                          );
-                        })()}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="apply-form-group">
-                    <label>Loan Asset Type *</label>
-                    <div className="input-wrap" style={{ padding: "0 6px" }}>
-                      <select
-                        value={acLoanType}
-                        onChange={(e) => { setAcLoanType(e.target.value); setSelectedLenders([]); }}
-                        required
-                        style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".92rem", fontWeight: "600", color: "var(--navy)" }}
-                      >
-                        {loanTypes.length === 0 && (
-                          <option value="">Loading...</option>
-                        )}
-                        {loanTypes.map((lt) => (
-                          <option key={lt.id} value={lt.id}>
-                            {lt.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="apply-form-row">
-                  <div className="apply-form-group">
-                    <label>Loan Amount (₹) *</label>
-                    <div className="input-wrap">
-                      <input
-                        type="number"
-                        placeholder="Enter amount in ₹"
-                        value={acAmt}
-                        onChange={(e) => setAcAmt(e.target.value)}
-                        required
-                        min="1"
-                        style={{ width: "100%" }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="apply-form-group">
-                    <label>Tenure (Months) *</label>
-                    <div className="input-wrap">
-                      <span className="icon">⏱️</span>
-                      <input
-                        type="number"
-                        placeholder="e.g. 180"
-                        value={acTenure}
-                        onChange={(e) => setAcTenure(e.target.value)}
-                        required
-                        min="1"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="apply-form-group">
-                  <label>Loan Purpose</label>
-                  <div className="input-wrap">
-                    <span className="icon">📝</span>
-                    <input
-                      type="text"
-                      placeholder="e.g. Home purchase, Business expansion..."
-                      value={acLoanPurpose}
-                      onChange={(e) => setAcLoanPurpose(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                {/* Preferred Lenders checklist selection */}
-                <div className="apply-form-group">
-                  <label>
-                    Preferred Lenders Preference (PSU &amp; Private match)
-                  </label>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".76rem", color: "#065F46", fontWeight: 700, cursor: "pointer", marginBottom: "4px" }} onClick={handleSelectAllLenders}>
-                    {selectedLenders.length === lenderOptions.length ? "Deselect All Lenders" : "Select All suitable lenders"}
-                  </div>
-                  <div className="acm-lender-wrap" style={{ display: "flex", flexWrap: "wrap", gap: "6px", maxHeight: "120px", overflowY: "auto", padding: "8px", background: "#F0FDF4", border: "1px solid #A7F3D0", borderRadius: "10px" }}>
-                    {lenderOptions.map((l) => {
-                      const isSel = selectedLenders.includes(l.name);
-                      return (
-                        <span
-                          key={l.name}
-                          className={`acm-lender-chip ${isSel ? "sel" : ""}`}
-                          onClick={() => handleToggleLender(l.name)}
-                          style={{
-                            padding: "4px 8px",
-                            fontSize: ".7rem",
-                            borderRadius: "20px",
-                            border: "1px solid #A7F3D0",
-                            backgroundColor: isSel ? "#0F766E" : "#fff",
-                            color: isSel ? "#fff" : "#374151",
-                            cursor: "pointer",
-                          }}
-                        >
-                          {l.name} {l.rate != null ? `(${Number(l.rate).toFixed(2)}%)` : ''}
+                        <span className="acm-lender-name">{l.name}</span>
+                        <span className="acm-lender-rate">
+                          {l.rate != null ? `${Number(l.rate).toFixed(2)}%` : ""}
                         </span>
-                      );
-                    })}
-                  </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="acm-select-all-row">
+                  <button
+                    type="button"
+                    className="acm-select-all-link"
+                    onClick={handleSelectAllLenders}
+                  >
+                    {selectedLenders.length === lenderOptions.length
+                      ? "Deselect All"
+                      : "Select All Lenders"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Row 3: Customer Name & Mobile */}
+              <div className="acm-grid-2">
+                <div className="acm-form-group">
+                  <label className="acm-label">Customer Name</label>
+                  <input
+                    type="text"
+                    className="acm-input"
+                    placeholder="Full name"
+                    value={acName}
+                    onChange={(e) => setAcName(e.target.value)}
+                    required
+                  />
                 </div>
 
-                <div className="apply-form-group">
-                  <label>Client Contact Preference</label>
-                  <div style={{ display: "flex", gap: "10px" }}>
-                    <button
-                      type="button"
-                      className={`acm-reach-btn ${acReachMode === "direct" ? "sel" : ""}`}
-                      onClick={() => setAcReachMode("direct")}
-                      style={acReachMode === "direct" ? { borderColor: "#0F766E", color: "#0F766E", background: "#ECFDF5" } : {}}
-                    >
-                      📞 Direct Reach (Team contacts customer)
-                    </button>
-                    <button
-                      type="button"
-                      className={`acm-reach-btn ${acReachMode === "partner" ? "sel" : ""}`}
-                      onClick={() => setAcReachMode("partner")}
-                      style={acReachMode === "partner" ? { borderColor: "#0F766E", color: "#0F766E", background: "#ECFDF5" } : {}}
-                    >
-                      🛡️ Partner Routing (Contact through you)
-                    </button>
-                  </div>
+                <div className="acm-form-group">
+                  <label className="acm-label">Mobile</label>
+                  <input
+                    type="tel"
+                    className="acm-input"
+                    placeholder="10-digit"
+                    maxLength={10}
+                    value={acMobile}
+                    onChange={(e) => setAcMobile(e.target.value.replace(/\D/g, ""))}
+                    required
+                  />
                 </div>
+              </div>
 
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  disabled={submitting}
-                  style={{ height: "46px", marginTop: "12px", background: submitting ? "#6B7280" : "linear-gradient(135deg,#0D9488,#0F766E)", cursor: submitting ? "not-allowed" : "pointer" }}
-                >
-                  {submitting ? "Submitting..." : "Refer Client Application →"}
-                </button>
-              </form>
-            </div>
+              {/* Row 4: Email (optional) */}
+              <div className="acm-form-group">
+                <label className="acm-label">
+                  Email <span className="acm-label-sub">(optional)</span>
+                </label>
+                <input
+                  type="email"
+                  className="acm-input"
+                  placeholder="customer@email.com"
+                  value={acEmail}
+                  onChange={(e) => setAcEmail(e.target.value)}
+                />
+              </div>
+
+              {/* Row 5: How should we reach the customer? */}
+              <div className="acm-form-group">
+                <label className="acm-label">How should we reach the customer?</label>
+                <div className="acm-reach-row">
+                  <button
+                    type="button"
+                    className={`acm-reach-tab ${acReachMode === "direct" ? "active" : ""}`}
+                    onClick={() => setAcReachMode("direct")}
+                  >
+                    <span>🏦</span> Reach Customer Directly
+                  </button>
+                  <button
+                    type="button"
+                    className={`acm-reach-tab ${acReachMode === "partner" ? "active" : ""}`}
+                    onClick={() => setAcReachMode("partner")}
+                  >
+                    <span>💛</span> Reach Through Me (Partner)
+                  </button>
+                </div>
+                <div className="acm-reach-notice">
+                  {acReachMode === "direct"
+                    ? "We’ll contact the customer directly with offers and updates."
+                    : "We’ll contact you directly regarding this client's application."}
+                </div>
+              </div>
+
+              {/* Row 6: Submit Button */}
+              <button
+                type="submit"
+                className="acm-submit-btn"
+                disabled={submitting}
+              >
+                {submitting ? "Adding Client..." : "Add Client →"}
+              </button>
+            </form>
           </div>
         </div>
       )}
