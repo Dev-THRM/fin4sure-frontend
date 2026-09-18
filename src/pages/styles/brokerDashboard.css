@@ -290,6 +290,29 @@
   100% { left: 200%; }
 }
 
+.pdash-addclient-banner::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(255, 245, 200, 0.8) 1.5px, transparent 2px),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.9) 1px, transparent 2px),
+    radial-gradient(circle at 30% 70%, rgba(255, 225, 150, 0.7) 1px, transparent 2px),
+    radial-gradient(circle at 70% 30%, rgba(255, 240, 180, 0.8) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 50% 15%, rgba(255, 255, 255, 0.6) 2px, transparent 3px),
+    radial-gradient(circle at 90% 10%, rgba(255, 220, 100, 0.9) 1.5px, transparent 2px);
+  background-size: 150px 150px;
+  animation: starrySparkles 3s alternate infinite ease-in-out;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes starrySparkles {
+  0% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 0.2; transform: scale(1); }
+}
+
 .pdash-addclient-banner:hover {
   transform: translateY(-2px);
   box-shadow: 0 16px 40px rgba(168, 68, 5, .35);
@@ -315,6 +338,16 @@
   border: 1px solid rgba(255, 255, 255, .24);
   color: #FDE047;
   backdrop-filter: blur(8px);
+}
+
+.pacb-icon svg {
+  animation: spinSparkle 4s linear infinite;
+}
+
+@keyframes spinSparkle {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.2); }
+  100% { transform: rotate(360deg) scale(1); }
 }
 
 .pacb-title {
@@ -886,7 +919,7 @@
   background: #FFFFFF;
   border-radius: 20px;
   width: 100%;
-  max-width: 620px;
+  max-width: 520px;
   overflow: hidden;
   box-shadow: 0 24px 50px -10px rgba(2, 44, 34, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.06);
   animation: acmPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -905,7 +938,7 @@
 
 .acm-header {
   background: linear-gradient(135deg, #02362C 0%, #064E3B 55%, #0B6B59 100%);
-  padding: 18px 24px;
+  padding: 14px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -956,10 +989,10 @@
 }
 
 .acm-body {
-  padding: 22px 26px 26px;
+  padding: 18px 20px 22px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   max-height: 85vh;
   overflow-y: auto;
 }
@@ -983,7 +1016,7 @@
 
 .acm-grid-3 {
   display: grid;
-  grid-template-columns: 1fr 155px 75px;
+  grid-template-columns: 1fr 140px 70px;
   gap: 10px;
   align-items: start;
 }
