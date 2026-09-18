@@ -42,7 +42,8 @@ import {
   XCircle,
   ArrowLeft,
   Navigation,
-  Calculator
+  Calculator,
+  Handshake
 } from "lucide-react";
 import "./styles/brokerDashboard.css";
 
@@ -1258,21 +1259,25 @@ export default function BrokerDashboard() {
               <div className="acm-grid-3">
                 <div className="acm-form-group">
                   <label className="acm-label">Loan Type</label>
-                  <select
-                    className="acm-select"
-                    value={acLoanType || String(displayLoanTypes[0]?.id || "1")}
-                    onChange={(e) => {
-                      setAcLoanType(e.target.value);
-                      setSelectedLenders([]);
-                    }}
-                    required
-                  >
-                    {displayLoanTypes.map((lt) => (
-                      <option key={lt.id} value={String(lt.id)}>
-                        {lt.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="acm-select-wrapper">
+                    <span className="acm-select-lead-icon">{getProductIcon(selectedLoanTypeName)}</span>
+                    <select
+                      className="acm-select-input"
+                      value={acLoanType || String(displayLoanTypes[0]?.id || "1")}
+                      onChange={(e) => {
+                        setAcLoanType(e.target.value);
+                        setSelectedLenders([]);
+                      }}
+                      required
+                    >
+                      {displayLoanTypes.map((lt) => (
+                        <option key={lt.id} value={String(lt.id)}>
+                          {lt.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown size={16} className="acm-select-arrow" />
+                  </div>
                 </div>
 
                 <div className="acm-form-group">
@@ -1400,14 +1405,14 @@ export default function BrokerDashboard() {
                     className={`acm-reach-tab ${acReachMode === "direct" ? "active" : ""}`}
                     onClick={() => setAcReachMode("direct")}
                   >
-                    <ArrowRight size={15} style={{ flexShrink: 0 }} /> Reach Customer Directly
+                    <Smartphone size={16} style={{ flexShrink: 0 }} /> Reach Customer Directly
                   </button>
                   <button
                     type="button"
                     className={`acm-reach-tab ${acReachMode === "partner" ? "active" : ""}`}
                     onClick={() => setAcReachMode("partner")}
                   >
-                    <Users size={15} style={{ flexShrink: 0 }} /> Reach Through Me (Partner)
+                    <Handshake size={16} color="#EAB308" style={{ flexShrink: 0 }} /> Reach Through Me (Partner)
                   </button>
                 </div>
                 <div className="acm-reach-notice">
