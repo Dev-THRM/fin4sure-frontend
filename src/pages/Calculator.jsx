@@ -1154,7 +1154,7 @@ export default function Calculator() {
               </div>
             </div>
 
-            {filteredAndSortedLenders.length > 0 && (
+            {filteredAndSortedLenders.length > 0 && selectedLenders.length === 0 && (
               <div style={{
                 background: 'linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%)',
                 border: selectedLenders.includes(filteredAndSortedLenders[0].id) ? '1.5px solid #0284C7' : '1.5px solid #BFDBFE',
