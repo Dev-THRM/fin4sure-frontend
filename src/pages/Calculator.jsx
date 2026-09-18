@@ -372,21 +372,6 @@ export default function Calculator() {
     setSelectedLenders([]);
   }, [loanType]);
 
-  // Contiguous block calculation for merging action column when 2+ banks selected
-  const { firstSelectedIdx, contiguousCount } = useMemo(() => {
-    if (selectedLenders.length < 2) return { firstSelectedIdx: -1, contiguousCount: 0 };
-    const firstIdx = filteredAndSortedLenders.findIndex((l) => selectedLenders.includes(l.id));
-    if (firstIdx === -1) return { firstSelectedIdx: -1, contiguousCount: 0 };
-    let count = 0;
-    for (let k = firstIdx; k < filteredAndSortedLenders.length; k++) {
-      if (selectedLenders.includes(filteredAndSortedLenders[k].id)) {
-        count++;
-      } else {
-        break;
-      }
-    }
-    return { firstSelectedIdx: firstIdx, contiguousCount: count };
-  }, [filteredAndSortedLenders, selectedLenders]);
 
   const handleApplyToLender = async (lenderIdOrArray) => {
     let ids = [];
@@ -1241,7 +1226,7 @@ export default function Calculator() {
                     type="button"
                     disabled={submittingApp}
                     onClick={() => {
-                      if (selectedLenders.length >= 2 && selectedLenders.includes(filteredAndSortedLenders[0].id)) {
+                      if (selectedLenders.length > 0 && selectedLenders.includes(filteredAndSortedLenders[0].id)) {
                         handleApplyToLender(selectedLenders);
                       } else {
                         handleApplyToLender(filteredAndSortedLenders[0].id);
@@ -1250,7 +1235,7 @@ export default function Calculator() {
                     style={{
                       padding: '8px 14px',
                       borderRadius: '8px',
-                      background: selectedLenders.length >= 2 && selectedLenders.includes(filteredAndSortedLenders[0].id)
+                      background: selectedLenders.length > 0 && selectedLenders.includes(filteredAndSortedLenders[0].id)
                         ? 'linear-gradient(135deg, #0F2942 0%, #0284C7 100%)'
                         : '#0F2942',
                       color: '#FFFFFF',
@@ -1265,16 +1250,16 @@ export default function Calculator() {
                   >
                     {submittingApp
                       ? 'Submitting...'
-                      : selectedLenders.length >= 2 && selectedLenders.includes(filteredAndSortedLenders[0].id)
-                      ? `Apply (${selectedLenders.length} Banks) →`
+                      : selectedLenders.length > 0 && selectedLenders.includes(filteredAndSortedLenders[0].id)
+                      ? `Apply (${selectedLenders.length} Bank${selectedLenders.length > 1 ? 's' : ''}) →`
                       : 'Apply →'}
                   </button>
                 </div>
               </div>
             )}
 
-            {/* ═══ MULTI-BANK SELECTION BAR (VISIBLE WHEN 2+ BANKS SELECTED) ═══ */}
-            {selectedLenders.length >= 2 && (
+            {/* ═══ MULTI-BANK SELECTION BAR (VISIBLE WHEN 1+ BANKS SELECTED) ═══ */}
+            {selectedLenders.length > 0 && (
               <div style={{
                 background: 'linear-gradient(135deg, #0F2942 0%, #1E3A8A 100%)',
                 color: '#FFFFFF',
@@ -1298,7 +1283,7 @@ export default function Calculator() {
                     padding: '2px 8px',
                     borderRadius: '12px'
                   }}>
-                    {selectedLenders.length} BANKS SELECTED
+                    {selectedLenders.length} BANK{selectedLenders.length > 1 ? 'S' : ''} SELECTED
                   </span>
                   <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#E2E8F0' }}>
                     {selectedLenders
@@ -1344,7 +1329,7 @@ export default function Calculator() {
                       opacity: submittingApp ? 0.7 : 1
                     }}
                   >
-                    {submittingApp ? 'Submitting...' : `Apply to ${selectedLenders.length} Banks →`}
+                    {submittingApp ? 'Submitting...' : `Apply to ${selectedLenders.length} Bank${selectedLenders.length > 1 ? 's' : ''} →`}
                   </button>
                 </div>
               </div>
@@ -1395,19 +1380,6 @@ export default function Calculator() {
                       const isSfb = cat === 'SFB';
                       const isSel = selectedLenders.includes(lender.id);
 
-                      // Check contiguous run logic for 2+ selected lenders
-                      let isFirstInContiguous = false;
-                      let contiguousSpan = 1;
-                      let isSubsequentInContiguous = false;
-
-                      if (selectedLenders.length >= 2) {
-                        if (idx === firstSelectedIdx) {
-                          isFirstInContiguous = true;
-                          contiguousSpan = contiguousCount;
-                        } else if (idx > firstSelectedIdx && idx < firstSelectedIdx + contiguousCount) {
-                          isSubsequentInContiguous = true;
-                        }
-                      }
 
                       return (
                         <tr
@@ -1478,112 +1450,25 @@ export default function Calculator() {
                             <div style={{ fontWeight: 800, color: '#0284C7', fontSize: '0.88rem' }}>{fmtINRFull(lEmi)}<span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#64748B' }}>/mo</span></div>
                           </td>
 
-                          {/* ACTION COLUMN: Merged single button for 2+ selected banks */}
-                          {selectedLenders.length >= 2 ? (
-                            isFirstInContiguous ? (
-                              <td
-                                rowSpan={contiguousSpan}
-                                style={{
-                                  padding: '10px 14px',
-                                  textAlign: 'right',
-                                  verticalAlign: 'middle',
-                                  background: '#F0F9FF',
-                                  borderLeft: '2px solid #BAE6FD'
-                                }}
-                              >
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                                  <button
-                                    type="button"
-                                    disabled={submittingApp}
-                                    onClick={() => handleApplyToLender(selectedLenders)}
-                                    style={{
-                                      padding: '8px 16px',
-                                      borderRadius: '8px',
-                                      background: 'linear-gradient(135deg, #0F2942 0%, #0284C7 100%)',
-                                      color: '#FFFFFF',
-                                      border: 'none',
-                                      fontWeight: 800,
-                                      fontSize: '0.82rem',
-                                      cursor: submittingApp ? 'not-allowed' : 'pointer',
-                                      boxShadow: '0 4px 12px rgba(2, 132, 199, 0.28)',
-                                      whiteSpace: 'nowrap',
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      gap: '6px',
-                                      transition: 'all 0.2s ease',
-                                      opacity: submittingApp ? 0.7 : 1
-                                    }}
-                                  >
-                                    {submittingApp ? 'Submitting...' : `Apply (${selectedLenders.length} Banks) →`}
-                                  </button>
-                                  <span style={{ fontSize: '0.67rem', fontWeight: 700, color: '#0369A1' }}>
-                                    1-Click Multi Application
-                                  </span>
-                                </div>
-                              </td>
-                            ) : isSubsequentInContiguous ? null : isSel ? (
-                              <td style={{ padding: '10px 14px', textAlign: 'right', verticalAlign: 'middle', background: '#F0F9FF' }}>
-                                <div style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  fontSize: '0.74rem',
-                                  fontWeight: 700,
-                                  color: '#0369A1',
-                                  background: '#E0F2FE',
-                                  border: '1px solid #BAE6FD',
-                                  padding: '5px 10px',
-                                  borderRadius: '6px'
-                                }}>
-                                  <Check size={12} strokeWidth={3} /> Selected ({selectedLenders.length})
-                                </div>
-                              </td>
-                            ) : (
-                              <td style={{ padding: '10px 14px', textAlign: 'right' }}>
-                                <button
-                                  type="button"
-                                  disabled={submittingApp}
-                                  onClick={() => handleApplyToLender(lender.id)}
-                                  style={{
-                                    padding: '6px 14px',
-                                    borderRadius: '6px',
-                                    background: '#0F2942',
-                                    color: '#FFFFFF',
-                                    border: 'none',
-                                    fontWeight: 800,
-                                    fontSize: '0.78rem',
-                                    cursor: submittingApp ? 'not-allowed' : 'pointer',
-                                    transition: 'all 0.2s ease',
-                                    opacity: submittingApp ? 0.7 : 1
-                                  }}
-                                >
-                                  {submittingApp ? 'Submitting...' : 'Apply →'}
-                                </button>
-                              </td>
-                            )
-                          ) : (
-                            <td style={{ padding: '10px 14px', textAlign: 'right' }}>
-                              <button
-                                type="button"
-                                disabled={submittingApp}
-                                onClick={() => handleApplyToLender(lender.id)}
-                                style={{
-                                  padding: '6px 14px',
-                                  borderRadius: '6px',
-                                  background: isSel ? '#0284C7' : '#0F2942',
-                                  color: '#FFFFFF',
-                                  border: 'none',
-                                  fontWeight: 800,
-                                  fontSize: '0.78rem',
-                                  cursor: submittingApp ? 'not-allowed' : 'pointer',
-                                  transition: 'all 0.2s ease',
-                                  opacity: submittingApp ? 0.7 : 1
-                                }}
-                              >
-                                {submittingApp ? 'Submitting...' : 'Apply →'}
-                              </button>
-                            </td>
-                          )}
+                          {/* ACTION COLUMN: Show only 'Selected' state if selected */}
+                          <td style={{ padding: '10px 14px', textAlign: 'right', verticalAlign: 'middle' }}>
+                            {isSel ? (
+                              <div style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                fontSize: '0.74rem',
+                                fontWeight: 700,
+                                color: '#0369A1',
+                                background: '#E0F2FE',
+                                border: '1px solid #BAE6FD',
+                                padding: '5px 10px',
+                                borderRadius: '6px'
+                              }}>
+                                <Check size={12} strokeWidth={3} /> Selected
+                              </div>
+                            ) : null}
+                          </td>
                         </tr>
                       );
                     })
