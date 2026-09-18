@@ -49,7 +49,7 @@ export default function BorrowerStepper({ onBack, initialLoanType }) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [mobile, setMobile] = useState("");
-  const [otpChannel, setOtpChannel] = useState("mobile"); // "mobile" | "email"
+  const [otpChannel, setOtpChannel] = useState("email"); // "mobile" | "email"
   const [showOtpVerify, setShowOtpVerify] = useState(false);
   const [otpInput, setOtpInput] = useState("");
   const [otpTimer, setOtpTimer] = useState(0);
@@ -591,23 +591,6 @@ export default function BorrowerStepper({ onBack, initialLoanType }) {
                       </div>
                     </div>
 
-                    <div className="otp-channel-row">
-                      <span className="ocr-label">Verify using:</span>
-                      <button
-                        type="button"
-                        className={`ocr-btn ${otpChannel === 'mobile' ? 'active' : ''}`}
-                        onClick={() => setOtpChannel('mobile')}
-                      >
-                        📱 Mobile OTP
-                      </button>
-                      <button
-                        type="button"
-                        className={`ocr-btn ${otpChannel === 'email' ? 'active' : ''}`}
-                        onClick={() => setOtpChannel('email')}
-                      >
-                        📧 Email OTP
-                      </button>
-                    </div>
 
                     {otpError && (
                       <div style={{ color: '#DC2626', fontSize: '.78rem', fontWeight: 600, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
