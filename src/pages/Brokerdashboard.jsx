@@ -1019,30 +1019,7 @@ export default function BrokerDashboard() {
               </div>
             </div>
 
-            {/* Quick Actions Card */}
-            <div className="pdash-quick-actions">
-              <button
-                className="pdash-qa-row"
-                onClick={() => setShowAddClientModal(true)}
-              >
-                <div className="pdash-qa-left">
-                  <Plus size={20} strokeWidth={3} className="pdash-qa-plus" />
-                  <span className="pdash-qa-label">Add Client</span>
-                </div>
-                <ArrowRight size={18} strokeWidth={2.2} className="pdash-qa-arrow" />
-              </button>
 
-              <button
-                className="pdash-qa-row"
-                onClick={() => navigate("/EMI-calculator")}
-              >
-                <div className="pdash-qa-left">
-                  <Calculator size={20} strokeWidth={2.2} className="pdash-qa-calc-icon" />
-                  <span className="pdash-qa-label">EMI Calculator</span>
-                </div>
-                <ArrowRight size={18} strokeWidth={2.2} className="pdash-qa-arrow" />
-              </button>
-            </div>
           </div>
         </div>
       </>
