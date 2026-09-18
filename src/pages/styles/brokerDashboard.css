@@ -919,7 +919,7 @@
   background: #FFFFFF;
   border-radius: 20px;
   width: 100%;
-  max-width: 520px;
+  max-width: 480px;
   overflow: hidden;
   box-shadow: 0 24px 50px -10px rgba(2, 44, 34, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.06);
   animation: acmPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1034,9 +1034,9 @@
 
 .acm-input, .acm-select {
   width: 100%;
-  height: 44px;
+  height: 38px;
   border: 1.5px solid #E2E8F0;
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 0 10px;
   font-size: 0.88rem;
   font-weight: 500;
@@ -1052,9 +1052,9 @@
   display: flex;
   align-items: center;
   width: 100%;
-  height: 44px;
+  height: 38px;
   border: 1.5px solid #E2E8F0;
-  border-radius: 10px;
+  border-radius: 8px;
   background: #FFFFFF;
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
@@ -1111,9 +1111,9 @@
 .acm-amount-box {
   display: flex;
   align-items: center;
-  height: 44px;
+  height: 38px;
   border: 1.5px solid #BAE6FD;
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
   background: #FFFFFF;
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
@@ -1170,15 +1170,15 @@
 
 /* Lenders Box */
 .acm-lenders-box {
-  border: 1.5px solid #A7F3D0;
-  border-radius: 12px;
-  background: #FFFFFF;
-  padding: 10px 12px;
-  max-height: 126px;
+  border: none;
+  border-radius: 8px;
+  background: #F0FDF4;
+  padding: 10px;
+  max-height: 110px;
   overflow-y: auto;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .acm-lenders-box::-webkit-scrollbar {
@@ -1211,11 +1211,12 @@
 .acm-lender-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
+  gap: 4px;
+  padding: 4px 10px;
   border-radius: 9999px;
-  border: 1px solid #E2E8F0;
+  border: none;
   background: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   cursor: pointer;
   transition: all 0.16s ease;
   user-select: none;
