@@ -1341,17 +1341,7 @@ export default function BrokerDashboard() {
                     );
                   })}
                 </div>
-                <div className="acm-select-all-row">
-                  <button
-                    type="button"
-                    className="acm-select-all-link"
-                    onClick={handleSelectAllLenders}
-                  >
-                    {selectedLenders.length === lenderOptions.length
-                      ? "Deselect All"
-                      : "Select All Lenders"}
-                  </button>
-                </div>
+
               </div>
 
               {/* Row 3: Customer Name & Mobile */}
@@ -1382,17 +1372,16 @@ export default function BrokerDashboard() {
                 </div>
               </div>
 
-              {/* Row 4: Email (optional) */}
+              {/* Row 4: Email */}
               <div className="acm-form-group">
-                <label className="acm-label">
-                  Email <span className="acm-label-sub">(optional)</span>
-                </label>
+                <label className="acm-label">Email</label>
                 <input
                   type="email"
                   className="acm-input"
                   placeholder="customer@email.com"
                   value={acEmail}
                   onChange={(e) => setAcEmail(e.target.value)}
+                  required
                 />
               </div>
 
