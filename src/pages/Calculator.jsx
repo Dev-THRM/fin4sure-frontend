@@ -1222,38 +1222,40 @@ export default function Calculator() {
                     <div style={{ fontSize: '0.68rem', color: '#64748B', fontWeight: 600 }}>Est. EMI</div>
                   </div>
 
-                  <button
-                    type="button"
-                    disabled={submittingApp}
-                    onClick={() => {
-                      if (selectedLenders.length > 0 && selectedLenders.includes(filteredAndSortedLenders[0].id)) {
-                        handleApplyToLender(selectedLenders);
-                      } else {
-                        handleApplyToLender(filteredAndSortedLenders[0].id);
-                      }
-                    }}
-                    style={{
-                      padding: '8px 14px',
-                      borderRadius: '8px',
-                      background: selectedLenders.length > 0 && selectedLenders.includes(filteredAndSortedLenders[0].id)
-                        ? 'linear-gradient(135deg, #0F2942 0%, #0284C7 100%)'
-                        : '#0F2942',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      fontWeight: 800,
-                      fontSize: '0.8rem',
-                      cursor: submittingApp ? 'not-allowed' : 'pointer',
-                      boxShadow: '0 2px 8px rgba(15,41,66,0.2)',
-                      transition: 'all 0.2s ease',
-                      opacity: submittingApp ? 0.7 : 1
-                    }}
-                  >
-                    {submittingApp
-                      ? 'Submitting...'
-                      : selectedLenders.length > 0 && selectedLenders.includes(filteredAndSortedLenders[0].id)
-                      ? `Apply (${selectedLenders.length} Bank${selectedLenders.length > 1 ? 's' : ''}) →`
-                      : 'Apply →'}
-                  </button>
+                  {selectedLenders.length < 2 && (
+                    <button
+                      type="button"
+                      disabled={submittingApp}
+                      onClick={() => {
+                        if (selectedLenders.length > 0 && selectedLenders.includes(filteredAndSortedLenders[0].id)) {
+                          handleApplyToLender(selectedLenders);
+                        } else {
+                          handleApplyToLender(filteredAndSortedLenders[0].id);
+                        }
+                      }}
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: '8px',
+                        background: selectedLenders.length > 0 && selectedLenders.includes(filteredAndSortedLenders[0].id)
+                          ? 'linear-gradient(135deg, #0F2942 0%, #0284C7 100%)'
+                          : '#0F2942',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        fontWeight: 800,
+                        fontSize: '0.8rem',
+                        cursor: submittingApp ? 'not-allowed' : 'pointer',
+                        boxShadow: '0 2px 8px rgba(15,41,66,0.2)',
+                        transition: 'all 0.2s ease',
+                        opacity: submittingApp ? 0.7 : 1
+                      }}
+                    >
+                      {submittingApp
+                        ? 'Submitting...'
+                        : selectedLenders.length > 0 && selectedLenders.includes(filteredAndSortedLenders[0].id)
+                        ? `Apply (${selectedLenders.length} Bank${selectedLenders.length > 1 ? 's' : ''}) →`
+                        : 'Apply →'}
+                    </button>
+                  )}
                 </div>
               </div>
             )}
