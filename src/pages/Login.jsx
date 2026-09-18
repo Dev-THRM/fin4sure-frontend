@@ -351,33 +351,7 @@ export default function Login() {
             </button>
           </div>
 
-          {/* Login Mode Toggle */}
-          <div style={{ display: "flex", gap: "8px", marginBottom: "20px" }}>
-            <button
-              onClick={() => switchMode("password")}
-              style={{
-                flex: 1, padding: "8px", border: "none", borderRadius: "8px", cursor: "pointer",
-                fontSize: ".8rem", fontWeight: 600, transition: "all .2s",
-                background: loginMode === "password" ? "var(--navy)" : "#f1f5f9",
-                color: loginMode === "password" ? "#fff" : "var(--slate)",
-                display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px"
-              }}
-            >
-              <Lock size={13} /> Password
-            </button>
-            <button
-              onClick={() => switchMode("otp")}
-              style={{
-                flex: 1, padding: "8px", border: "none", borderRadius: "8px", cursor: "pointer",
-                fontSize: ".8rem", fontWeight: 600, transition: "all .2s",
-                background: loginMode === "otp" ? "var(--teal)" : "#f1f5f9",
-                color: loginMode === "otp" ? "#fff" : "var(--slate)",
-                display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px"
-              }}
-            >
-              <Mail size={13} /> Email OTP
-            </button>
-          </div>
+          {/* Login Mode Toggle — OTP option hidden until mobile OTP is available */}
 
           {/* Error */}
           {error && (
