@@ -1,21 +1,80 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { districtsByState, states } from "../components/Statedata";
 import { fmtINR } from "../utils/formatters";
 import { LOAN_PRODUCTS } from "../utils/constants";
+import {
+  Users,
+  Check,
+  Clock,
+  AlertCircle,
+  Shield,
+  Sparkles,
+  Phone,
+  PhoneCall,
+  Mail,
+  MessageSquare,
+  ChevronRight,
+  ArrowRight,
+  LogOut,
+  MapPin,
+  Plus,
+  X,
+  Home,
+  Building2,
+  CreditCard,
+  Briefcase,
+  Car,
+  GraduationCap,
+  Coins,
+  FileText,
+  UserCheck,
+  Heart,
+  ChevronDown,
+  User,
+  Edit3,
+  Lock,
+  Key,
+  Smartphone,
+  AtSign,
+  Pencil,
+  CheckCircle2,
+  XCircle,
+  ArrowLeft,
+  Navigation,
+  Calculator
+} from "lucide-react";
 import "./styles/brokerDashboard.css";
 
-const DEFAULT_CITIES = [
-  "Mumbai", "Delhi", "Bengaluru", "Kolkata", "Chennai", "Hyderabad",
-  "Pune", "Ahmedabad", "Surat", "Jaipur", "Lucknow", "Kanpur",
-  "Nagpur", "Indore", "Thane", "Bhopal", "Visakhapatnam", "Patna",
-  "Vadodara", "Ghaziabad", "Ludhiana", "Agra", "Nashik", "Faridabad",
-  "Meerut", "Rajkot", "Kalyan-Dombivli", "Vasai-Virar", "Varanasi",
-  "Srinagar", "Aurangabad", "Dhanbad", "Amritsar", "Navi Mumbai",
-  "Allahabad", "Ranchi", "Howrah", "Coimbatore", "Jabalpur",
-  "Gwalior", "Vijayawada", "Jodhpur", "Madurai", "Raipur", "Kota"
+const REFERENCE_LENDERS = [
+  { name: "HDFC Bank", rate: 7.20 },
+  { name: "ICICI Bank", rate: 7.25 },
+  { name: "Bajaj Finserv", rate: 7.25 },
+  { name: "Axis Bank", rate: 7.30 },
+  { name: "Kotak Mahindra", rate: 7.40 },
+  { name: "Yes Bank", rate: 7.45 },
+  { name: "PNB Housing", rate: 7.50 },
+  { name: "LIC Housing", rate: 7.50 },
+  { name: "IndusInd Bank", rate: 7.55 },
+  { name: "State Bank of India", rate: 7.60 },
+  { name: "Bank of Baroda", rate: 7.65 },
+  { name: "Tata Capital", rate: 7.75 },
+  { name: "IDFC First Bank", rate: 7.80 },
+  { name: "Federal Bank", rate: 7.85 },
+  { name: "Union Bank", rate: 7.90 },
 ];
+
+const getLoanIcon = (name = "", size = 16, color = "#0D7A68") => {
+  const n = (name || "").toLowerCase();
+  if (n.includes("home")) return <Home size={size} color={color} />;
+  if (n.includes("property") || n.includes("lap")) return <Building2 size={size} color={color} />;
+  if (n.includes("personal")) return <CreditCard size={size} color={color} />;
+  if (n.includes("business")) return <Briefcase size={size} color={color} />;
+  if (n.includes("car") || n.includes("vehicle") || n.includes("auto")) return <Car size={size} color={color} />;
+  if (n.includes("education")) return <GraduationCap size={size} color={color} />;
+  if (n.includes("gold")) return <Coins size={size} color={color} />;
+  return <FileText size={size} color={color} />;
+};
 
 export default function BrokerDashboard() {
   const { logout } = useAuth();
@@ -42,6 +101,51 @@ export default function BrokerDashboard() {
   const [showAddClientModal, setShowAddClientModal] = useState(false);
   const [workspaceTab, setWorkspaceTab] = useState("dashboard"); // "dashboard" | "profile"
 
+  // Advisor business hours: Mon-Sat, 9:30 AM to 6:30 PM IST (Offline on Sunday, before 9:30 AM, or after 6:30 PM)
+  const getAdvisorOnlineStatus = () => {
+    try {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Kolkata",
+        weekday: "short",
+        hour: "numeric",
+        minute: "numeric",
+        hourCycle: "h23"
+      }).formatToParts(new Date());
+
+      const partMap = {};
+      parts.forEach((p) => { partMap[p.type] = p.value; });
+
+      // Offline on Sunday
+      if (partMap.weekday === "Sun") return false;
+
+      const hour = parseInt(partMap.hour, 10);
+      const minute = parseInt(partMap.minute, 10);
+      const totalMinutes = hour * 60 + minute;
+
+      const startMinutes = 9 * 60 + 30; // 9:30 AM IST (570)
+      const endMinutes = 18 * 60 + 30;  // 6:30 PM IST (1110)
+
+      return totalMinutes >= startMinutes && totalMinutes < endMinutes;
+    } catch (e) {
+      const now = new Date();
+      // IST is UTC + 5:30 (330 minutes)
+      const istMinutes = (now.getUTCHours() * 60 + now.getUTCMinutes() + 330) % 1440;
+      const istDaysFromEpoch = Math.floor((now.getTime() + 19800000) / 86400000);
+      const istDayOfWeek = (istDaysFromEpoch + 4) % 7; // 0 = Sunday
+      if (istDayOfWeek === 0) return false;
+      return istMinutes >= 570 && istMinutes < 1110;
+    }
+  };
+
+  const [isAdvisorOnline, setIsAdvisorOnline] = useState(getAdvisorOnlineStatus);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIsAdvisorOnline(getAdvisorOnlineStatus());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
   // Partner Profile States
   const [profName, setProfName] = useState("");
   const [profCity, setProfCity] = useState("");
@@ -66,72 +170,16 @@ export default function BrokerDashboard() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Add Client Form States
+  // Add Client Form States (matching 2nd image design)
+  const [acLoanType, setAcLoanType] = useState("1");
+  const [acAmt, setAcAmt] = useState("20");
+  const [acAmtUnit, setAcAmtUnit] = useState("Lakh");
+  const [acTenureYears, setAcTenureYears] = useState("15");
+  const [selectedLenders, setSelectedLenders] = useState([]);
   const [acName, setAcName] = useState("");
   const [acMobile, setAcMobile] = useState("");
   const [acEmail, setAcEmail] = useState("");
-  const [acDob, setAcDob] = useState("");
-  const [acGender, setAcGender] = useState("");
-  const [acAmt, setAcAmt] = useState("");
-  const [acLoanPurpose, setAcLoanPurpose] = useState("");
-  const [acTenure, setAcTenure] = useState(""); // months
-  const [acLoanType, setAcLoanType] = useState("");
   const [acReachMode, setAcReachMode] = useState("direct");
-  const [acAddress, setAcAddress] = useState("");
-  const [acPincode, setAcPincode] = useState("");
-  const [acState, setAcState] = useState("");
-  const [acDistrict, setAcDistrict] = useState("");
-  const [acCity, setAcCity] = useState("");
-  const [cityList, setCityList] = useState(DEFAULT_CITIES.slice().sort());
-  const [isAcCityOpen, setIsAcCityOpen] = useState(false);
-  const acCityDropdownRef = useRef(null);
-  const [selectedLenders, setSelectedLenders] = useState([]);
-
-  // Close city dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (acCityDropdownRef.current && !acCityDropdownRef.current.contains(e.target)) {
-        setIsAcCityOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Fetch dynamic cities from backend DB
-  useEffect(() => {
-    const fetchCities = async () => {
-      try {
-        const res = await fetch("/api/locations/all-cities");
-        if (res.ok) {
-          const json = await res.json();
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-            const merged = Array.from(new Set([...DEFAULT_CITIES, ...json.data])).sort();
-            setCityList(merged);
-          }
-        }
-      } catch (err) {
-        console.warn("Cities fetch notice:", err.message);
-      }
-    };
-    fetchCities();
-  }, []);
-
-  // Save custom city to backend if not already existing
-  const saveNewCityIfCustom = async (cityName) => {
-    if (!cityName || !cityName.trim()) return;
-    const clean = cityName.trim();
-    try {
-      const res = await fetch("/api/locations/create-city", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: clean })
-      });
-      if (res.ok) {
-        setCityList(prev => Array.from(new Set([...prev, clean])).sort());
-      }
-    } catch (_) {}
-  };
 
   // DB-driven data
   const [loanTypes, setLoanTypes] = useState([]);
@@ -142,6 +190,8 @@ export default function BrokerDashboard() {
       await fetchProfile();
       await fetchClients();
       await fetchLeads();
+      await fetchLoanTypes();
+      await fetchLenders();
     };
     loadAllData();
   }, []);
@@ -382,15 +432,102 @@ export default function BrokerDashboard() {
     }
   };
 
+  // KPI Metrics Calculation from referred leads
+  const totalReferrals = leads.length;
+
+  const disbursedCount = useMemo(() => {
+    return leads.filter((l) => {
+      const s = (l.statusName || l.status || "").toLowerCase();
+      const sid = Number(l.status_id || 0);
+      return sid === 7 || s.includes("disburs") || s.includes("complet");
+    }).length;
+  }, [leads]);
+
+  const inProgressCount = useMemo(() => {
+    return leads.filter((l) => {
+      const s = (l.statusName || l.status || "").toLowerCase();
+      const sid = Number(l.status_id || 0);
+      return (
+        (sid >= 3 && sid < 7) ||
+        s.includes("progress") ||
+        s.includes("credit") ||
+        s.includes("submit") ||
+        s.includes("sanction") ||
+        s.includes("legal")
+      );
+    }).length;
+  }, [leads]);
+
+  const pendingDocsCount = useMemo(() => {
+    return leads.filter((l) => {
+      const s = (l.statusName || l.status || "").toLowerCase();
+      const sid = Number(l.status_id || 0);
+      return (
+        sid === 1 ||
+        sid === 2 ||
+        s.includes("doc") ||
+        s.includes("applied") ||
+        s.includes("pending")
+      );
+    }).length;
+  }, [leads]);
+
+  const loanVolumeFormatted = useMemo(() => {
+    const totalAmt = leads.reduce((sum, l) => sum + (parseFloat(l.amount) || 0), 0);
+    if (totalAmt >= 10000000) {
+      return `₹${(totalAmt / 10000000).toFixed(1)}Cr`;
+    }
+    if (totalAmt >= 100000) {
+      return `₹${(totalAmt / 100000).toFixed(1)}L`;
+    }
+    if (totalAmt > 0) {
+      return `₹${totalAmt.toLocaleString("en-IN")}`;
+    }
+    return "₹0";
+  }, [leads]);
+
   // Filter leads based on tab choice
   const filteredLeads = useMemo(() => {
     if (activeFilter === "all") return leads;
 
-    return leads.filter(
-      (lead) =>
-        String(lead.status_id) === String(activeFilter) ||
-        String(lead.status?.id) === String(activeFilter)
-    );
+    if (activeFilter === "in-progress") {
+      return leads.filter((l) => {
+        const s = (l.statusName || l.status || "").toLowerCase();
+        const sid = Number(l.status_id || 0);
+        return (
+          (sid >= 3 && sid < 7) ||
+          s.includes("progress") ||
+          s.includes("credit") ||
+          s.includes("submit") ||
+          s.includes("sanction") ||
+          s.includes("legal")
+        );
+      });
+    }
+
+    if (activeFilter === "disbursed") {
+      return leads.filter((l) => {
+        const s = (l.statusName || l.status || "").toLowerCase();
+        const sid = Number(l.status_id || 0);
+        return sid === 7 || s.includes("disburs") || s.includes("complet");
+      });
+    }
+
+    if (activeFilter === "pending-docs") {
+      return leads.filter((l) => {
+        const s = (l.statusName || l.status || "").toLowerCase();
+        const sid = Number(l.status_id || 0);
+        return (
+          sid === 1 ||
+          sid === 2 ||
+          s.includes("doc") ||
+          s.includes("applied") ||
+          s.includes("pending")
+        );
+      });
+    }
+
+    return leads;
   }, [leads, activeFilter]);
 
   const getProductTitle = (id) => {
@@ -398,30 +535,47 @@ export default function BrokerDashboard() {
   };
 
   const getProductEmoji = (id) => {
-    const emojis = {
-      "home-loan": "🏠",
-      "loan-against-property": "🏢",
-      "personal-loan": "💳",
-      "business-loan": "📦",
-      "car-loan": "🚗",
-    };
-    return emojis[id] || "📄";
+    // kept for legacy compatibility, returns empty string (icons used in render)
+    return "";
   };
 
-  // Add Client - Lender option list based on selected loan type (from DB)
+  const getProductIcon = (name = "") => {
+    const n = (name || "").toLowerCase();
+    if (n.includes("home")) return <Home size={22} color="#0D7A68" strokeWidth={2} />;
+    if (n.includes("property") || n.includes("lap")) return <Building2 size={22} color="#2563EB" strokeWidth={2} />;
+    if (n.includes("personal")) return <CreditCard size={22} color="#7C3AED" strokeWidth={2} />;
+    if (n.includes("business")) return <Briefcase size={22} color="#D97706" strokeWidth={2} />;
+    if (n.includes("car") || n.includes("auto") || n.includes("vehicle")) return <Car size={22} color="#059669" strokeWidth={2} />;
+    if (n.includes("education") || n.includes("study")) return <GraduationCap size={22} color="#4F46E5" strokeWidth={2} />;
+    return <FileText size={22} color="#64748B" strokeWidth={2} />;
+  };
+
+  // Add Client - Lender option list strictly matching reference image sorted by best ROI
   const lenderOptions = useMemo(() => {
-    if (!acLoanType) return allLenders.map((l) => ({ id: l.id, name: l.name, rate: null }));
-    return allLenders
-      .map((l) => {
-        const matchingRate = (l.loanRates || []).find(
-          (r) => r.loan_type_id === parseInt(acLoanType)
-        );
-        return matchingRate
-          ? { id: l.id, name: l.name, rate: matchingRate.min_rate }
-          : null;
-      })
-      .filter(Boolean);
-  }, [acLoanType, allLenders]);
+    return REFERENCE_LENDERS.map((rl) => {
+      const match = (allLenders || []).find((l) => {
+        const lName = (l.name || "").toLowerCase().replace(" bank", "").trim();
+        const rName = rl.name.toLowerCase().replace(" bank", "").trim();
+        return lName === rName || lName.includes(rName) || rName.includes(lName);
+      });
+      return {
+        id: match ? match.id : null,
+        name: rl.name,
+        rate: rl.rate,
+      };
+    });
+  }, [allLenders]);
+
+  const displayLoanTypes = useMemo(() => {
+    if (loanTypes && loanTypes.length > 0) return loanTypes;
+    return [
+      { id: "1", name: "Home Loan" },
+      { id: "2", name: "Loan Against Property" },
+      { id: "3", name: "Personal Loan" },
+      { id: "4", name: "Business Loan" },
+      { id: "5", name: "Car Loan" },
+    ];
+  }, [loanTypes]);
 
   const handleToggleLender = (name) => {
     if (selectedLenders.includes(name)) {
@@ -439,49 +593,47 @@ export default function BrokerDashboard() {
     }
   };
 
-  const selectedLoanTypeName = loanTypes.find((t) => String(t.id) === String(acLoanType))?.name || acLoanType;
+  const selectedLoanTypeName = displayLoanTypes.find((t) => String(t.id) === String(acLoanType))?.name || acLoanType;
 
   const [submitting, setSubmitting] = useState(false);
 
   const submitAddClient = async (e) => {
     e.preventDefault();
-    if (!acName || !acMobile) {
-      showToast("error", "Please enter client name and mobile number");
+    if (!acName.trim() || !acMobile.trim()) {
+      showToast("error", "Please enter client name and 10-digit mobile number");
+      return;
+    }
+    if (acMobile.trim().length !== 10) {
+      showToast("error", "Please enter a valid 10-digit mobile number");
       return;
     }
     if (!acAmt || parseFloat(acAmt) <= 0) {
       showToast("error", "Please enter a valid loan amount");
       return;
     }
-    if (!acAddress || !acPincode || acPincode.length !== 6) {
-      showToast("error", "Please enter a valid address and 6-digit pincode");
-      return;
-    }
 
     setSubmitting(true);
     try {
+      const unitMultiplier = acAmtUnit === "Crore" ? 10000000 : acAmtUnit === "Thousand" ? 1000 : acAmtUnit === "₹" ? 1 : 100000;
+      const finalAmount = parseFloat(acAmt) * unitMultiplier;
+      const finalTenureMonths = acTenureYears ? Math.round(parseFloat(acTenureYears) * 12) : null;
+
       // Pick first selected lender's id (if any)
       const firstSelectedLender = lenderOptions.find((l) => selectedLenders.includes(l.name));
+      const targetLoanTypeId = acLoanType || (displayLoanTypes[0]?.id ? String(displayLoanTypes[0].id) : "1");
 
       const payload = {
-        name: acName,
-        number: acMobile,
-        email: acEmail,
-        loan_type_id: acLoanType,
-        loan_amount: parseFloat(acAmt),
-        loan_purpose: acLoanPurpose || selectedLoanTypeName,
+        name: acName.trim(),
+        number: acMobile.trim(),
+        email: acEmail.trim() || null,
+        loan_type_id: targetLoanTypeId,
+        loan_amount: finalAmount,
+        loan_purpose: selectedLoanTypeName || "General",
         preferred_lender_id: firstSelectedLender?.id || null,
         selected_lenders: selectedLenders,
         selectedLenders: selectedLenders,
         client_preference: acReachMode,
-        address: acAddress,
-        pincode: acPincode,
-        state: acState,
-        district: acDistrict,
-        city: acCity,
-        tenure: acTenure,
-        dob: acDob,
-        gender: acGender,
+        tenure: finalTenureMonths,
       };
 
       const res = await fetch("/api/broker/referClient", {
@@ -498,31 +650,21 @@ export default function BrokerDashboard() {
         return;
       }
 
-      showToast("success", `Referral for "${acName}" submitted! Application saved to database.`);
+      showToast("success", `Referral for "${acName.trim()}" submitted! Application saved.`);
       setShowAddClientModal(false);
 
       // Reset form
-      // if (data.waCredentials) {
-      //   console.log(`[WHATSAPP SIMULATION] Message to 91${acMobile}`);
-      //   console.log(`Your Fin4Sure account has been created.\nUsername: ${data.waCredentials.username}\nPassword: ${data.waCredentials.password}\n\nPlease log in and change your password if you want.`);
-      // }12
       setAcName("");
       setAcMobile("");
       setAcEmail("");
-      setAcDob("");
-      setAcGender("");
-      setAcAmt("");
-      setAcLoanPurpose("");
-      setAcTenure("");
-      setAcAddress("");
-      setAcPincode("");
-      setAcState("");
-      setAcDistrict("");
-      setAcCity("");
+      setAcAmt("20");
+      setAcAmtUnit("Lakh");
+      setAcTenureYears("15");
       setSelectedLenders([]);
-      if (loanTypes.length > 0) setAcLoanType(String(loanTypes[0].id));
+      setAcReachMode("direct");
+      if (displayLoanTypes.length > 0) setAcLoanType(String(displayLoanTypes[0].id));
 
-      // Refresh dashboard data (stay on same page)
+      // Refresh dashboard data
       fetchClients();
       fetchLeads();
     } catch (e) {
@@ -547,295 +689,374 @@ export default function BrokerDashboard() {
         <div className="pdash-header-inner">
           <div className="pdash-greeting">
             <div className="pdash-avatar">
-              {user.name ? user.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) : "PT"}
+              {user.name ? user.name.charAt(0).toUpperCase() : "P"}
             </div>
             <div>
-              <div className="cdash-welcome">Partner Workspace 👋</div>
-              <div className="pdash-name">{user.name}</div>
+              <div className="pdash-name">{user?.name || "Partner"}</div>
               <div className="pdash-meta">
-                <span className="pdash-badge">Finn4sure Partner</span>
-                <span className="pdash-id">ID: {user?.brokerId || user?.partner_id || user?.id || user?._id ? `F4S-P${String(user.brokerId || user.partner_id || user.id || user._id).padStart(3, '0')}` : 'F4S-P001'}</span>
+                <span className="pdash-badge">PARTNER</span>
+                <span className="pdash-city"><MapPin size={11} style={{ display: 'inline-block', marginRight: '4px', verticalAlign: '-1px' }} />{user?.city || user?.district || "City"}</span>
+                <span className="pdash-id">ID: {user?.brokerId || user?.partner_id || user?.id || user?._id ? `F4S-${String(user.brokerId || user.partner_id || user.id || user._id).padStart(5, '0')}` : 'F4S-20847'}</span>
               </div>
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
-            <button className="pdash-support-pill" onClick={() => setShowSupportModal(true)}>
-              <span className="csp-dot"></span> Support
+          <div className="pdash-header-actions">
+            <button className="pdash-help-btn" onClick={() => setShowSupportModal(true)}>
+              <span className="csp-dot"></span> Need Help?
             </button>
             <button className="pdash-logout" onClick={handleSignOut}>
-              <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
+              <LogOut size={13} />
               Sign Out
             </button>
           </div>
         </div>
 
-        {/* Workspace banner tabs */}
+        {/* Workspace Tabs */}
         <div className="pdash-tab-bar">
-          <button 
+          <button
             className={`pdash-tab ${workspaceTab === "dashboard" ? "active" : ""}`}
             onClick={() => setWorkspaceTab("dashboard")}
           >
-            📊 Referral Dashboard
+            My Referrals
           </button>
-          <button 
+          <button
             className={`pdash-tab ${workspaceTab === "profile" ? "active" : ""}`}
             onClick={() => setWorkspaceTab("profile")}
           >
-            👤 Edit Profile
+            Profile &amp; Security
           </button>
         </div>
       </div>
 
       {/* ═══ BODY WORKSPACE ═══ */}
       <div className="pdash-body">
-        {workspaceTab === "dashboard" ? (
+        {workspaceTab !== "profile" ? (
           <>
-            {/* KPI stat metrics row */}
+            {/* KPI stat metrics row (5 cards) */}
             <div className="pdash-kpi-row animate-fade-up">
+          <div className="pdash-kpi-card">
+            <div className="pkpi-icon pkpi-icon-blue">
+              <Users size={20} />
+            </div>
+            <div className="pkpi-content">
+              <div className="pkpi-val">{totalReferrals}</div>
+              <div className="pkpi-lbl">TOTAL REFERRALS</div>
+            </div>
+          </div>
+
+          <div className="pdash-kpi-card">
+            <div className="pkpi-icon pkpi-icon-green">
+              <Check size={20} />
+            </div>
+            <div className="pkpi-content">
+              <div className="pkpi-val">{disbursedCount}</div>
+              <div className="pkpi-lbl">DISBURSED</div>
+            </div>
+          </div>
+
+          <div className="pdash-kpi-card">
+            <div className="pkpi-icon pkpi-icon-amber">
+              <Clock size={20} />
+            </div>
+            <div className="pkpi-content">
+              <div className="pkpi-val">{inProgressCount}</div>
+              <div className="pkpi-lbl">IN PROGRESS</div>
+            </div>
+          </div>
+
+          <div className="pdash-kpi-card">
+            <div className="pkpi-icon pkpi-icon-red">
+              <AlertCircle size={20} />
+            </div>
+            <div className="pkpi-content">
+              <div className="pkpi-val">{pendingDocsCount}</div>
+              <div className="pkpi-lbl">PENDING DOCS</div>
+            </div>
+          </div>
+
+          <div className="pdash-kpi-card">
+            <div className="pkpi-icon pkpi-icon-shield">
+              <Shield size={20} />
+            </div>
+            <div className="pkpi-content">
+              <div className="pkpi-val">{loanVolumeFormatted}</div>
+              <div className="pkpi-lbl">LOAN VOLUME</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Eye-catching Got a new client banner */}
+        <div className="pdash-addclient-banner animate-fade-up" onClick={openReferralModal}>
+          <div className="pacb-left">
+            <div className="pacb-icon">
+              <Sparkles size={24} />
+            </div>
+            <div className="pacb-txt">
+              <div className="pacb-title">Got a new client?</div>
+              <div className="pacb-sub">Add their details in under a minute — pick loan type, amount &amp; how to reach them</div>
+            </div>
+          </div>
+          <button className="pacb-btn" onClick={(e) => { e.stopPropagation(); openReferralModal(); }}>
+            + Add Client
+          </button>
+        </div>
+
+        {/* Main Dashboard Workspace Grid */}
+        <div className="pdash-main-grid animate-fade-up">
+          {/* Left Column */}
+          <div className="pdash-left">
+            <div className="pdash-section-head">
+              <h3>Referred Customers</h3>
+              <button className="pdash-add-btn" onClick={openReferralModal}>
+                <Plus size={14} /> Add Client
+              </button>
             </div>
 
-            {/* Eye-catching Refer Client banner */}
-            <div className="pdash-addclient-banner animate-fade-up" onClick={openReferralModal}>
-              <div className="pacb-glow"></div>
-              <div className="pacb-left">
-                <div className="pacb-icon">✨</div>
-                <div className="pacb-txt">
-                  <div className="pacb-title">Got a new borrower client?</div>
-                  <div className="pacb-sub">Refer their details in 1 minute — pick loan asset, size &amp; Preferred Lenders list</div>
-                </div>
-              </div>
-              <button className="pacb-btn">+ Refer Client</button>
+            {/* Filter Tabs */}
+            <div className="pdash-filter-row">
+              <button
+                className={`pdash-ftab ${activeFilter === "all" ? "active" : ""}`}
+                onClick={() => setActiveFilter("all")}
+              >
+                All ({totalReferrals})
+              </button>
+              <button
+                className={`pdash-ftab ${activeFilter === "in-progress" ? "active" : ""}`}
+                onClick={() => setActiveFilter("in-progress")}
+              >
+                In Progress ({inProgressCount})
+              </button>
+              <button
+                className={`pdash-ftab ${activeFilter === "disbursed" ? "active" : ""}`}
+                onClick={() => setActiveFilter("disbursed")}
+              >
+                Disbursed ({disbursedCount})
+              </button>
+              <button
+                className={`pdash-ftab ${activeFilter === "pending-docs" ? "active" : ""}`}
+                onClick={() => setActiveFilter("pending-docs")}
+              >
+                Pending Docs ({pendingDocsCount})
+              </button>
             </div>
 
-            {/* Main Dashboard Workspace Grid */}
-            <div className="pdash-main-grid animate-fade-up">
-              {/* Left Column */}
-              <div className="pdash-left">
-                <div className="pdash-section-head">
-                  <h3>Referred Clients &amp; Status</h3>
-                  <button className="pdash-add-btn" onClick={openReferralModal}>
-                    + Add Referral
-                  </button>
+            {/* Referral Cards List */}
+            <div className="cd-loan-list">
+              {filteredLeads.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "36px", background: "#fff", border: "1px solid #E6EEF8", borderRadius: "18px", color: "var(--text2)", fontSize: ".88rem" }}>
+                  No referred customers found for this filter tab.
                 </div>
+              ) : (
+                filteredLeads.map((lead, index) => {
+                  const customerName = lead.clientName || lead.name?.split(" - ")?.[0] || "Customer";
+                  const rawProduct = lead.product || lead.loanTypeName || "Loan";
+                  const amt = parseFloat(lead.amount) || 0;
+                  const formattedAmt = amt >= 10000000
+                    ? `₹${(amt / 10000000).toFixed(amt % 10000000 === 0 ? 0 : 1)} Cr`
+                    : amt >= 100000
+                    ? `₹${(amt / 100000).toFixed(amt % 100000 === 0 ? 0 : 1)} L`
+                    : amt > 0 ? `₹${amt.toLocaleString("en-IN")}` : "";
+                  const lender = lead.lenderName || "";
+                  const dateStr = lead.createdAt
+                    ? new Date(lead.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+                    : "10 Jan 2025";
+                  const refCode = lead.application_no
+                    ? (String(lead.application_no).startsWith("F4S") ? lead.application_no : `F4S-${lead.application_no}`)
+                    : (lead.appId ? `F4S-R${String(lead.appId).padStart(3, "0")}` : `F4S-R00${index + 1}`);
 
-                {/* Filter Tabs */}
-                <div className="pdash-filter-row">
-                  <button
-                    className={`pdash-ftab ${activeFilter === "all" ? "active" : ""}`}
-                    onClick={() => setActiveFilter("all")}
-                  >
-                    All Referrals ({leads.length})
-                  </button>
-                </div>
-                {/* Referral Cards List */}
-                <div className="cd-loan-list">
-                  {filteredLeads.length === 0 ? (
-                    <div style={{ textAlign: "center", padding: "30px", background: "#fff", border: "1px solid #E6EEF8", borderRadius: "18px", color: "var(--text2)", fontSize: ".88rem" }}>
-                      No referred leads found for this filter tab.
-                    </div>
-                  ) : (
-                    filteredLeads.map((lead) => {
-                      const rawSt = (lead.statusName || lead.status || lead.stage || '').toLowerCase();
-                      const sId = Number(lead.status_id || 1);
-                      let currentStepIndex = 0;
-                      if (sId === 7 || rawSt.includes('disburs') || rawSt.includes('complet')) currentStepIndex = 6;
-                      else if (sId === 6 || rawSt.includes('legal')) currentStepIndex = 5;
-                      else if (sId === 5 || rawSt.includes('sanction')) currentStepIndex = 4;
-                      else if (sId === 4 || rawSt.includes('submit')) currentStepIndex = 3;
-                      else if (sId === 3 || rawSt.includes('credit') || rawSt.includes('review')) currentStepIndex = 2;
-                      else if (sId === 2 || rawSt.includes('doc')) currentStepIndex = 1;
-                      else currentStepIndex = 0;
+                  const rawSt = (lead.statusName || lead.status || lead.stage || "").toLowerCase();
+                  const sId = Number(lead.status_id || 1);
+                  let currentStepIndex = 1;
+                  if (sId === 7 || rawSt.includes("disburs") || rawSt.includes("complet")) currentStepIndex = 6;
+                  else if (sId === 6 || rawSt.includes("legal")) currentStepIndex = 5;
+                  else if (sId === 5 || rawSt.includes("sanction")) currentStepIndex = 4;
+                  else if (sId === 4 || rawSt.includes("submit")) currentStepIndex = 3;
+                  else if (sId === 3 || rawSt.includes("credit") || rawSt.includes("review")) currentStepIndex = 2;
+                  else if (sId === 2 || rawSt.includes("doc")) currentStepIndex = 1;
+                  else currentStepIndex = 0;
 
-                      const steps = ['applied' , 'docs', 'credit', 'submitted', 'sanction', 'legal', 'disbursed'];
+                  let chipLabel = "In Progress";
+                  let chipClass = "pchip-blue";
+                  if (sId === 7 || rawSt.includes("disburs") || rawSt.includes("complet")) {
+                    chipLabel = "Disbursed";
+                    chipClass = "pchip-green";
+                  } else if (rawSt.includes("reject")) {
+                    chipLabel = "Rejected";
+                    chipClass = "pchip-red";
+                  } else if (sId === 2 || rawSt.includes("doc")) {
+                    chipLabel = "Pending Docs";
+                    chipClass = "pchip-amber";
+                  }
 
-                      return (
-                      <div key={lead.id || lead._id} className="cdl-card">
-                        <div className="cdl-top">
-                          <div className="cdl-left">
-                            <div className="cdl-type-icon" style={{ backgroundColor: "#ECFDF5", color: "#0F766E" }}>
-                              {getProductEmoji(lead.product)}
-                            </div>
-                            <div className="cdl-info">
-                              <h4>{lead.name}</h4>
-                              <div className="cdl-meta">
-                                {lead.product} · Referred: {new Date(lead.createdAt).toLocaleDateString()}
-                                {lead.amount ? ` · ₹${Number(lead.amount).toLocaleString("en-IN")}` : ""}
-                              </div>
-                            </div>
+                  let remarkText = lead.remark || "";
+                  if (!remarkText) {
+                    if (sId === 7 || rawSt.includes("disburs")) remarkText = "Loan disbursed successfully to client account.";
+                    else if (sId === 6 || rawSt.includes("legal")) remarkText = "Legal and technical verification in progress.";
+                    else if (sId === 5 || rawSt.includes("sanction")) remarkText = "Loan sanction letter issued by bank.";
+                    else if (sId === 4 || rawSt.includes("submit")) remarkText = "Documents submitted.";
+                    else if (sId === 3 || rawSt.includes("credit")) remarkText = "Application under credit appraisal with lenders.";
+                    else if (sId === 2 || rawSt.includes("doc")) remarkText = "Documents pending verification.";
+                    else remarkText = "Documents submitted.";
+                  }
+
+                  return (
+                    <div key={lead.id || lead._id || index} className="pcard-referral">
+                      <div className="pcard-top">
+                        <div className="pcard-left">
+                          <div className="pcard-thumb">
+                            {getProductIcon(rawProduct)}
                           </div>
-                          <div className="cdl-right">
-                            {lead.isApp ? (
-                              <>
-                                <div className="cdl-bank" style={{ textTransform: 'uppercase', fontSize: '.74rem', color: '#64748B', fontWeight: 'bold', marginBottom: '4px' }}>
-                                  {lead.statusName === "disbursed"
-                                    ? "COMPLETED"
-                                    : lead.statusName === "rejected"
-                                    ? "REJECTED"
-                                    : "ACTIVE"}
-                                </div>
-                                <span
-                                  className={`cdl-status-chip ${
-                                    lead.statusName === "disbursed"
-                                      ? "cdl-chip-green"
-                                      : "cdl-chip-amber"
-                                  }`}
-                                >
-                                  <span className="cdl-chip-dot"></span>
-                                  <span>
-                                    {lead.statusName === "disbursed"
-                                      ? "Completed"
-                                      : lead.statusName === "rejected"
-                                      ? "Rejected"
-                                      : "In Progress"}
-                                  </span>
-                                </span>
-                              </>
-                            ) : (
-                              <span
-                                className={`cdl-status-chip ${lead.status === "approved"
-                                  ? "cdl-chip-green"
-                                  : lead.status === "rejected"
-                                    ? "cdl-chip-amber"
-                                    : "cdl-chip-blue"
-                                  }`}
-                              >
-                                <span className="cdl-chip-dot"></span>
-                                {lead.status === "approved"
-                                  ? "Approved"
-                                  : lead.status === "rejected"
-                                    ? "Rejected"
-                                    : "Processing"}
-                              </span>
-                            )}
+                          <div className="pcard-info">
+                            <h4 className="pcard-title">{customerName}</h4>
+                            <div className="pcard-sub1">
+                              {rawProduct} · {formattedAmt} · {lender}
+                            </div>
+                            <div className="pcard-sub2">
+                              {dateStr} · {refCode}
+                            </div>
                           </div>
                         </div>
-
-                        {/* Journey tracker timeline visualization for referred apps */}
-                        {lead.isApp && (
-                          <div className="cdl-journey" style={{ marginTop: '20px', borderTop: '1px solid #F1F5F9', paddingTop: '16px' }}>
-                            <div className="cdl-jlabel">Loan Journey</div>
-                            <div className="cdl-track">
-                              {['applied' , 'docs', 'credit', 'submitted', 'sanction', 'legal', 'disbursed'].map((step, index) => {
-                                const steps = ['applied' , 'docs', 'credit', 'submitted', 'sanction', 'legal', 'disbursed'];
-                                let currentStepIndex = steps.indexOf(lead.statusName) !== -1 ? steps.indexOf(lead.statusName) : 0;
-                                if (lead.statusName === 'applied') {
-                                  currentStepIndex = 1;
-                                }
-                                const isDone = index < currentStepIndex;
-                                const isActive = index === currentStepIndex;
-                                
-                                return (
-                                  <div key={step} className={`cdl-step ${isDone ? "done" : ""} ${isActive ? "active" : ""}`}>
-                                    <div className="cdl-dot">{isDone ? "✓" : (index + 1)}</div>
-                                    <span className="cdl-step-lbl" style={{ textTransform: 'capitalize' }}>{step}</span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-
-                        {lead.isApp && lead.client_preference !== 'direct_reach' && lead.client_preference !== 'direct' && (lead.statusName === 'applied' || lead.statusName === 'docs') && (
-                          <div style={{ 
-                            marginTop: '20px', 
-                            paddingTop: '16px', 
-                            borderTop: '1px solid #F1F5F9', 
-                            display: 'flex', 
-                            justifyContent: 'flex-end', 
-                            alignItems: 'center'
-                          }}>
-                            <Link 
-                              to={`/upload-docs/${lead.appId}`} 
-                              style={{ 
-                                textDecoration: "none", 
-                                background: "linear-gradient(135deg, #059669, #10B981)", 
-                                color: "#fff",
-                                fontSize: "0.82rem",
-                                fontWeight: "700",
-                                padding: "8px 16px",
-                                borderRadius: "8px",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "6px",
-                                boxShadow: "0 4px 12px rgba(16, 185, 129, 0.2)",
-                                transition: "all 0.2s ease"
-                              }}
-                            >
-                              📤 Upload Documents
-                            </Link>
-                          </div>
-                        )}
-
-                        {lead.client_preference && (
-                          <div className="cdl-remark" style={{ fontSize: ".76rem", background: "#F4FBF7", border: "1px solid #A7F3D0", color: "#065F46" }}>
-                            🛡️ {lead.client_preference === "partner_routing" ? "Partner Routing — you will be contacted" : "Direct Reach — team will contact client"}
-                          </div>
-                        )}
-                        {lead.remark && (
-                          <div className="cdl-remark" style={{ fontSize: ".76rem", background: "#F4FBF7", border: "1px solid #A7F3D0", color: "#065F46" }}>
-                            💡 {lead.remark}
-                          </div>
-                        )}
+                        <div className="pcard-right">
+                          <span className={`pcard-chip ${chipClass}`}>
+                            <span className="pcard-chip-dot"></span>
+                            {chipLabel}
+                          </span>
+                        </div>
                       </div>
-                    )})
-                  )}
-                </div>
+
+                      {/* Loan Journey Tracker */}
+                      <div className="pcard-journey">
+                        <div className="cdl-track">
+                          {["applied", "docs", "credit", "submitted", "sanction", "legal", "disbursed"].map((step, idx) => {
+                            const isDone = idx < currentStepIndex;
+                            const isActive = idx === currentStepIndex;
+
+                            return (
+                              <div key={step} className={`cdl-step ${isDone ? "done" : ""} ${isActive ? "active" : ""}`}>
+                                <div className="cdl-dot">{isDone ? <Check size={11} strokeWidth={3} /> : (idx + 1)}</div>
+                                <span className="cdl-step-lbl" style={{ textTransform: "capitalize" }}>{step}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Status / Remark callout */}
+                      <div className="pcard-remark">
+                        <MessageSquare size={15} className="pcard-remark-icon" />
+                        <span>{remarkText}</span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="cdash-right">
+            {/* Dedicated Support Card */}
+            <div className="pdash-support-card">
+              <div className="pdash-support-head">
+                <PhoneCall size={14} />
+                <span>YOUR DEDICATED SUPPORT</span>
               </div>
 
-              {/* Right Column */}
-              <div className="cdash-right">
-                {/* Dedicated advisor support */}
-                <div className="pdash-support-card">
-                  <div className="cdsm-head" style={{ color: "rgba(255,255,255,.65)" }}>Your Support Manager</div>
-                  <div className="cdsm-person">
-                    <div className="cdsm-avatar" style={{ background: "linear-gradient(135deg, #A7F3D0, #34D399)", color: "#064E3B" }}>RM</div>
-                    <div>
-                      <div className="cdsm-name">Mr. Rishabh Mathur</div>
-                      <div className="cdsm-role" style={{ color: "rgba(255,255,255,.7)" }}>Mortgage Specialist</div>
-                    </div>
-                    <span className="cdsm-online" style={{ color: "#34D399" }}>
-                      <span className="psc-dot" style={{ backgroundColor: "#34D399" }}></span>Online
-                    </span>
-                  </div>
-                  <div className="cdsm-actions">
-                    <a className="cdsm-btn" href="tel:9217624627">
-                      📞 Call
-                    </a>
-                    <a className="cdsm-btn" href="mailto:support@finn4sure.com">
-                      📧 Email
-                    </a>
-                    <a className="cdsm-btn" href="https://wa.me/919217624627" target="_blank" rel="noreferrer">
-                      📱 WhatsApp
-                    </a>
-                  </div>
-                  <div className="cdsm-hours" style={{ color: "rgba(255,255,255,.55)" }}>Mon–Sat · 9:30 AM – 6:30 PM IST</div>
+              <div className="cdsm-person">
+                <div className="cdsm-avatar" style={{ background: "#34D399", color: "#064E3B", fontWeight: 700, borderRadius: "12px", width: "44px", height: "44px" }}>
+                  RM
                 </div>
+                <div>
+                  <div className="cdsm-name" style={{ fontSize: "0.95rem", fontWeight: 700, color: "#fff" }}>Mr. Rishabh Mathur</div>
+                  <div className="cdsm-role" style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.74rem" }}>Manager — Mortgages</div>
+                </div>
+                <span className={`cdsm-online ${isAdvisorOnline ? "is-online" : "is-offline"}`} style={{ color: isAdvisorOnline ? "#34D399" : "#94A3B8" }}>
+                  <span className="psc-dot" style={{ backgroundColor: isAdvisorOnline ? "#34D399" : "#94A3B8", boxShadow: isAdvisorOnline ? "0 0 8px rgba(52, 211, 153, 0.6)" : "none", animation: isAdvisorOnline ? "roiPulse 1.6s infinite" : "none" }}></span>
+                  {isAdvisorOnline ? "Online" : "Offline"}
+                </span>
+              </div>
 
-                {/* Quick Links */}
-                <div className="pdash-quick-links">
-                  <div className="pql-item" onClick={openReferralModal}>
-                    <span>➕ Refer New Client</span>
-                    <span>→</span>
+              {/* 3 Contact Action Rows */}
+              <div className="pdash-actions-list">
+                <a className="pdash-action-row" href="tel:9910507574">
+                  <div className="par-icon par-white">
+                    <Phone size={16} />
                   </div>
-                  <Link to="/EMI-calculator" className="pql-item" style={{ textDecoration: "none" }}>
-                    <span>🧮 Open EMI Calculator</span>
-                    <span>→</span>
-                  </Link>
-                </div>
+                  <div className="par-details">
+                    <div className="par-lbl">MOBILE</div>
+                    <div className="par-val">99105 07574</div>
+                  </div>
+                  <ChevronRight size={18} className="par-arrow" />
+                </a>
+
+                <a className="pdash-action-row" href="mailto:support@finn4sure.com">
+                  <div className="par-icon par-white">
+                    <Mail size={16} />
+                  </div>
+                  <div className="par-details">
+                    <div className="par-lbl">EMAIL</div>
+                    <div className="par-val">support@finn4sure.com</div>
+                  </div>
+                  <ChevronRight size={18} className="par-arrow" />
+                </a>
+
+                <a className="pdash-action-row" href="https://wa.me/919910507574" target="_blank" rel="noreferrer">
+                  <div className="par-icon par-green">
+                    <MessageSquare size={16} />
+                  </div>
+                  <div className="par-details">
+                    <div className="par-lbl">WHATSAPP</div>
+                    <div className="par-val">Chat Now</div>
+                  </div>
+                  <ChevronRight size={18} className="par-arrow" />
+                </a>
+              </div>
+
+              <div className="pdash-support-hours">
+                <Clock size={13} />
+                <span>Mon–Sat, 9:30 AM — 6:30 PM IST</span>
               </div>
             </div>
-          </>
-        ) : (
-          /* Edit Profile Tab */
-          <div className="cdPanelProfile animate-fade-up" style={{ maxWidth: "600px", margin: "0 auto", padding: "10px 0 30px" }}>
+
+            {/* Quick Actions Card */}
+            <div className="pdash-quick-actions">
+              <button
+                className="pdash-qa-row"
+                onClick={() => setShowAddClientModal(true)}
+              >
+                <div className="pdash-qa-left">
+                  <Plus size={20} strokeWidth={3} className="pdash-qa-plus" />
+                  <span className="pdash-qa-label">Add Client</span>
+                </div>
+                <ArrowRight size={18} strokeWidth={2.2} className="pdash-qa-arrow" />
+              </button>
+
+              <button
+                className="pdash-qa-row"
+                onClick={() => navigate("/EMI-calculator")}
+              >
+                <div className="pdash-qa-left">
+                  <Calculator size={20} strokeWidth={2.2} className="pdash-qa-calc-icon" />
+                  <span className="pdash-qa-label">EMI Calculator</span>
+                </div>
+                <ArrowRight size={18} strokeWidth={2.2} className="pdash-qa-arrow" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    ) : (
+        /* Edit Profile Tab */
+        <div className="cdPanelProfile animate-fade-up" style={{ maxWidth: "600px", margin: "0 auto", padding: "10px 0 30px" }}>
+          <div style={{ marginBottom: "16px" }}>
+            <button type="button" onClick={() => setWorkspaceTab("dashboard")} style={{ background: "transparent", border: "none", color: "#0D7A68", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}>
+              <ArrowLeft size={16} /> Back to Referral Dashboard
+            </button>
+          </div>
             <div className="cpro-card" style={{ background: "#fff", borderRadius: "18px", border: "1px solid #E6EEF8", padding: "30px", boxShadow: "0 4px 20px rgba(0,0,0,0.04)" }}>
               <div className="cpro-head" style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px", paddingBottom: "16px", borderBottom: "1px solid #F1F5F9" }}>
-                <span style={{ fontSize: "1.8rem" }}>👤</span>
+                <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "2.2rem", height: "2.2rem", background: "#EEF2FF", borderRadius: "10px", color: "#4F46E5" }}><User size={22} /></span>
                 <div>
                   <div style={{ fontFamily: "Playfair Display, serif", fontSize: "1.4rem", fontWeight: 700, color: "var(--navy)" }}>Partner Profile</div>
                   <div style={{ fontSize: ".82rem", color: "var(--text2)" }}>Manage your partner account details</div>
@@ -847,7 +1068,7 @@ export default function BrokerDashboard() {
                 <div>
                   <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>Full Name</label>
                   <div className="input-wrap">
-                    <span className="icon">👤</span>
+                    <span className="icon"><User size={16} /></span>
                     <input
                       type="text"
                       placeholder="Full Name"
@@ -863,7 +1084,7 @@ export default function BrokerDashboard() {
                 <div>
                   <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>City</label>
                   <div className="input-wrap">
-                    <span className="icon">🏙️</span>
+                    <span className="icon"><Navigation size={16} /></span>
                     <input
                       type="text"
                       placeholder="City"
@@ -879,7 +1100,7 @@ export default function BrokerDashboard() {
                 <div>
                   <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>WhatsApp Number</label>
                   <div className="input-wrap">
-                    <span className="icon">📱</span>
+                    <span className="icon"><Smartphone size={16} /></span>
                     <input
                       type="text"
                       placeholder="10-digit WhatsApp number"
@@ -925,7 +1146,7 @@ export default function BrokerDashboard() {
                 <div>
                   <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>Email Address</label>
                   <div className="input-wrap">
-                    <span className="icon">📧</span>
+                    <span className="icon"><AtSign size={16} /></span>
                     <input
                       type="email"
                       placeholder="Email Address"
@@ -975,7 +1196,7 @@ export default function BrokerDashboard() {
                       }}
                       style={{ height: "42px", padding: "0 24px" }}
                     >
-                      ✏️ Edit Profile Details
+                      <Pencil size={15} style={{ marginRight: 6 }} /> Edit Profile Details
                     </button>
                   )}
                 </div>
@@ -1000,21 +1221,21 @@ export default function BrokerDashboard() {
                     <div>
                       <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>Current Password</label>
                       <div className="input-wrap">
-                        <span className="icon">🔑</span>
+                        <span className="icon"><Key size={16} /></span>
                         <input type="password" placeholder="Current password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} required />
                       </div>
                     </div>
                     <div>
                       <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>New Password</label>
                       <div className="input-wrap">
-                        <span className="icon">🔒</span>
+                        <span className="icon"><Lock size={16} /></span>
                         <input type="password" placeholder="New password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
                       </div>
                     </div>
                     <div>
                       <label style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>Confirm New Password</label>
                       <div className="input-wrap">
-                        <span className="icon">🔒</span>
+                        <span className="icon"><Lock size={16} /></span>
                         <input type="password" placeholder="Confirm new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
                       </div>
                     </div>
@@ -1034,463 +1255,202 @@ export default function BrokerDashboard() {
         )}
       </div>
 
-      {/* ═══ REFER CLIENT MODAL ═══ */}
+      {/* ═══ ADD CLIENT MODAL (MATCHING SCREENSHOT) ═══ */}
       {showAddClientModal && (
         <div className="cd-modal" onClick={() => setShowAddClientModal(false)}>
-          <div className="cd-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "540px" }}>
-            <div className="cd-modal-head" style={{ background: "linear-gradient(135deg,#042F2A,#064E3B 50%,#0F766E)" }}>
-              <span>➕ Refer Client Form</span>
-              <button onClick={() => setShowAddClientModal(false)}>&times;</button>
+          <div className="acm-card" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="acm-header">
+              <div className="acm-header-title">
+                <span className="acm-plus-icon">+</span>
+                <span className="acm-title-text">Add Client</span>
+              </div>
+              <button
+                type="button"
+                className="acm-close-btn"
+                onClick={() => setShowAddClientModal(false)}
+                title="Close"
+              >
+                <X size={18} />
+              </button>
             </div>
-            <div className="cd-modal-body" style={{ maxHeight: "78vh", overflowY: "auto" }}>
-              <form onSubmit={submitAddClient} className="apply-form">
-                <div className="apply-form-group">
-                  <label>Client Full Name *</label>
-                  <div className="input-wrap">
-                    <span className="icon">👤</span>
+
+            {/* Modal Form Body */}
+            <form onSubmit={submitAddClient} className="acm-body">
+              {/* Row 1: Loan Type, Amount, Tenure */}
+              <div className="acm-grid-3">
+                <div className="acm-form-group">
+                  <label className="acm-label">Loan Type</label>
+                  <select
+                    className="acm-select"
+                    value={acLoanType || String(displayLoanTypes[0]?.id || "1")}
+                    onChange={(e) => {
+                      setAcLoanType(e.target.value);
+                      setSelectedLenders([]);
+                    }}
+                    required
+                  >
+                    {displayLoanTypes.map((lt) => (
+                      <option key={lt.id} value={String(lt.id)}>
+                        {lt.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="acm-form-group">
+                  <label className="acm-label">Amount</label>
+                  <div className="acm-amount-box">
+                    <span className="acm-currency-prefix">₹</span>
                     <input
-                      type="text"
-                      placeholder="Customer Name"
-                      value={acName}
-                      onChange={(e) => setAcName(e.target.value)}
+                      type="number"
+                      step="any"
+                      min="1"
+                      className="acm-amount-input"
+                      value={acAmt}
+                      onChange={(e) => setAcAmt(e.target.value)}
+                      placeholder="20"
                       required
                     />
+                    <select
+                      className="acm-amount-unit-select"
+                      value={acAmtUnit}
+                      onChange={(e) => setAcAmtUnit(e.target.value)}
+                    >
+                      <option value="Lakh">Lakh</option>
+                      <option value="Crore">Crore</option>
+                    </select>
                   </div>
                 </div>
 
-                <div className="apply-form-row">
-                  <div className="apply-form-group">
-                    <label>WhatsApp Mobile *</label>
-                    <div className="input-wrap">
-                      <span className="icon">📱</span>
-                      <input
-                        type="text"
-                        placeholder="10-digit number"
-                        maxLength={10}
-                        value={acMobile}
-                        onChange={(e) => setAcMobile(e.target.value.replace(/\D/g, ""))}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="apply-form-group">
-                    <label>Email Address</label>
-                    <div className="input-wrap">
-                      <span className="icon">📧</span>
-                      <input
-                        type="email"
-                        placeholder="customer@email.com"
-                        value={acEmail}
-                        onChange={(e) => setAcEmail(e.target.value)}
-                      />
-                    </div>
-                  </div>
+                <div className="acm-form-group">
+                  <label className="acm-label">Tenure (yrs)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="40"
+                    className="acm-input"
+                    placeholder="15"
+                    value={acTenureYears}
+                    onChange={(e) => setAcTenureYears(e.target.value)}
+                  />
                 </div>
-                
-                <div className="apply-form-row">
-                  <div className="apply-form-group">
-                    <label>Date of Birth *</label>
-                    <div className="input-wrap">
-                      <span className="icon">📅</span>
-                      <input
-                        type="date"
-                        value={acDob}
-                        onChange={(e) => setAcDob(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
+              </div>
 
-                  <div className="apply-form-group">
-                    <label>Gender *</label>
-                    <div className="input-wrap" style={{ padding: "0 10px" }}>
-                      <select
-                        value={acGender}
-                        onChange={(e) => setAcGender(e.target.value)}
-                        required
-                        style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".88rem", fontWeight: 600, color: "var(--navy)" }}
+              {/* Row 2: Preferred Lenders (sorted by best ROI) */}
+              <div className="acm-form-group">
+                <label className="acm-label">
+                  Preferred Lenders <span className="acm-label-sub">(sorted by best ROI)</span>
+                </label>
+                <div className="acm-lenders-box">
+                  {lenderOptions.map((l) => {
+                    const isSel = selectedLenders.includes(l.name);
+                    return (
+                      <div
+                        key={l.name}
+                        className={`acm-lender-chip ${isSel ? "selected" : ""}`}
+                        onClick={() => handleToggleLender(l.name)}
                       >
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="apply-form-row">
-                  <div className="apply-form-group">
-                    <label>Full Address *</label>
-                    <div className="input-wrap">
-                      <span className="icon">🏠</span>
-                      <input
-                        type="text"
-                        placeholder="Client Address"
-                        value={acAddress}
-                        onChange={(e) => setAcAddress(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="apply-form-group">
-                    <label>Pincode *</label>
-                    <div className="input-wrap">
-                      <span className="icon">📍</span>
-                      <input
-                        type="text"
-                        placeholder="6-digit Pincode"
-                        maxLength={6}
-                        value={acPincode}
-                        onChange={(e) => setAcPincode(e.target.value.replace(/\D/g, ""))}
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="apply-form-row">
-                  <div className="apply-form-group">
-                    <label>State *</label>
-                    <div className="input-wrap" style={{ padding: "0 10px" }}>
-                      <select
-                        value={acState}
-                        onChange={(e) => {
-                          setAcState(e.target.value);
-                          setAcDistrict("");
-                        }}
-                        required
-                        style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".88rem", fontWeight: 600, color: "var(--navy)" }}
-                      >
-                        <option value="">Select State</option>
-                        {states.map((s) => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="apply-form-group">
-                    <label>District *</label>
-                    <div className="input-wrap" style={{ padding: "0 10px" }}>
-                      <select
-                        value={acDistrict}
-                        disabled={!acState}
-                        onChange={(e) => setAcDistrict(e.target.value)}
-                        required
-                        style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".88rem", fontWeight: 600, color: "var(--navy)" }}
-                      >
-                        <option value="">Select District</option>
-                        {acState && districtsByState[acState]?.map((d) => (
-                          <option key={d} value={d}>{d}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="apply-form-row">
-                  <div className="apply-form-group" style={{ position: "relative" }} ref={acCityDropdownRef}>
-                    <label>City *</label>
-                    <div className="input-wrap" style={{ position: "relative" }}>
-                      <span className="icon">🏙️</span>
-                      <input
-                        type="text"
-                        placeholder="Search or enter city..."
-                        value={acCity}
-                        onChange={(e) => {
-                          setAcCity(e.target.value);
-                          setIsAcCityOpen(true);
-                        }}
-                        onFocus={() => setIsAcCityOpen(true)}
-                        required
-                        style={{ paddingRight: acCity ? "45px" : "28px" }}
-                      />
-                      {acCity ? (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setAcCity("");
-                            setIsAcCityOpen(true);
-                          }}
-                          style={{
-                            position: "absolute",
-                            right: "26px",
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            background: "#E2E8F0",
-                            border: "none",
-                            color: "#64748B",
-                            width: "18px",
-                            height: "18px",
-                            borderRadius: "50%",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "10px",
-                            fontWeight: 800,
-                            padding: 0
-                          }}
-                          title="Clear city"
-                        >
-                          ✕
-                        </button>
-                      ) : null}
-                      <span 
-                        style={{ 
-                          position: "absolute", 
-                          right: "10px", 
-                          top: "50%", 
-                          transform: `translateY(-50%) rotate(${isAcCityOpen ? "180deg" : "0deg"})`, 
-                          transition: "transform 0.2s ease",
-                          fontSize: "10px",
-                          color: "#64748B",
-                          pointerEvents: "none"
-                        }}
-                      >
-                        ▼
-                      </span>
-                    </div>
-
-                    {/* Custom Dropdown Menu */}
-                    {isAcCityOpen && (
-                      <div 
-                        style={{
-                          position: "absolute",
-                          top: "calc(100% + 4px)",
-                          left: 0,
-                          right: 0,
-                          background: "#FFFFFF",
-                          borderRadius: "12px",
-                          border: "1px solid #E2E8F0",
-                          boxShadow: "0 14px 34px -4px rgba(15, 23, 42, 0.16), 0 4px 12px -2px rgba(15, 23, 42, 0.08)",
-                          zIndex: 9999,
-                          maxHeight: "220px",
-                          overflowY: "auto",
-                          padding: "6px"
-                        }}
-                      >
-                        {(() => {
-                          const searchLower = (acCity || "").toLowerCase().trim();
-                          const filtered = cityList.filter(c => c.toLowerCase().includes(searchLower));
-                          const exactMatch = cityList.some(c => c.toLowerCase() === searchLower);
-
-                          return (
-                            <>
-                              {searchLower && !exactMatch && (
-                                <div
-                                  onClick={() => {
-                                    const customName = acCity.trim();
-                                    saveNewCityIfCustom(customName);
-                                    setIsAcCityOpen(false);
-                                  }}
-                                  style={{
-                                    padding: "9px 12px",
-                                    borderRadius: "8px",
-                                    background: "#F0FDF4",
-                                    border: "1px dashed #86EFAC",
-                                    color: "#166534",
-                                    fontSize: "0.82rem",
-                                    fontWeight: 700,
-                                    cursor: "pointer",
-                                    marginBottom: "4px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "8px",
-                                    transition: "all 0.15s ease"
-                                  }}
-                                  onMouseEnter={(e) => e.currentTarget.style.background = "#DCFCE7"}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = "#F0FDF4"}
-                                >
-                                  <span style={{ fontSize: "1rem" }}>✨</span>
-                                  <span>Add custom city: <strong style={{ textDecoration: "underline" }}>"{acCity.trim()}"</strong></span>
-                                </div>
-                              )}
-
-                              {filtered.length === 0 && !searchLower && (
-                                <div style={{ padding: "12px", textAlign: "center", color: "#94A3B8", fontSize: "0.82rem" }}>
-                                  Start typing to search cities...
-                                </div>
-                              )}
-
-                              {filtered.map((c) => {
-                                const isSelected = acCity.toLowerCase().trim() === c.toLowerCase();
-                                return (
-                                  <div
-                                    key={c}
-                                    onClick={() => {
-                                      setAcCity(c);
-                                      saveNewCityIfCustom(c);
-                                      setIsAcCityOpen(false);
-                                    }}
-                                    style={{
-                                      padding: "8px 12px",
-                                      borderRadius: "6px",
-                                      background: isSelected ? "#0F766E" : "transparent",
-                                      color: isSelected ? "#FFFFFF" : "#1E293B",
-                                      fontSize: "0.84rem",
-                                      fontWeight: isSelected ? 700 : 500,
-                                      cursor: "pointer",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "space-between",
-                                      transition: "all 0.12s ease"
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      if (!isSelected) e.currentTarget.style.background = "#F1F5F9";
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      if (!isSelected) e.currentTarget.style.background = "transparent";
-                                    }}
-                                  >
-                                    <span>🏙️ {c}</span>
-                                    {isSelected && <span style={{ fontSize: "0.75rem" }}>✓</span>}
-                                  </div>
-                                );
-                              })}
-                            </>
-                          );
-                        })()}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="apply-form-group">
-                    <label>Loan Asset Type *</label>
-                    <div className="input-wrap" style={{ padding: "0 6px" }}>
-                      <select
-                        value={acLoanType}
-                        onChange={(e) => { setAcLoanType(e.target.value); setSelectedLenders([]); }}
-                        required
-                        style={{ border: "none", outline: "none", background: "transparent", width: "100%", height: "100%", fontSize: ".92rem", fontWeight: "600", color: "var(--navy)" }}
-                      >
-                        {loanTypes.length === 0 && (
-                          <option value="">Loading...</option>
-                        )}
-                        {loanTypes.map((lt) => (
-                          <option key={lt.id} value={lt.id}>
-                            {lt.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="apply-form-row">
-                  <div className="apply-form-group">
-                    <label>Loan Amount (₹) *</label>
-                    <div className="input-wrap">
-                      <input
-                        type="number"
-                        placeholder="Enter amount in ₹"
-                        value={acAmt}
-                        onChange={(e) => setAcAmt(e.target.value)}
-                        required
-                        min="1"
-                        style={{ width: "100%" }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="apply-form-group">
-                    <label>Tenure (Months) *</label>
-                    <div className="input-wrap">
-                      <span className="icon">⏱️</span>
-                      <input
-                        type="number"
-                        placeholder="e.g. 180"
-                        value={acTenure}
-                        onChange={(e) => setAcTenure(e.target.value)}
-                        required
-                        min="1"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="apply-form-group">
-                  <label>Loan Purpose</label>
-                  <div className="input-wrap">
-                    <span className="icon">📝</span>
-                    <input
-                      type="text"
-                      placeholder="e.g. Home purchase, Business expansion..."
-                      value={acLoanPurpose}
-                      onChange={(e) => setAcLoanPurpose(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                {/* Preferred Lenders checklist selection */}
-                <div className="apply-form-group">
-                  <label>
-                    Preferred Lenders Preference (PSU &amp; Private match)
-                  </label>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".76rem", color: "#065F46", fontWeight: 700, cursor: "pointer", marginBottom: "4px" }} onClick={handleSelectAllLenders}>
-                    {selectedLenders.length === lenderOptions.length ? "Deselect All Lenders" : "Select All suitable lenders"}
-                  </div>
-                  <div className="acm-lender-wrap" style={{ display: "flex", flexWrap: "wrap", gap: "6px", maxHeight: "120px", overflowY: "auto", padding: "8px", background: "#F0FDF4", border: "1px solid #A7F3D0", borderRadius: "10px" }}>
-                    {lenderOptions.map((l) => {
-                      const isSel = selectedLenders.includes(l.name);
-                      return (
-                        <span
-                          key={l.name}
-                          className={`acm-lender-chip ${isSel ? "sel" : ""}`}
-                          onClick={() => handleToggleLender(l.name)}
-                          style={{
-                            padding: "4px 8px",
-                            fontSize: ".7rem",
-                            borderRadius: "20px",
-                            border: "1px solid #A7F3D0",
-                            backgroundColor: isSel ? "#0F766E" : "#fff",
-                            color: isSel ? "#fff" : "#374151",
-                            cursor: "pointer",
-                          }}
-                        >
-                          {l.name} {l.rate != null ? `(${Number(l.rate).toFixed(2)}%)` : ''}
+                        <span className="acm-lender-name">{l.name}</span>
+                        <span className="acm-lender-rate">
+                          {l.rate != null ? `${Number(l.rate).toFixed(2)}%` : ""}
                         </span>
-                      );
-                    })}
-                  </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="acm-select-all-row">
+                  <button
+                    type="button"
+                    className="acm-select-all-link"
+                    onClick={handleSelectAllLenders}
+                  >
+                    {selectedLenders.length === lenderOptions.length
+                      ? "Deselect All"
+                      : "Select All Lenders"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Row 3: Customer Name & Mobile */}
+              <div className="acm-grid-2">
+                <div className="acm-form-group">
+                  <label className="acm-label">Customer Name</label>
+                  <input
+                    type="text"
+                    className="acm-input"
+                    placeholder="Full name"
+                    value={acName}
+                    onChange={(e) => setAcName(e.target.value)}
+                    required
+                  />
                 </div>
 
-                <div className="apply-form-group">
-                  <label>Client Contact Preference</label>
-                  <div style={{ display: "flex", gap: "10px" }}>
-                    <button
-                      type="button"
-                      className={`acm-reach-btn ${acReachMode === "direct" ? "sel" : ""}`}
-                      onClick={() => setAcReachMode("direct")}
-                      style={acReachMode === "direct" ? { borderColor: "#0F766E", color: "#0F766E", background: "#ECFDF5" } : {}}
-                    >
-                      📞 Direct Reach (Team contacts customer)
-                    </button>
-                    <button
-                      type="button"
-                      className={`acm-reach-btn ${acReachMode === "partner" ? "sel" : ""}`}
-                      onClick={() => setAcReachMode("partner")}
-                      style={acReachMode === "partner" ? { borderColor: "#0F766E", color: "#0F766E", background: "#ECFDF5" } : {}}
-                    >
-                      🛡️ Partner Routing (Contact through you)
-                    </button>
-                  </div>
+                <div className="acm-form-group">
+                  <label className="acm-label">Mobile</label>
+                  <input
+                    type="tel"
+                    className="acm-input"
+                    placeholder="10-digit"
+                    maxLength={10}
+                    value={acMobile}
+                    onChange={(e) => setAcMobile(e.target.value.replace(/\D/g, ""))}
+                    required
+                  />
                 </div>
+              </div>
 
+              {/* Row 4: Email (optional) */}
+              <div className="acm-form-group">
+                <label className="acm-label">
+                  Email <span className="acm-label-sub">(optional)</span>
+                </label>
+                <input
+                  type="email"
+                  className="acm-input"
+                  placeholder="customer@email.com"
+                  value={acEmail}
+                  onChange={(e) => setAcEmail(e.target.value)}
+                />
+              </div>
+
+              {/* Row 5: How should we reach the customer? */}
+              <div className="acm-form-group">
+                <label className="acm-label">How should we reach the customer?</label>
+                <div className="acm-reach-row">
+                  <button
+                    type="button"
+                    className={`acm-reach-tab ${acReachMode === "direct" ? "active" : ""}`}
+                    onClick={() => setAcReachMode("direct")}
+                  >
+                    <ArrowRight size={15} style={{ flexShrink: 0 }} /> Reach Customer Directly
+                  </button>
+                  <button
+                    type="button"
+                    className={`acm-reach-tab ${acReachMode === "partner" ? "active" : ""}`}
+                    onClick={() => setAcReachMode("partner")}
+                  >
+                    <Users size={15} style={{ flexShrink: 0 }} /> Reach Through Me (Partner)
+                  </button>
+                </div>
+                <div className="acm-reach-notice">
+                  {acReachMode === "direct"
+                    ? "We’ll contact the customer directly with offers and updates."
+                    : "We’ll contact you directly regarding this client's application."}
+                </div>
+              </div>
+
+              {/* Row 6: Submit Button */}
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
                 <button
                   type="submit"
-                  className="btn-primary"
+                  className="acm-submit-btn"
                   disabled={submitting}
-                  style={{ height: "46px", marginTop: "12px", background: submitting ? "#6B7280" : "linear-gradient(135deg,#0D9488,#0F766E)", cursor: submitting ? "not-allowed" : "pointer" }}
                 >
-                  {submitting ? "Submitting..." : "Refer Client Application →"}
+                  {submitting ? "Adding Client..." : <><span>Add Client</span><ArrowRight size={16} style={{ marginLeft: 6 }} /></>}
                 </button>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -1512,14 +1472,14 @@ export default function BrokerDashboard() {
                 </div>
               </div>
               <a href="tel:9217624627" className="cdm-contact-row">
-                <div className="cdm-ci" style={{ backgroundColor: "#EEF6FF", color: "#1B4D8E" }}>📞</div>
+                <div className="cdm-ci" style={{ backgroundColor: "#EEF6FF", color: "#1B4D8E" }}><Phone size={18} /></div>
                 <div>
                   <div className="cdm-cl" style={{ fontSize: ".66rem", color: "var(--text2)", textTransform: "uppercase" }}>Phone Support</div>
                   <div className="cdm-cv">92176 24627</div>
                 </div>
               </a>
               <a href="mailto:support@finn4sure.com" className="cdm-contact-row">
-                <div className="cdm-ci" style={{ backgroundColor: "#F0FDF4", color: "#16A34A" }}>📧</div>
+                <div className="cdm-ci" style={{ backgroundColor: "#F0FDF4", color: "#16A34A" }}><Mail size={18} /></div>
                 <div>
                   <div className="cdm-cl" style={{ fontSize: ".66rem", color: "var(--text2)", textTransform: "uppercase" }}>Email Support</div>
                   <div className="cdm-cv">support@finn4sure.com</div>
@@ -1534,7 +1494,7 @@ export default function BrokerDashboard() {
       {toast && (
         <div className={`pdash-toast pdash-toast--${toast.type}`}>
           <div className="pdash-toast-icon">
-            {toast.type === "success" ? "✓" : "✕"}
+            {toast.type === "success" ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
           </div>
           <div className="pdash-toast-msg">{toast.message}</div>
           <button className="pdash-toast-close" onClick={() => setToast(null)}>×</button>

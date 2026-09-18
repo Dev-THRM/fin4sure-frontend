@@ -21,10 +21,13 @@ function roleRedirect(userPayload, navigate, redirectTarget) {
   const role = userPayload.role;
   if (role === "admin") { navigate("/admin-dashboard"); return; }
   if (role === "broker" || role === "partner") { navigate("/broker-dashboard"); return; }
+  // If there's a pending loan application from calculator, go straight to client-dashboard to auto-submit it
+  if (sessionStorage.getItem("pendingLoanApp")) {
+    navigate("/client-dashboard");
+    return;
+  }
   if (redirectTarget) {
-    const draftStr = sessionStorage.getItem("pendingLoanApp");
-    const draftState = draftStr ? JSON.parse(draftStr) : {};
-    navigate(redirectTarget, { state: { ...draftState, step: 3 } });
+    navigate(redirectTarget);
   } else {
     navigate("/client-dashboard");
   }
@@ -79,9 +82,18 @@ export default function Login() {
     setError("");
   };
 
+  const handleEmailChange = (val) => {
+    setEmail(val);
+    setOtpEmail(val);
+    if (error) setError("");
+  };
+
   const switchMode = (mode) => {
     setLoginMode(mode);
     setError("");
+    const activeEmail = (email || otpEmail).trim();
+    setEmail(activeEmail);
+    setOtpEmail(activeEmail);
     setOtpStep("email");
     setForgotStep("email");
     setOtp(["", "", "", ""]);
@@ -97,12 +109,14 @@ export default function Login() {
   async function handlePasswordSubmit(e) {
     e.preventDefault();
     if (loading) return;
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanEmail = (email || otpEmail).trim().toLowerCase();
     const cleanPassword = password.trim();
     if (!cleanEmail || !cleanPassword) {
       setError("Please enter both email and password.");
       return;
     }
+    setEmail(cleanEmail);
+    setOtpEmail(cleanEmail);
     setError("");
     setLoading(true);
     try {
@@ -137,11 +151,13 @@ export default function Login() {
   async function handleSendOTP(e) {
     e.preventDefault();
     if (otpSending) return;
-    const cleanEmail = otpEmail.trim().toLowerCase();
+    const cleanEmail = (otpEmail || email).trim().toLowerCase();
     if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
       setError("Please enter a valid email address.");
       return;
     }
+    setEmail(cleanEmail);
+    setOtpEmail(cleanEmail);
     setError("");
     setOtpSending(true);
     try {
@@ -370,8 +386,8 @@ export default function Login() {
                   type="email"
                   placeholder={activeTab === "borrower" ? "Email Address" : "Registered Partner Email"}
                   autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={email || otpEmail}
+                  onChange={(e) => handleEmailChange(e.target.value)}
                 />
               </div>
               <div className="input-wrap" style={{ position: "relative" }}>
@@ -418,7 +434,11 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (email.trim()) setOtpEmail(email.trim());
+                    const clean = (email || otpEmail).trim();
+                    if (clean) {
+                      setEmail(clean);
+                      setOtpEmail(clean);
+                    }
                     switchMode("forgot");
                   }}
                   style={{ background: "none", border: "none", color: "var(--teal)", fontSize: ".78rem", cursor: "pointer", padding: 0 }}
@@ -431,7 +451,7 @@ export default function Login() {
                 {activeTab === "borrower" ? (
                   <>Don't have an account?{" "}<Link to="/?view=borrower" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Register here</Link></>
                 ) : (
-                  <>New partner?{" "}<Link to="/?view=partner" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Apply here</Link></>
+                  <>New partner?{" "}<Link to="/broker-register" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Apply here</Link></>
                 )}
               </div>
             </form>
@@ -453,8 +473,8 @@ export default function Login() {
                       type="email"
                       placeholder="Enter your email address"
                       autoComplete="email"
-                      value={otpEmail}
-                      onChange={(e) => setOtpEmail(e.target.value)}
+                      value={otpEmail || email}
+                      onChange={(e) => handleEmailChange(e.target.value)}
                     />
                   </div>
                   <button
@@ -474,7 +494,7 @@ export default function Login() {
                 <form onSubmit={handleOTPLogin} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                   <div style={{ textAlign: "center" }}>
                     <p style={{ margin: "0 0 4px", fontSize: ".83rem", color: "var(--text2)" }}>
-                      OTP sent to <strong style={{ color: "var(--navy)" }}>{otpEmail}</strong>
+                      OTP sent to <strong style={{ color: "var(--navy)" }}>{otpEmail || email}</strong>
                     </p>
                     <button
                       type="button"
@@ -520,9 +540,9 @@ export default function Login() {
                     ) : (
                       <button
                         type="button"
-                        onClick={handleResendOTP}
+                        onClick={handleSendOTP}
                         disabled={otpSending}
-                        style={{ background: "none", border: "none", color: "var(--teal)", cursor: "pointer", fontWeight: 600, textDecoration: "underline", fontSize: ".78rem" }}
+                        style={{ background: "none", border: "none", color: "var(--teal)", cursor: "pointer", fontWeight: 600, padding: 0 }}
                       >
                         {otpSending ? "Sending…" : "Resend OTP"}
                       </button>
@@ -535,7 +555,7 @@ export default function Login() {
                 {activeTab === "borrower" ? (
                   <>Don't have an account?{" "}<Link to="/?view=borrower" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Register here</Link></>
                 ) : (
-                  <>New partner?{" "}<Link to="/?view=partner" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Apply here</Link></>
+                  <>New partner?{" "}<Link to="/broker-register" style={{ color: "var(--teal)", fontWeight: 600, textDecoration: "none" }}>Apply here</Link></>
                 )}
               </div>
             </>
@@ -555,8 +575,8 @@ export default function Login() {
                       id="forgot-email"
                       type="email"
                       placeholder={activeTab === "borrower" ? "Enter your email address" : "Enter registered partner email"}
-                      value={otpEmail}
-                      onChange={(e) => setOtpEmail(e.target.value)}
+                      value={otpEmail || email}
+                      onChange={(e) => handleEmailChange(e.target.value)}
                     />
                   </div>
                   <button

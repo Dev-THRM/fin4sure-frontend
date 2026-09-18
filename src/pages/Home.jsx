@@ -4,6 +4,7 @@ import BrandPanel from "../components/home/BrandPanel";
 import CompanyRibbon from "../components/home/CompanyRibbon";
 import RoleCards from "../components/home/RoleCards";
 import HomeEmiWidget from "../components/home/HomeEmiWidget";
+import LoanDocGuide from "../components/home/LoanDocGuide";
 import BorrowerStepper from "../components/home/BorrowerStepper";
 import PartnerStepper from "../components/home/PartnerStepper";
 import "./styles/home.css";
@@ -51,6 +52,20 @@ export default function Home() {
     }
   };
 
+  const [selectedLoanType, setSelectedLoanType] = useState("home");
+
+  const handleDocGuideApply = (loanTypeId) => {
+    setSelectedLoanType(loanTypeId);
+    setActiveView("borrowerStepper");
+    setTimeout(() => {
+      const formPanel = document.querySelector('.form-panel');
+      if (formPanel) {
+        formPanel.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 50);
+  };
+
   return (
     <div className={`brand-form-layout animate-fade-up ${activeView === "partnerStepper" ? "partner-mode-active" : ""}`}>
       {/* Left branding panel */}
@@ -60,7 +75,7 @@ export default function Home() {
       <main className="form-panel">
         <CompanyRibbon />
 
-        <div className="form-container">
+        <div className={`form-container ${activeView === "roles" ? "roles-view" : ""}`}>
           {activeView === "roles" ? (
             <>
               <div className="rp-heading">Welcome to Finn4sure</div>
@@ -69,6 +84,8 @@ export default function Home() {
               <RoleCards onSelectRole={handleSelectRole} />
 
               <HomeEmiWidget />
+
+              <LoanDocGuide onApplyLoan={handleDocGuideApply} />
 
               {/* Security trust badges */}
               <div className="trust-row">
@@ -94,7 +111,7 @@ export default function Home() {
               </div>
             </>
           ) : activeView === "borrowerStepper" ? (
-            <BorrowerStepper onBack={() => setActiveView("roles")} />
+            <BorrowerStepper onBack={() => setActiveView("roles")} initialLoanType={selectedLoanType} />
           ) : (
             <PartnerStepper onBack={() => setActiveView("roles")} />
           )}

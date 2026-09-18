@@ -34,28 +34,35 @@ export function useEmiCalculator(initialLoanType = "home", initialAmount, initia
 
   const [rateType, setRateTypeState] = useState("floating");
 
-  // Automatically adjust bounds when loan type changes
+  // Automatically adjust bounds and rates when loan type changes
   const changeLoanType = (newType) => {
     if (!LOAN_PARAMS[newType]) return;
     setLoanTypeState(newType);
 
     const newParams = LOAN_PARAMS[newType];
 
-    // Clamping amount
+    // Set or clamp amount
     setAmountState((prev) => {
       const step = newType === "personal" ? 50000 : 500000;
-      let clamped = Math.min(Math.max(prev, newParams.amtMin), newParams.amtMax);
+      let target = prev;
+      if (newParams.defaultAmount && (prev < newParams.amtMin || prev > newParams.amtMax)) {
+        target = newParams.defaultAmount;
+      }
+      let clamped = Math.min(Math.max(target, newParams.amtMin), newParams.amtMax);
       clamped = Math.round(clamped / step) * step;
       return clamped;
     });
 
-    // Clamping rate
-    setRateState((prev) => {
-      return Math.min(Math.max(prev, newParams.rateMin), newParams.rateMax);
+    // Set rate to default rate of selected loan type
+    setRateState(() => {
+      return newParams.defaultRate || newParams.rateMin;
     });
 
-    // Clamping tenure
+    // Set tenure to default or clamp
     setTenureState((prev) => {
+      if (newParams.defaultTenure && (prev < newParams.tenureMin || prev > newParams.tenureMax)) {
+        return newParams.defaultTenure;
+      }
       return Math.min(Math.max(prev, newParams.tenureMin), newParams.tenureMax);
     });
   };

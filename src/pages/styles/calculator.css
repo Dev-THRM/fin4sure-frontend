@@ -1262,3 +1262,198 @@
 .cmc-btn-success:hover {
   background: #047857;
 }
+
+/* ═══════════════════════════════════════════
+   Standalone EMI Calculator Loan Type Tabs Bar
+   ═══════════════════════════════════════════ */
+.calc-loan-type-tabs-bar {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 14px rgba(15, 41, 66, 0.04);
+}
+
+.clt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.clt-label-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.clt-badge {
+  background: #E0F2FE;
+  color: #0284C7;
+  border: 1px solid #BAE6FD;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.clt-subtitle {
+  font-size: 0.8rem;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.clt-active-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #475569;
+  font-weight: 600;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  padding: 4px 12px;
+  border-radius: 8px;
+}
+
+.clt-rate-highlight {
+  color: #0284C7;
+  font-weight: 800;
+  font-size: 0.88rem;
+}
+
+.clt-tabs-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.clt-tab-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #F8FBFF;
+  border: 1.5px solid #E2ECFA;
+  border-radius: 12px;
+  padding: 8px 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.clt-tab-card:hover {
+  border-color: #38BDF8;
+  background: #F0F9FF;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.1);
+}
+
+.clt-tab-card.active {
+  background: linear-gradient(135deg, #0F2942 0%, #1E3A8A 100%);
+  border-color: #0F2942;
+  box-shadow: 0 6px 18px rgba(15, 41, 66, 0.22);
+}
+
+.clt-tab-icon-wrap {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #E0F2FE;
+  color: #0284C7;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.clt-tab-card:hover .clt-tab-icon-wrap {
+  background: #0284C7;
+  color: #FFFFFF;
+}
+
+.clt-tab-card.active .clt-tab-icon-wrap {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38BDF8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.clt-tab-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.clt-tab-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0F2942;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.2s ease;
+}
+
+.clt-tab-card.active .clt-tab-name {
+  color: #FFFFFF;
+}
+
+.clt-tab-rate {
+  font-size: 0.72rem;
+  color: #059669;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.clt-tab-card.active .clt-tab-rate {
+  color: #34D399;
+}
+
+.clt-tab-card.active .clt-tab-rate strong {
+  color: #FFFFFF;
+}
+
+.calc-active-loan-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.76rem;
+  color: #475569;
+  background: #F0F9FF;
+  border: 1px solid #BAE6FD;
+  border-radius: 8px;
+  padding: 6px 12px;
+  margin-bottom: 12px;
+}
+
+.calc-active-loan-info strong {
+  color: #0369A1;
+}
+
+@media (max-width: 1024px) {
+  .clt-tabs-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .clt-tabs-row {
+    grid-template-columns: 1fr;
+  }
+
+  .calc-active-loan-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}

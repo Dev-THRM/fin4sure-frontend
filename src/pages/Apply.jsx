@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import {
@@ -15,14 +15,16 @@ import {
   Sparkles,
   Tag,
   Lock,
-  CheckCircle2
+  CheckCircle2,
+  HelpCircle,
+  Clock
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useEmiCalculator } from "../hooks/useEmiCalculator";
 import { useSliderPaint } from "../hooks/useSliderPaint";
 import { fmtINR, fmtINRFull } from "../utils/formatters";
 import { calcEMI } from "../utils/emiCalculator";
-import { getLenderTypePriority } from "../utils/loanConstants";
+import { getLenderTypePriority, normalizeLenderCategory } from "../utils/loanConstants";
 import "./styles/calculator.css";
 import "./styles/apply.css";
 
@@ -31,9 +33,15 @@ export default function Apply() {
   const navigate = useNavigate();
   const { user, login, fetchProfile } = useAuth();
 
-  // State for 3-step application flow (1: Details, 2: Choose Lenders, 3: Review & Apply)
-  const [stepperStep, setStepperStep] = useState(1);
-  const [selectedLenders, setSelectedLenders] = useState([]);
+  // State for 2-step application flow (1: Details, 2: Choose Lenders)
+  const [stepperStep, setStepperStep] = useState(
+    Array.isArray(location.state?.selectedLenders) && location.state.selectedLenders.length > 0 ? 2 : 1
+  );
+  const [selectedLenders, setSelectedLenders] = useState(
+    Array.isArray(location.state?.selectedLenders) && location.state.selectedLenders.length > 0
+      ? location.state.selectedLenders
+      : []
+  );
   const [dbLenders, setDbLenders] = useState([]);
   const [loadingLenders, setLoadingLenders] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -42,9 +50,18 @@ export default function Apply() {
   // Modals state
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [submittedAppId, setSubmittedAppId] = useState("");
   const [showLoginRequiredModal, setShowLoginRequiredModal] = useState(false);
+  const [countdown, setCountdown] = useState(7);
+  const countdownIntervalRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    };
+  }, []);
 
   const isAdmin = user?.role === "admin" || user?.role === "partner" || user?.role === "broker";
 
@@ -123,6 +140,10 @@ export default function Apply() {
     if (rawPassed) {
       const resolved = resolveLoanType(rawPassed);
       handleSelectLoanType(resolved);
+    }
+    if (Array.isArray(location.state?.selectedLenders) && location.state.selectedLenders.length > 0) {
+      setSelectedLenders(location.state.selectedLenders);
+      setStepperStep(2);
     }
   }, [location.search, location.state]);
 
@@ -314,12 +335,7 @@ export default function Apply() {
 
       // Only include lenders that have genuine rate records in the database
       if (minR !== null && !isNaN(minR) && minR > 0) {
-        const typeUpper = l.type ? (
-          l.type.toUpperCase() === 'PSU' ? 'PSU' :
-          (l.type.toLowerCase().includes('nbfc') || l.type.toLowerCase().includes('hfc')) ? 'NBFC/HFC' :
-          (l.type.toLowerCase().includes('small') || l.type.toLowerCase().includes('sfb')) ? 'SFB' :
-          'PRIVATE'
-        ) : 'PRIVATE';
+        const typeUpper = normalizeLenderCategory(l.type, l.name);
 
         result.push({
           id: l.id || l.lenderId,
@@ -348,18 +364,18 @@ export default function Apply() {
     if (lenderFilter !== "All") {
       const fl = lenderFilter.toLowerCase();
       list = list.filter(l => {
-        const rawType = String(l.type || 'PRIVATE').toLowerCase();
+        const cat = normalizeLenderCategory(l.type, l.name);
         if (fl === "psu") {
-          return rawType === "psu" || rawType.includes("psu") || rawType.includes("public") || rawType.includes("govt");
+          return cat === "PSU";
         }
         if (fl === "private") {
-          return rawType === "private";
+          return cat === "PRIVATE";
         }
         if (fl === "nbfc/hfc" || fl === "nbfc" || fl === "hfc") {
-          return rawType.includes("nbfc") || rawType.includes("hfc");
+          return cat === "NBFC/HFC";
         }
         if (fl === "sfb" || fl === "small") {
-          return rawType.includes("sfb") || rawType.includes("small");
+          return cat === "SFB";
         }
         return true;
       });
@@ -398,20 +414,29 @@ export default function Apply() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else if (stepperStep === 2) {
       if (selectedLenders.length === 0) {
-        setModalMessage("Please select at least 1 lender to review your application.");
+        setModalMessage("Please select at least 1 lender to submit your application.");
         setShowAdminModal(true);
         return;
       }
-      setStepperStep(3);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      handleFinalSubmit();
+      if (!user || !user.email) {
+        sessionStorage.setItem("pendingLoanApp", JSON.stringify({
+          loanType,
+          amount,
+          tenure,
+          selectedLenders,
+          applicantData
+        }));
+        setShowLoginRequiredModal(true);
+        return;
+      }
+      setShowConfirmModal(true);
     }
   };
 
   // Final Submit Handler: Registers application and redirects to Borrower Dashboard
   const handleFinalSubmit = async () => {
     if (!user || !user.email) {
+      setShowConfirmModal(false);
       sessionStorage.setItem("pendingLoanApp", JSON.stringify({
         loanType,
         amount,
@@ -424,6 +449,7 @@ export default function Apply() {
     }
 
     if (isAdmin) {
+      setShowConfirmModal(false);
       setModalMessage("Admin and Partner accounts cannot submit loan applications. Only borrower accounts can apply.");
       setShowAdminModal(true);
       return;
@@ -435,18 +461,42 @@ export default function Apply() {
     const targetLenders = selectedLenders.length > 0 ? selectedLenders : [1, 2];
 
     try {
+      const chosenNames = selectedLenders.map(id => mergedLendersList.find(l => l.id === id)?.name || id);
+
       const res = await axios.post("/api/client/apply-loan", {
         product: loanType,
         loanAmount: amount,
         tenure: tenure,
         selectedLenders: targetLenders,
-        loan_purpose: applicantData.loanPurpose || `${currentTitle} Application`
+        selectedLenderNames: chosenNames,
+        lenderNames: chosenNames,
+        loan_purpose: applicantData?.loanPurpose || `${currentTitle} Application`
       }, { withCredentials: true });
 
-      if (res && res.data) {
-        setSubmittedAppId(res.data.applicationId || "APP-" + Date.now().toString().slice(-5));
-        setShowSuccessModal(true);
-      }
+      const newAppId = res?.data?.applicationId || "F4S-" + Date.now().toString().slice(-4);
+      setSubmittedAppId(newAppId);
+      setShowConfirmModal(false);
+      setShowSuccessModal(true);
+      setCountdown(7);
+
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(countdownIntervalRef.current);
+            navigate("/client-dashboard", {
+              state: {
+                appSubmitted: true,
+                appId: newAppId,
+                loanName: currentTitle,
+                lenderNames: selectedLenders.map(id => mergedLendersList.find(l => l.id === id)?.name || id)
+              }
+            });
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     } catch (err) {
       console.error("Submission error:", err);
       if (err.response?.status === 429) {
@@ -460,6 +510,19 @@ export default function Apply() {
     }
   };
 
+  const handleImmediateDashboardRedirect = () => {
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    setShowSuccessModal(false);
+    navigate("/client-dashboard", {
+      state: {
+        appSubmitted: true,
+        appId: submittedAppId,
+        loanName: currentTitle,
+        lenderNames: selectedLenders.map(id => mergedLendersList.find(l => l.id === id)?.name || id)
+      }
+    });
+  };
+
   return (
     <div className="calc-full-page animate-fade-up">
       {/* ═══ TOP BLUE/PURPLE GRADIENT HERO ═══ */}
@@ -469,7 +532,7 @@ export default function Apply() {
           Choose your loan type, set the amount &amp; tenure — then pick lenders and apply in minutes.
         </p>
 
-        {/* 3-Step Progress Indicator */}
+        {/* 2-Step Progress Indicator */}
         <div className="calc-stepper-bar">
           <div className={`cs-step ${stepperStep >= 1 ? "active" : ""}`}>
             <div className="cs-circle">1</div>
@@ -479,11 +542,6 @@ export default function Apply() {
           <div className={`cs-step ${stepperStep >= 2 ? "active" : ""}`}>
             <div className="cs-circle">2</div>
             <span className="cs-label">Choose Lenders</span>
-          </div>
-          <div className={`cs-line ${stepperStep >= 3 ? "active" : ""}`}></div>
-          <div className={`cs-step ${stepperStep >= 3 ? "active" : ""}`}>
-            <div className="cs-circle">3</div>
-            <span className="cs-label">Review &amp; Apply</span>
           </div>
         </div>
       </div>
@@ -751,7 +809,7 @@ export default function Apply() {
               </div>
             </div>
           </>
-        ) : stepperStep === 2 ? (
+        ) : (
           /* ═══ STEP 2: CHOOSE LENDERS ═══ */
           <div className="calc-step2-wrap animate-fade-up">
             <div className="calc-step2-header">
@@ -811,13 +869,14 @@ export default function Apply() {
                   const isSel = selectedLenders.includes(lender.id);
                   const lEmi = calcEMI(amount, lender.rate, tenure);
                   const isBest = idx === 0;
-                  const isPsu = lender.type === 'PSU';
-                  const isNbfc = lender.type === 'NBFC/HFC';
-                  const isSfb = lender.type === 'SFB';
+                  const cat = normalizeLenderCategory(lender.type, lender.name);
+                  const isPsu = cat === 'PSU';
+                  const isNbfc = cat === 'NBFC/HFC';
+                  const isSfb = cat === 'SFB';
 
                   return (
                     <div
-                      key={`apply-lender-${lender.name}-${lender.type}-${lenderFilter}-${loanType}-${rateType}`}
+                      key={`apply-lender-${lender.name}-${cat}-${lenderFilter}-${loanType}-${rateType}`}
                       className={`calc-lender-card ${isSel ? "selected" : ""}`}
                       onClick={() => toggleLenderSelection(lender.id)}
                     >
@@ -852,7 +911,7 @@ export default function Apply() {
                               padding: '1px 6px',
                               borderRadius: '4px'
                             }}>
-                              {lender.type || 'PRIVATE'}
+                              {normalizeLenderCategory(lender.type, lender.name)}
                             </span>
                             <span className="clc-bullet">·</span>
                             <span className="clc-pf">PF applicable*</span>
@@ -872,98 +931,6 @@ export default function Apply() {
                     </div>
                   );
                 })
-              )}
-            </div>
-          </div>
-        ) : (
-          /* ═══ STEP 3: REVIEW & APPLY ═══ */
-          <div className="calc-step3-wrap animate-fade-up">
-            <div className="calc-step2-header">
-              <h2 className="calc-step2-title">Review &amp; Submit Application</h2>
-              <p className="calc-step2-sub">
-                Review your loan configuration and applicant information before final submission.
-              </p>
-            </div>
-
-            {/* Application Summary Card */}
-            <div className="calc-section-card" style={{ marginBottom: '24px' }}>
-              <h3 className="calc-card-h3">Application Summary</h3>
-
-              <div className="calc-summary-grid">
-                <div className="csg-item">
-                  <span className="lbl">Loan Type</span>
-                  <span className="val">{currentTitle}</span>
-                </div>
-                <div className="csg-item">
-                  <span className="lbl">Loan Amount</span>
-                  <span className="val">{fmtINR(amount)}</span>
-                </div>
-                <div className="csg-item">
-                  <span className="lbl">Tenure</span>
-                  <span className="val">{tenure} months ({Math.round(tenure / 12)} yrs)</span>
-                </div>
-                <div className="csg-item">
-                  <span className="lbl">Est. Monthly EMI</span>
-                  <span className="val highlight">{fmtINRFull(emi)}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Primary Applicant Details Form */}
-            <div className="calc-section-card">
-              <h3 className="calc-card-h3">Primary Applicant Information</h3>
-
-              <div className="calc-form-grid">
-                <div className="calc-field">
-                  <label>Full Name *</label>
-                  <input
-                    type="text"
-                    value={applicantData.name}
-                    onChange={(e) => setApplicantData({ ...applicantData, name: e.target.value })}
-                    placeholder="Full legal name"
-                  />
-                </div>
-
-                <div className="calc-field">
-                  <label>Mobile Number *</label>
-                  <input
-                    type="text"
-                    value={applicantData.mob_no}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-                      setApplicantData({ ...applicantData, mob_no: val });
-                    }}
-                    placeholder="10-digit mobile"
-                    maxLength={10}
-                  />
-                </div>
-
-                <div className="calc-field">
-                  <label>Email Address *</label>
-                  <input
-                    type="email"
-                    value={applicantData.email}
-                    onChange={(e) => setApplicantData({ ...applicantData, email: e.target.value })}
-                    placeholder="Email address"
-                  />
-                </div>
-
-                <div className="calc-field">
-                  <label>Loan Purpose *</label>
-                  <input
-                    type="text"
-                    value={applicantData.loanPurpose}
-                    onChange={(e) => setApplicantData({ ...applicantData, loanPurpose: e.target.value })}
-                    placeholder="e.g. Home Renovation, Business"
-                  />
-                </div>
-              </div>
-
-              {submitError && (
-                <div className="calc-submit-err" style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <AlertCircle size={16} />
-                  <span>{submitError}</span>
-                </div>
               )}
             </div>
           </div>
@@ -993,8 +960,6 @@ export default function Apply() {
             ? "Submitting Application..."
             : stepperStep === 1
             ? "Choose Lenders →"
-            : stepperStep === 2
-            ? "Review & Apply →"
             : "Submit Loan Application →"}
         </button>
       </div>
@@ -1095,43 +1060,221 @@ export default function Apply() {
         </div>
       )}
 
-      {/* ═══ CUSTOM SUCCESS MODAL POPUP ═══ */}
+      {/* ═══ CONFIRMATION MODAL ═══ */}
+      {showConfirmModal && (
+        <div className="custom-modal-backdrop" onClick={() => setShowConfirmModal(false)}>
+          <div
+            className="custom-modal-card"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '480px', padding: '32px 28px', textAlign: 'center' }}
+          >
+            <div
+              className="cmc-icon-badge"
+              style={{
+                background: '#E0F2FE',
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px auto',
+                color: '#0284C7'
+              }}
+            >
+              <HelpCircle size={34} />
+            </div>
+
+            <h3 className="cmc-title" style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F2942', marginBottom: '8px' }}>
+              Submit Loan Application?
+            </h3>
+            <p className="cmc-message" style={{ color: '#475569', fontSize: '0.96rem', lineHeight: '1.5', marginBottom: '20px' }}>
+              Are you sure you want to submit your loan application?
+            </p>
+
+            {/* Application Quick Summary */}
+            <div
+              style={{
+                background: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                borderRadius: '12px',
+                padding: '16px',
+                marginBottom: '20px',
+                textAlign: 'left'
+              }}
+            >
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.85rem' }}>
+                <div>
+                  <div style={{ color: '#64748B', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase' }}>Loan Type</div>
+                  <div style={{ fontWeight: 800, color: '#0F2942', marginTop: '2px' }}>{currentTitle}</div>
+                </div>
+                <div>
+                  <div style={{ color: '#64748B', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase' }}>Loan Amount</div>
+                  <div style={{ fontWeight: 800, color: '#0F2942', marginTop: '2px' }}>{fmtINR(amount)}</div>
+                </div>
+                <div>
+                  <div style={{ color: '#64748B', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase' }}>Tenure</div>
+                  <div style={{ fontWeight: 800, color: '#0F2942', marginTop: '2px' }}>{tenure} mos ({Math.round(tenure / 12)} yrs)</div>
+                </div>
+                <div>
+                  <div style={{ color: '#64748B', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase' }}>Est. Monthly EMI</div>
+                  <div style={{ fontWeight: 800, color: '#0284C7', marginTop: '2px' }}>{fmtINRFull(emi)}</div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #E2E8F0', fontSize: '0.8rem', color: '#64748B' }}>
+                <strong>Lenders ({selectedLenders.length}):</strong>{' '}
+                <span style={{ color: '#0F2942', fontWeight: 600 }}>
+                  {selectedLenders.map(id => mergedLendersList.find(l => l.id === id)?.name || id).join(', ')}
+                </span>
+              </div>
+            </div>
+
+            {submitError && (
+              <div style={{ marginBottom: '16px', padding: '10px 14px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '10px', color: '#DC2626', fontSize: '0.84rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left' }}>
+                <AlertCircle size={18} style={{ flexShrink: 0 }} />
+                <span>{submitError}</span>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                disabled={submitting}
+                style={{
+                  flex: 1,
+                  padding: '12px 18px',
+                  borderRadius: '10px',
+                  background: '#F1F5F9',
+                  color: '#475569',
+                  border: 'none',
+                  fontWeight: 700,
+                  fontSize: '0.92rem',
+                  cursor: 'pointer',
+                  transition: 'background 0.2s'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleFinalSubmit}
+                disabled={submitting}
+                style={{
+                  flex: 1.4,
+                  padding: '12px 20px',
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(2,132,199,0.3)',
+                  transition: 'transform 0.15s ease'
+                }}
+              >
+                {submitting ? "Submitting..." : "Yes, Submit Application"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ CUSTOM SUCCESS MODAL POPUP (6-7s Auto-Redirect) ═══ */}
       {showSuccessModal && (
         <div className="custom-modal-backdrop">
-          <div className="custom-modal-card" style={{ maxWidth: '460px', padding: '36px 32px', textAlign: 'center' }}>
-            <div className="cmc-icon-badge" style={{ background: '#ECFDF5', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto', color: '#059669' }}>
-              <CheckCircle2 size={36} />
+          <div
+            className="custom-modal-card animate-scale-up"
+            style={{ maxWidth: '480px', padding: '36px 30px', textAlign: 'center' }}
+          >
+            <div
+              className="cmc-icon-badge"
+              style={{
+                background: '#ECFDF5',
+                width: '68px',
+                height: '68px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px auto',
+                color: '#059669',
+                boxShadow: '0 4px 16px rgba(5,150,105,0.2)'
+              }}
+            >
+              <CheckCircle2 size={40} />
             </div>
-            <h3 className="cmc-title" style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F2942', marginBottom: '8px' }}>
+
+            <h3 className="cmc-title" style={{ fontSize: '1.45rem', fontWeight: 800, color: '#0F2942', marginBottom: '8px' }}>
               Application Submitted!
             </h3>
-            <p className="cmc-message" style={{ color: '#64748B', fontSize: '0.92rem', lineHeight: '1.5', marginBottom: '16px' }}>
-              Your application <strong>({submittedAppId})</strong> for <strong>{currentTitle}</strong> has been submitted successfully to {selectedLenders.length || 2} lenders.
+
+            <p className="cmc-message" style={{ color: '#475569', fontSize: '0.94rem', lineHeight: '1.5', marginBottom: '18px' }}>
+              Your loan application <strong style={{ color: '#0F2942' }}>({submittedAppId})</strong> for <strong style={{ color: '#0F2942' }}>{currentTitle}</strong> has been received and forwarded to {selectedLenders.length} lenders.
             </p>
-            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '12px', fontSize: '0.85rem', color: '#0369A1', fontWeight: 600, marginBottom: '24px' }}>
-              You can now track live approval stages &amp; upload documents directly from your borrower dashboard.
+
+            {/* Countdown and redirect notice */}
+            <div
+              style={{
+                background: '#F0FDF4',
+                border: '1px solid #BBF7D0',
+                borderRadius: '12px',
+                padding: '16px',
+                marginBottom: '22px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#166534', fontWeight: 700, fontSize: '0.92rem' }}>
+                <Clock size={18} />
+                <span>Taking you to dashboard in {countdown} seconds...</span>
+              </div>
+
+              {/* Progress bar visual for 7 seconds */}
+              <div style={{ width: '100%', height: '6px', background: '#DCFCE7', borderRadius: '4px', overflow: 'hidden', marginTop: '4px' }}>
+                <div
+                  style={{
+                    height: '100%',
+                    background: '#16A34A',
+                    borderRadius: '4px',
+                    transition: 'width 1s linear',
+                    width: `${((7 - countdown) / 7) * 100}%`
+                  }}
+                />
+              </div>
+
+              <span style={{ fontSize: '0.78rem', color: '#15803D' }}>
+                You can track your application status &amp; upload documents from your dashboard.
+              </span>
             </div>
 
             <button
+              type="button"
               className="cmc-btn-primary"
               style={{
                 width: '100%',
-                padding: '12px 20px',
+                padding: '13px 20px',
                 borderRadius: '10px',
                 background: '#059669',
                 color: '#FFFFFF',
                 border: 'none',
                 fontWeight: 800,
-                fontSize: '0.95rem',
+                fontSize: '0.96rem',
                 cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(5,150,105,0.3)'
+                boxShadow: '0 4px 14px rgba(5,150,105,0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
               }}
-              onClick={() => {
-                setShowSuccessModal(false);
-                navigate("/client-dashboard");
-              }}
+              onClick={handleImmediateDashboardRedirect}
             >
-              Go to Borrower Dashboard →
+              <span>Go to Dashboard Now</span>
+              <span>→</span>
             </button>
           </div>
         </div>

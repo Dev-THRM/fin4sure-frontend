@@ -2,7 +2,23 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { districtsByState, states } from "../components/Statedata";
+import {
+  User,
+  Mail,
+  Lock,
+  Calendar,
+  Home,
+  MapPin,
+  Smartphone,
+  Key,
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  Check
+} from "lucide-react";
+import RegionPicker from "../components/common/RegionPicker";
 import "./styles/login.css";
+import "./styles/stepper.css";
 
 export default function BrokerRegistration() {
   const navigate = useNavigate();
@@ -10,6 +26,7 @@ export default function BrokerRegistration() {
 
   // ---------------- FORM STATES ----------------
   const [fullName, setFullName] = useState("");
+  const [city, setCity] = useState("");
   const [email, setEmail] = useState("");
   const [number, setNumber] = useState("");
   const [receivedOtp, setReceivedOtp] = useState("");
@@ -157,10 +174,11 @@ export default function BrokerRegistration() {
         password: password.trim(),
         role: "broker",
         dob,
-        address,
+        address: address || city,
+        city: city || district,
         pincode,
-        state,
-        district,
+        state: state || "India",
+        district: district || city,
       };
 
       const res = await fetch(`/api/auth/signup`, {
@@ -174,7 +192,14 @@ export default function BrokerRegistration() {
       if (!res.ok) throw new Error(data.message || "Signup failed");
 
       // Auto-login after successful signup
-      login(data);
+      if (data.accessToken) {
+        localStorage.setItem("accessToken", data.accessToken);
+      }
+      const partnerUser = {
+        ...(data.user || data),
+        role: "partner",
+      };
+      login(partnerUser);
       await fetchProfile();
       navigate("/broker-dashboard");
     } catch (err) {
@@ -196,15 +221,16 @@ export default function BrokerRegistration() {
           </p>
 
           {error && (
-            <div className="login-loan-banner" style={{ background: "#FEE2E2", borderColor: "#FCA5A5", color: "#991B1B" }}>
-              ⚠️ {error}
+            <div className="login-loan-banner" style={{ background: "#FEE2E2", borderColor: "#FCA5A5", color: "#991B1B", display: "flex", alignItems: "center", gap: "6px" }}>
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
+              <span>{error}</span>
             </div>
           )}
 
           <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
             {/* FULL NAME */}
             <div className="input-wrap">
-              <span className="icon">👤</span>
+              <span className="icon"><User size={16} /></span>
               <input
                 type="text"
                 placeholder="Partner Full Name"
@@ -216,7 +242,7 @@ export default function BrokerRegistration() {
 
             {/* EMAIL */}
             <div className="input-wrap">
-              <span className="icon">📧</span>
+              <span className="icon"><Mail size={16} /></span>
               <input
                 type="email"
                 placeholder="Partner Email Address"
@@ -229,7 +255,7 @@ export default function BrokerRegistration() {
             {/* PASSWORD */}
             <div>
               <div className="input-wrap">
-                <span className="icon">🔒</span>
+                <span className="icon"><Lock size={16} /></span>
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Create Password"
@@ -271,7 +297,7 @@ export default function BrokerRegistration() {
             {/* CONFIRM PASSWORD */}
             <div>
               <div className="input-wrap">
-                <span className="icon">🔒</span>
+                <span className="icon"><Lock size={16} /></span>
                 <input
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm Password"
@@ -288,8 +314,18 @@ export default function BrokerRegistration() {
                 </button>
               </div>
               {confirmPassword && (
-                <div style={{ fontSize: ".74rem", marginTop: "3px", color: password === confirmPassword ? "green" : "red", fontWeight: 700 }}>
-                  {password === confirmPassword ? "✓ Passwords match" : "✗ Passwords do not match"}
+                <div style={{ fontSize: ".74rem", marginTop: "3px", color: password === confirmPassword ? "green" : "red", fontWeight: 700, display: "flex", alignItems: "center", gap: "4px" }}>
+                  {password === confirmPassword ? (
+                    <>
+                      <CheckCircle2 size={13} />
+                      <span>Passwords match</span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle size={13} />
+                      <span>Passwords do not match</span>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -297,7 +333,7 @@ export default function BrokerRegistration() {
             {/* DOB & ADDRESS */}
             <div className="apply-form-row">
               <div className="input-wrap">
-                <span className="icon">📅</span>
+                <span className="icon"><Calendar size={16} /></span>
                 <input
                   type="date"
                   value={dob}
@@ -306,7 +342,7 @@ export default function BrokerRegistration() {
                 />
               </div>
               <div className="input-wrap">
-                <span className="icon">🏠</span>
+                <span className="icon"><Home size={16} /></span>
                 <input
                   type="text"
                   placeholder="Full Address"
@@ -315,6 +351,21 @@ export default function BrokerRegistration() {
                   required
                 />
               </div>
+            </div>
+
+            {/* OPERATING CITY / REGION SELECTOR */}
+            <div>
+              <label style={{ fontSize: ".8rem", fontWeight: 700, color: "var(--navy)", display: "block", marginBottom: "6px" }}>
+                City / Area of Operation <span style={{ color: "#DC2626" }}>*</span>
+              </label>
+              <RegionPicker
+                value={city}
+                onChange={(selectedCity) => {
+                  setCity(selectedCity);
+                  if (!district) setdistrict(selectedCity);
+                }}
+                required
+              />
             </div>
 
             {/* STATE & DISTRICT SELECTORS */}
@@ -359,7 +410,7 @@ export default function BrokerRegistration() {
 
             {/* PINCODE */}
             <div className="input-wrap">
-              <span className="icon">📍</span>
+              <span className="icon"><MapPin size={16} /></span>
               <input
                 type="text"
                 placeholder="6-digit Pincode"
@@ -372,7 +423,7 @@ export default function BrokerRegistration() {
 
             {/* PHONE NUMBER */}
             <div className="input-wrap">
-              <span className="icon">📱</span>
+              <span className="icon"><Smartphone size={16} /></span>
               <input
                 type="tel"
                 placeholder="WhatsApp Number"
@@ -412,7 +463,7 @@ export default function BrokerRegistration() {
                 </div>
 
                 <div className="input-wrap">
-                  <span className="icon">🔑</span>
+                  <span className="icon"><Key size={16} /></span>
                   <input
                     type="text"
                     placeholder="4-digit OTP"
@@ -434,9 +485,16 @@ export default function BrokerRegistration() {
                   className="btn-primary"
                   onClick={verifyOTP}
                   disabled={loading || otpVerified}
-                  style={{ background: otpVerified ? "#059669" : "var(--navy)", height: "38px" }}
+                  style={{ background: otpVerified ? "#059669" : "var(--navy)", height: "38px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
                 >
-                  {otpVerified ? "✓ Verified" : "Verify OTP"}
+                  {otpVerified ? (
+                    <>
+                      <Check size={16} />
+                      <span>Verified</span>
+                    </>
+                  ) : (
+                    "Verify OTP"
+                  )}
                 </button>
               </div>
             )}

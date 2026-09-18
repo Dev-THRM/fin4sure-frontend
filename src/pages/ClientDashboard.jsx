@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   IoMdCard,
   IoMdTimer,
@@ -26,54 +26,206 @@ import {
   MapPin,
   Key,
   CheckCircle2,
+  Check,
+  CircleDot,
   Info,
   Clock,
-  Smartphone
+  Smartphone,
+  Briefcase,
+  Building2,
+  Building,
+  Car,
+  Coins,
+  GraduationCap,
+  FileText,
+  Bell
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { LOAN_PRODUCTS } from "../utils/constants";
 import { states, districtsByState } from "../components/Statedata";
+import { fmtINR } from "../utils/formatters";
 import "./styles/clientDashboard.css";
 
 export default function ClientDashboard() {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Local dashboard states
   const [user, setUser] = useState(null);
   const [applications, setApplications] = useState([]);
+  const [appDocs, setAppDocs] = useState([]);
   const [activeTab, setActiveTab] = useState("loans");
   const [showSupportModal, setShowSupportModal] = useState(false);
-  const [notification, setNotification] = useState(null); // { type, title, message, onClose }
+  const [notification, setNotification] = useState(null); // { type, title, message, onClose, autoDismiss }
+  const notificationTimeoutRef = useRef(null);
+  const submittedLendersMapRef = useRef(new Map());
 
-  const showNotification = (title, message, type = "info", onClose = null) => {
-    setNotification({ title, message, type, onClose });
+  // Advisor business hours: Mon-Sat, 9:30 AM to 6:30 PM IST (Offline on Sunday, before 9:30 AM, or after 6:30 PM)
+  const getAdvisorOnlineStatus = () => {
+    try {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Kolkata",
+        weekday: "short",
+        hour: "numeric",
+        minute: "numeric",
+        hourCycle: "h23"
+      }).formatToParts(new Date());
+
+      const partMap = {};
+      parts.forEach((p) => { partMap[p.type] = p.value; });
+
+      // Offline on Sunday
+      if (partMap.weekday === "Sun") return false;
+
+      const hour = parseInt(partMap.hour, 10);
+      const minute = parseInt(partMap.minute, 10);
+      const totalMinutes = hour * 60 + minute;
+
+      const startMinutes = 9 * 60 + 30; // 9:30 AM IST (570)
+      const endMinutes = 18 * 60 + 30;  // 6:30 PM IST (1110)
+
+      return totalMinutes >= startMinutes && totalMinutes < endMinutes;
+    } catch (e) {
+      const now = new Date();
+      // IST is UTC + 5:30 (330 minutes)
+      const istMinutes = (now.getUTCHours() * 60 + now.getUTCMinutes() + 330) % 1440;
+      const istDaysFromEpoch = Math.floor((now.getTime() + 19800000) / 86400000);
+      const istDayOfWeek = (istDaysFromEpoch + 4) % 7; // 0 = Sunday
+      if (istDayOfWeek === 0) return false;
+      return istMinutes >= 570 && istMinutes < 1110;
+    }
   };
+
+  const [isAdvisorOnline, setIsAdvisorOnline] = useState(getAdvisorOnlineStatus);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIsAdvisorOnline(getAdvisorOnlineStatus());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const actApp = applications.find((app) => {
+      const status = (app.Status?.name || app.stage || "").toLowerCase();
+      const statusId = Number(app.status_id || 1);
+      return statusId !== 7 && !status.includes("disburs") && !status.includes("reject");
+    }) || applications[0];
+
+    const appId = actApp?.id || actApp?.application_no || "";
+    if (!appId) {
+      setAppDocs([]);
+      return;
+    }
+
+    const fetchAppDocs = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        const headers = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+        const res = await fetch(`/api/client/application-documents/${appId}`, {
+          credentials: "include",
+          headers
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) setAppDocs(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch application documents:", err);
+      }
+    };
+    fetchAppDocs();
+  }, [applications]);
+
+  const closeNotification = () => {
+    if (notificationTimeoutRef.current) {
+      clearTimeout(notificationTimeoutRef.current);
+      notificationTimeoutRef.current = null;
+    }
+    if (notification?.onClose) {
+      notification.onClose();
+    }
+    setNotification(null);
+  };
+
+  const showNotification = (title, message, type = "info", onClose = null, autoDismissMs = null) => {
+    if (notificationTimeoutRef.current) {
+      clearTimeout(notificationTimeoutRef.current);
+      notificationTimeoutRef.current = null;
+    }
+    setNotification({ title, message, type, onClose, autoDismiss: !!autoDismissMs });
+    if (autoDismissMs) {
+      notificationTimeoutRef.current = setTimeout(() => {
+        setNotification((prev) => {
+          if (prev) {
+            if (prev.onClose) prev.onClose();
+            return null;
+          }
+          return prev;
+        });
+      }, autoDismissMs);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (notificationTimeoutRef.current) {
+        clearTimeout(notificationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Profile Form States
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [number, setNumber] = useState("");
   const [address, setAddress] = useState("");
   const [pincode, setPincode] = useState("");
   const [state, setState] = useState("");
   const [district, setDistrict] = useState("");
-  const [number, setNumber] = useState("");
+
+  const [districts, setDistricts] = useState([]);
+  const [pincodeStatus, setPincodeStatus] = useState("idle");
+  const [pincodeError, setPincodeError] = useState("");
+
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
-  const [otpVerified, setOtpVerified] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
-  // Change Password States
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passLoading, setPassLoading] = useState(false);
 
   useEffect(() => {
     fetchProfile();
     fetchApplications();
+    checkAndSubmitPendingLoan();
   }, []);
+
+  useEffect(() => {
+    if (location.state?.appSubmitted) {
+      const { appId, loanName, lenderNames } = location.state;
+      if (appId && Array.isArray(lenderNames) && lenderNames.length > 0) {
+        const banksStr = lenderNames.join(", ");
+        submittedLendersMapRef.current.set(String(appId).toUpperCase(), banksStr);
+        const cleanId = String(appId).replace(/^F4S-?/i, "").trim();
+        if (cleanId) submittedLendersMapRef.current.set(cleanId, banksStr);
+      }
+      const lendersText = lenderNames && lenderNames.length > 0 ? ` to ${lenderNames.join(", ")}` : "";
+      showNotification(
+        "Application Submitted!",
+        `Your application (${appId || "APP-SUCCESS"}) for ${loanName || "Loan"} has been successfully submitted${lendersText}.`,
+        "success",
+        null,
+        3500
+      );
+      fetchApplications();
+      // Clear location state so manual refresh doesn't pop up again
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const { user: authUser } = useAuth();
 
@@ -140,6 +292,46 @@ export default function ClientDashboard() {
       }
     } catch (e) {
       console.error("Failed to fetch applications:", e.message);
+    }
+  };
+
+  const checkAndSubmitPendingLoan = async () => {
+    try {
+      const pendingStr = sessionStorage.getItem("pendingLoanApp");
+      if (!pendingStr) return;
+      const pending = JSON.parse(pendingStr);
+      sessionStorage.removeItem("pendingLoanApp");
+
+      const token = localStorage.getItem("accessToken");
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await fetch("/api/client/apply-loan", {
+        method: "POST",
+        headers,
+        credentials: "include",
+        body: JSON.stringify({
+          product: pending.loanType || "home",
+          loanAmount: pending.amount || 500000,
+          tenure: pending.tenure || 12,
+          selectedLenders: pending.selectedLenders || [],
+          loan_purpose: pending.loan_purpose || "Loan Application"
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        showNotification(
+          "Application Submitted!",
+          `Your loan application (#${data.applicationId || "APP-SUCCESS"}) has been successfully submitted to lenders.`,
+          "success",
+          null,
+          3500
+        );
+        fetchApplications();
+      }
+    } catch (err) {
+      console.error("Error auto-submitting pending loan:", err);
     }
   };
 
@@ -289,15 +481,54 @@ export default function ClientDashboard() {
     return LOAN_PRODUCTS.find((p) => p.id === id)?.name || id;
   };
 
-  const getProductEmoji = (id) => {
-    const emojis = {
-      "home-loan": "🏠",
-      "loan-against-property": "🏢",
-      "personal-loan": "💳",
-      "business-loan": "📦",
-      "car-loan": "🚗",
-    };
-    return emojis[id] || "📄";
+  const getProductIcon = (type) => {
+    const t = String(type || "").toLowerCase().replace(/[\s_-]+/g, "");
+    if (t.includes("home")) return <Home size={24} color="#0284C7" strokeWidth={2.2} />;
+    if (t.includes("personal")) return <Briefcase size={24} color="#4F46E5" strokeWidth={2.2} />;
+    if (t.includes("lap") || t.includes("property")) return <Building2 size={24} color="#0D9488" strokeWidth={2.2} />;
+    if (t.includes("business")) return <Building size={24} color="#D97706" strokeWidth={2.2} />;
+    if (t.includes("vehicle") || t.includes("car") || t.includes("auto")) return <Car size={24} color="#EA580C" strokeWidth={2.2} />;
+    if (t.includes("gold")) return <Coins size={24} color="#CA8A04" strokeWidth={2.2} />;
+    if (t.includes("education")) return <GraduationCap size={24} color="#7C3AED" strokeWidth={2.2} />;
+    return <FileText size={24} color="#0284C7" strokeWidth={2.2} />;
+  };
+
+  const getProductIconBg = (type) => {
+    const t = String(type || "").toLowerCase().replace(/[\s_-]+/g, "");
+    if (t.includes("home")) return "#EEF6FF";
+    if (t.includes("personal")) return "#EEF2FF";
+    if (t.includes("lap") || t.includes("property")) return "#F0FDFA";
+    if (t.includes("business")) return "#FFFBEB";
+    if (t.includes("vehicle") || t.includes("car") || t.includes("auto")) return "#FFF7ED";
+    if (t.includes("gold")) return "#FEFCE8";
+    if (t.includes("education")) return "#F5F3FF";
+    return "#EEF6FF";
+  };
+
+  const formatAppId = (app) => {
+    const rawNo = String(app.application_no || app.id || "3901").trim();
+    if (rawNo.toUpperCase().startsWith("F4S-")) return rawNo.toUpperCase();
+    return `F4S-${rawNo}`;
+  };
+
+  const formatBankNames = (app) => {
+    const rawNo = String(app.application_no || app.id || "").trim();
+    const formatted = formatAppId(app);
+    const cleanNo = rawNo.replace(/^F4S-?/i, "").trim();
+    if (submittedLendersMapRef.current.has(formatted)) {
+      return submittedLendersMapRef.current.get(formatted);
+    }
+    if (submittedLendersMapRef.current.has(cleanNo)) {
+      return submittedLendersMapRef.current.get(cleanNo);
+    }
+    if (app.id && submittedLendersMapRef.current.has(String(app.id))) {
+      return submittedLendersMapRef.current.get(String(app.id));
+    }
+    if (Array.isArray(app.banks) && app.banks.length > 0) return app.banks.join(", ");
+    if (Array.isArray(app.lender_names) && app.lender_names.length > 0) return app.lender_names.join(", ");
+    if (typeof app.bank_name === "string" && app.bank_name.trim()) return app.bank_name;
+    if (typeof app.bank === "string" && app.bank.trim()) return app.bank;
+    return "HDFC Bank";
   };
 
   // Status arrays
@@ -307,6 +538,51 @@ export default function ClientDashboard() {
     return status && status !== "disbursed" && status !== "rejected";
   }).length;
   const rejectedCount = applications.filter((app) => app.Status?.name?.toLowerCase() === "rejected").length;
+  const activeApp = applications.find((app) => {
+    const status = (app.Status?.name || app.stage || "").toLowerCase();
+    const statusId = Number(app.status_id || 1);
+    return statusId !== 7 && !status.includes("disburs") && !status.includes("reject");
+  }) || applications[0];
+  const targetAppId = activeApp?.id || activeApp?.application_no || "";
+
+  const validAppDocs = (appDocs || []).filter((d) => d.status !== "rejected");
+  const normDocType = (d) =>
+    String(d.document_type || d.file_name || "")
+      .toLowerCase()
+      .replace(/[\s_-]+/g, "");
+
+  const hasPan = Boolean(
+    activeApp?.has_pan || validAppDocs.some((d) => normDocType(d).includes("pan"))
+  );
+
+  const hasAadhaar = Boolean(
+    activeApp?.has_aadhaar ||
+      validAppDocs.some(
+        (d) =>
+          normDocType(d).includes("aadhar") ||
+          normDocType(d).includes("aadhaar") ||
+          normDocType(d).includes("front")
+      )
+  );
+
+  const hasSalary = Boolean(
+    activeApp?.has_salary ||
+      validAppDocs.some((d) => normDocType(d).includes("salary"))
+  );
+
+  const hasBank = Boolean(
+    activeApp?.has_bank || validAppDocs.some((d) => normDocType(d).includes("bank"))
+  );
+
+  const docList = [
+    { id: "pan", label: "PAN Card", isUploaded: hasPan },
+    { id: "aadhaar", label: "Aadhaar Card", isUploaded: hasAadhaar },
+    { id: "salary", label: "Salary Slips (3 months)", isUploaded: hasSalary, isOptional: true },
+    { id: "bank", label: "Bank Statements (6 months)", isUploaded: hasBank },
+  ];
+
+  // 3 mandatory documents attached condition: Aadhaar, PAN, and Bank Statement (Salary Slips optional)
+  const hasThreeDocs = Boolean(hasPan && hasAadhaar && hasBank);
 
   return (
     <div className="cdash-wrap">
@@ -399,27 +675,29 @@ export default function ClientDashboard() {
                         currentStepIndex = 4;
                       } else if (statusId === 4 || rawStatus.includes("submit")) {
                         currentStepIndex = 3;
-                      } else if (statusId === 3 || rawStatus.includes("credit") || rawStatus.includes("under review") || app.has_all_docs) {
+                      } else if (statusId === 3 || rawStatus.includes("credit") || rawStatus.includes("under review") || app.has_all_docs || app.has_three_docs || hasThreeDocs) {
                         currentStepIndex = 2;
-                      } else if (statusId === 2 || rawStatus.includes("doc")) {
+                      } else if (app.has_uploaded_docs && statusId >= 2) {
+                        currentStepIndex = 1;
+                      } else if (statusId === 2 && (app.has_all_docs || app.has_uploaded_docs)) {
                         currentStepIndex = 1;
                       } else {
                         currentStepIndex = 0;
                       }
 
-                      const steps = ['applied' , 'docs', 'credit', 'submitted', 'sanction', 'legal', 'disbursed'];
+                      const steps = ['Applied', 'Docs', 'Credit', 'Submitted', 'Sanction', 'Legal', 'Disbursed'];
                       
                       return (
                       <div key={app.id || app.application_no} className="cdl-card">
                         <div className="cdl-top">
                           <div className="cdl-left">
-                            <div className="cdl-type-icon" style={{ backgroundColor: "#F0F6FF", color: "#1E3A5F" }}>
-                              {getProductEmoji(app.Loan_type?.short_id || "document")}
+                            <div className="cdl-type-icon" style={{ backgroundColor: getProductIconBg(app.Loan_type?.short_id || app.Loan_type?.name || "home") }}>
+                              {getProductIcon(app.Loan_type?.short_id || app.Loan_type?.name || "home")}
                             </div>
                             <div className="cdl-info">
-                              <h4>{app.Loan_type?.name || "Loan Application"}</h4>
+                              <h4>{app.Loan_type?.name || "Home Loan"}</h4>
                               <div className="cdl-meta">
-                                Submitted: {new Date(app.createdAt).toLocaleDateString()}
+                                {formatBankNames(app)} · {fmtINR(Number(app.loan_amount || app.amount || 5000000))} · {formatAppId(app)}
                               </div>
                             </div>
                           </div>
@@ -435,19 +713,15 @@ export default function ClientDashboard() {
                               className={`cdl-status-chip ${
                                 statusId === 7 || rawStatus.includes("disburs")
                                   ? "cdl-chip-green"
-                                  : app.has_rejected_docs
-                                  ? "cdl-chip-amber"
                                   : rawStatus.includes("reject")
-                                  ? "cdl-chip-amber"
-                                  : "cdl-chip-blue"
+                                  ? "cdl-chip-red"
+                                  : "cdl-chip-amber"
                               }`}
                             >
                               <span className="cdl-chip-dot"></span>
                               <span>
                                 {statusId === 7 || rawStatus.includes("disburs")
                                   ? "Completed"
-                                  : app.has_rejected_docs
-                                  ? "Action Required"
                                   : rawStatus.includes("reject")
                                   ? "Rejected"
                                   : "In Progress"}
@@ -458,7 +732,7 @@ export default function ClientDashboard() {
 
                         {/* Journey tracker timeline visualization */}
                         <div className="cdl-journey">
-                          <div className="cdl-jlabel">Application Progress</div>
+                          <div className="cdl-jlabel">Loan Journey</div>
                           <div className="cdl-track">
                             {steps.map((step, index) => {
                               const isDone = index < currentStepIndex;
@@ -467,89 +741,37 @@ export default function ClientDashboard() {
                               return (
                                 <div key={step} className={`cdl-step ${isDone ? "done" : ""} ${isActive ? "active" : ""}`}>
                                   <div className="cdl-dot">{isDone ? "✓" : (index + 1)}</div>
-                                  <span className="cdl-step-lbl" style={{ textTransform: 'capitalize' }}>{step}</span>
+                                  <span className="cdl-step-lbl">{step}</span>
                                 </div>
                               );
                             })}
                           </div>
                         </div>
 
-                        {app.has_rejected_docs ? (
-                          <div style={{
-                            marginTop: '20px',
-                            padding: '14px 18px',
-                            background: '#FEF2F2',
-                            border: '1.5px solid #FCA5A5',
-                            borderRadius: '12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            flexWrap: 'wrap',
-                            gap: '12px'
-                          }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <AlertTriangle size={24} className="text-red-600 shrink-0" />
-                              <div>
-                                <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#991B1B' }}>
-                                  Document Re-upload Required
-                                </div>
-                                <div style={{ fontSize: '0.80rem', color: '#B91C1C', marginTop: '2px' }}>
-                                  {app.rejected_count > 1 
-                                    ? `${app.rejected_count} documents were rejected by the admin. Please re-upload them to proceed to Credit evaluation.`
-                                    : `One of your documents was rejected by the admin. Please re-upload a clear copy to proceed to Credit evaluation.`}
-                                </div>
-                              </div>
-                            </div>
-                            <Link 
-                              to={`/upload-docs/${app.id}`} 
-                              style={{ 
-                                textDecoration: "none", 
-                                background: "linear-gradient(135deg, #DC2626, #EF4444)", 
-                                color: "#fff",
-                                fontSize: "0.82rem",
-                                fontWeight: "700",
-                                padding: "9px 18px",
-                                borderRadius: "8px",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "6px",
-                                boxShadow: "0 4px 12px rgba(239, 68, 68, 0.25)",
-                                transition: "all 0.2s ease"
-                              }}
-                            >
-                              <RefreshCw size={14} /> Re-upload Documents
-                            </Link>
-                          </div>
-                        ) : (currentStepIndex === 0 || currentStepIndex === 1) ? (
-                          <div style={{ 
-                            marginTop: '20px', 
-                            paddingTop: '16px', 
-                            borderTop: '1px solid #E6EEF8', 
-                            display: 'flex', 
-                            justifyContent: 'flex-end', 
-                            alignItems: 'center'
-                          }}>
-                            <Link 
-                              to={`/upload-docs/${app.id}`} 
-                              style={{ 
-                                textDecoration: "none", 
-                                background: "linear-gradient(135deg, #059669, #10B981)", 
-                                color: "#fff",
-                                fontSize: "0.82rem",
-                                fontWeight: "700",
-                                padding: "8px 16px",
-                                borderRadius: "8px",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "6px",
-                                boxShadow: "0 4px 12px rgba(16, 185, 129, 0.2)",
-                                transition: "all 0.2s ease"
-                              }}
-                            >
-                              <Upload size={14} /> Upload Documents
-                            </Link>
-                          </div>
-                        ) : null}
+
+                        {/* Status Remark Alert */}
+                        <div className="cdl-remark">
+                          <Bell size={18} style={{ color: "#D97706", flexShrink: 0 }} />
+                          <span>
+                            {app.remark || 
+                             (app.has_rejected_docs 
+                               ? "One or more documents were rejected by the admin. Please re-upload them to proceed to Credit evaluation."
+                               : (currentStepIndex === 0 || currentStepIndex === 1)
+                               ? "Application received, we will shortly get in touch for further processing."
+                               : currentStepIndex === 2
+                               ? "Documents verified. Your application is currently under credit assessment."
+                               : currentStepIndex === 3
+                               ? "Application submitted to lenders. Awaiting sanction decision."
+                               : currentStepIndex === 4
+                               ? "Sanction approved! Proceeding to legal and technical verification."
+                               : currentStepIndex === 5
+                               ? "Legal verification in progress. Loan agreement nearing disbursement."
+                               : currentStepIndex === 6
+                               ? "Loan disbursed successfully to your bank account."
+                               : "Application received, we will shortly get in touch for further processing.")
+                            }
+                          </span>
+                        </div>
                       </div>
                     )})
                   )}
@@ -585,8 +807,16 @@ export default function ClientDashboard() {
                     <div className="cdsm-name">Mr. Rishabh Mathur</div>
                     <div className="cdsm-role">Manager — Mortgages</div>
                   </div>
-                  <span className="cdsm-online">
-                    <span className="psc-dot"></span>Online
+                  <span className={`cdsm-online ${isAdvisorOnline ? "is-online" : "is-offline"}`} style={{ color: isAdvisorOnline ? "#4ADE80" : "#94A3B8" }}>
+                    <span 
+                      className="psc-dot" 
+                      style={{
+                        backgroundColor: isAdvisorOnline ? "#4ADE80" : "#94A3B8",
+                        boxShadow: isAdvisorOnline ? "0 0 8px rgba(74, 222, 128, 0.6)" : "none",
+                        animation: isAdvisorOnline ? "roiPulse 1.6s infinite" : "none"
+                      }}
+                    ></span>
+                    {isAdvisorOnline ? "Online" : "Offline"}
                   </span>
                 </div>
                 <div className="cdsm-actions">
@@ -603,6 +833,41 @@ export default function ClientDashboard() {
                 <div className="cdsm-hours">Mon–Sat · 9:30 AM – 6:30 PM IST</div>
               </div>
 
+              {/* Document Status Box */}
+              <div className="cd-doc-status-card">
+                <div className="cdds-head">
+                  <span className="cdds-icon">📋</span>
+                  <span className="cdds-title">Document Status</span>
+                </div>
+
+                <div className="cdds-list">
+                  {docList.map((doc) => (
+                    <div key={doc.id} className="cdds-item">
+                      <div className="cdds-item-left">
+                        {doc.isUploaded ? (
+                          <Check size={16} strokeWidth={2.5} className="cdds-check-icon" />
+                        ) : (
+                          <CircleDot size={15} strokeWidth={2} className={doc.isOptional ? "cdds-opt-icon" : "cdds-pending-icon"} />
+                        )}
+                        <span className="cdds-label">{doc.label}</span>
+                      </div>
+                      {!doc.isUploaded && (
+                        <span className={`cdds-badge ${doc.isOptional ? "cdds-badge-opt" : ""}`}>
+                          {doc.isOptional ? "Optional" : "Pending"}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <Link 
+                  to={targetAppId ? `/upload-docs/${targetAppId}` : "/apply"} 
+                  className="cdds-upload-btn"
+                >
+                  {hasThreeDocs ? <RefreshCw size={14} /> : <Upload size={15} />}
+                  <span>{hasThreeDocs ? "Re-upload Documents" : "Upload Documents"}</span>
+                </Link>
+              </div>
 
             </div>
           </div>
@@ -840,11 +1105,7 @@ export default function ClientDashboard() {
 
       {/* ═══ CUSTOM NOTIFICATION MODAL ═══ */}
       {notification && (
-        <div className="cd-modal" onClick={() => {
-          const cb = notification.onClose;
-          setNotification(null);
-          if (cb) cb();
-        }}>
+        <div className="cd-modal" onClick={closeNotification}>
           <div className="cd-modal-card" onClick={(e) => e.stopPropagation()} style={{ textAlign: "center", padding: "32px 24px" }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
               {notification.type === "success" ? (
@@ -858,16 +1119,17 @@ export default function ClientDashboard() {
             <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.45rem", fontWeight: "700", color: "var(--navy)", marginBottom: "8px" }}>
               {notification.title}
             </h3>
-            <p style={{ fontSize: ".84rem", color: "var(--text2)", lineHeight: "1.5", marginBottom: "22px" }}>
+            <p style={{ fontSize: ".84rem", color: "var(--text2)", lineHeight: "1.5", marginBottom: notification.autoDismiss ? "12px" : "22px" }}>
               {notification.message}
             </p>
+            {notification.autoDismiss && (
+              <div style={{ fontSize: ".76rem", color: "#64748B", marginBottom: "18px", fontStyle: "italic" }}>
+                Auto-closing in a moment...
+              </div>
+            )}
             <button 
               type="button" 
-              onClick={() => {
-                const cb = notification.onClose;
-                setNotification(null);
-                if (cb) cb();
-              }} 
+              onClick={closeNotification} 
               className="btn-primary" 
               style={{ width: "100%", height: "42px" }}
             >

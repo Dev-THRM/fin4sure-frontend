@@ -19,6 +19,10 @@ import "./styles/loansRedirect.css";
 export default function LoansRedirect() {
   const navigate = useNavigate();
 
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const handleApplyClick = (productName) => {
     const typeMap = {
       "Home Loan": "home",

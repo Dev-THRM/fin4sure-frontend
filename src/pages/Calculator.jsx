@@ -5,14 +5,23 @@ import {
   Zap,
   BarChart3,
   Calendar,
-  Landmark
+  Landmark,
+  Home,
+  Building2,
+  CreditCard,
+  Briefcase,
+  Car,
+  Check,
+  CheckCircle2,
+  AlertTriangle,
+  Loader2
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useEmiCalculator } from "../hooks/useEmiCalculator";
 import { useSliderPaint } from "../hooks/useSliderPaint";
 import { fmtINR, fmtINRFull } from "../utils/formatters";
 import { calcEMI } from "../utils/emiCalculator";
-import { getLenderTypePriority } from "../utils/loanConstants";
+import { getLenderTypePriority, normalizeLenderCategory } from "../utils/loanConstants";
 import "./styles/calculator.css";
 
 export default function Calculator() {
@@ -27,6 +36,11 @@ export default function Calculator() {
   const [loadingLenders, setLoadingLenders] = useState(false);
   const [lenderFilter, setLenderFilter] = useState("All");
   const [lenderSort, setLenderSort] = useState("type_order");
+
+  // Application submission states (direct from calculator)
+  const [submittingApp, setSubmittingApp] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [applyError, setApplyError] = useState("");
 
   // Determine initial loan type from location.state or URL query params
   const resolveLoanType = (input) => {
@@ -211,12 +225,7 @@ export default function Calculator() {
 
       // Only include lenders that have genuine rate records in the database
       if (minR !== null && !isNaN(minR) && minR > 0) {
-        const typeUpper = l.type ? (
-          l.type.toUpperCase() === 'PSU' ? 'PSU' :
-          (l.type.toLowerCase().includes('nbfc') || l.type.toLowerCase().includes('hfc')) ? 'NBFC/HFC' :
-          (l.type.toLowerCase().includes('small') || l.type.toLowerCase().includes('sfb')) ? 'SFB' :
-          'PRIVATE'
-        ) : 'PRIVATE';
+        const typeUpper = normalizeLenderCategory(l.type, l.name);
 
         result.push({
           id: l.id || l.lenderId,
@@ -299,42 +308,39 @@ export default function Calculator() {
     if (lenderFilter !== "All") {
       const fl = lenderFilter.toLowerCase();
       list = list.filter(l => {
-        const rawType = String(l.type || 'PRIVATE').toLowerCase();
+        const cat = normalizeLenderCategory(l.type, l.name);
         if (fl === "psu") {
-          return rawType === "psu" || rawType.includes("psu") || rawType.includes("public") || rawType.includes("govt");
+          return cat === "PSU";
         }
         if (fl === "private") {
-          return rawType === "private";
+          return cat === "PRIVATE";
         }
         if (fl === "nbfc/hfc" || fl === "nbfc" || fl === "hfc") {
-          return rawType.includes("nbfc") || rawType.includes("hfc");
+          return cat === "NBFC/HFC";
         }
         if (fl === "sfb" || fl === "small") {
-          return rawType.includes("sfb") || rawType.includes("small");
+          return cat === "SFB";
         }
         return true;
       });
     }
 
     // Type priority order: Private → NBFC/HFC → SFB → PSU
-    const typeOrder = { 'private': 0, 'nbfc/hfc': 1, 'nbfc': 1, 'hfc': 1, 'sfb': 2, 'psu': 3 };
-    const getTypeOrder = (type) => {
-      const t = (type || '').toLowerCase();
-      for (const key of Object.keys(typeOrder)) {
-        if (t.includes(key)) return typeOrder[key];
-      }
-      return 99;
+    const typeOrder = { 'private': 0, 'nbfc/hfc': 1, 'sfb': 2, 'psu': 3 };
+    const getTypeOrder = (lender) => {
+      const cat = normalizeLenderCategory(lender.type, lender.name).toLowerCase();
+      return typeOrder[cat] !== undefined ? typeOrder[cat] : 99;
     };
 
     if (lenderSort === "rate_asc") {
       list.sort((a, b) => {
         if (a.rate !== b.rate) return a.rate - b.rate;
-        return getTypeOrder(a.type) - getTypeOrder(b.type);
+        return getTypeOrder(a) - getTypeOrder(b);
       });
     } else if (lenderSort === "rate_desc") {
       list.sort((a, b) => {
         if (b.rate !== a.rate) return b.rate - a.rate;
-        return getTypeOrder(a.type) - getTypeOrder(b.type);
+        return getTypeOrder(a) - getTypeOrder(b);
       });
     } else if (lenderSort === "emi_asc") {
       list.sort((a, b) => {
@@ -354,17 +360,121 @@ export default function Calculator() {
     return list;
   }, [mergedLendersList, lenderFilter, lenderSort, amount, tenure]);
 
-  const handleApplyToLender = (lenderId) => {
-    navigate("/apply", {
-      state: {
-        loanType: loanType,
-        amount: amount,
-        rate: rate,
-        tenure: tenure,
-        selectedLenders: [lenderId]
-      }
-    });
+  // Toggle lender selection for multi-bank application
+  const toggleLenderSelection = (lenderId) => {
+    setSelectedLenders((prev) =>
+      prev.includes(lenderId) ? prev.filter((id) => id !== lenderId) : [...prev, lenderId]
+    );
   };
+
+  // Reset selected lenders when loan category changes
+  useEffect(() => {
+    setSelectedLenders([]);
+  }, [loanType]);
+
+  // Contiguous block calculation for merging action column when 2+ banks selected
+  const { firstSelectedIdx, contiguousCount } = useMemo(() => {
+    if (selectedLenders.length < 2) return { firstSelectedIdx: -1, contiguousCount: 0 };
+    const firstIdx = filteredAndSortedLenders.findIndex((l) => selectedLenders.includes(l.id));
+    if (firstIdx === -1) return { firstSelectedIdx: -1, contiguousCount: 0 };
+    let count = 0;
+    for (let k = firstIdx; k < filteredAndSortedLenders.length; k++) {
+      if (selectedLenders.includes(filteredAndSortedLenders[k].id)) {
+        count++;
+      } else {
+        break;
+      }
+    }
+    return { firstSelectedIdx: firstIdx, contiguousCount: count };
+  }, [filteredAndSortedLenders, selectedLenders]);
+
+  const handleApplyToLender = async (lenderIdOrArray) => {
+    let ids = [];
+    if (Array.isArray(lenderIdOrArray)) {
+      ids = lenderIdOrArray;
+    } else if (lenderIdOrArray) {
+      ids = [lenderIdOrArray];
+    } else if (selectedLenders.length > 0) {
+      ids = selectedLenders;
+    }
+    if (ids.length === 0) return;
+
+    const targetLenders = ids;
+    const loanName = loanTypesList.find((l) => l.id === loanType)?.name || loanType;
+
+    // 1. IF NOT REGISTERED / NOT LOGGED IN -> DIRECTLY SHOW LOGIN PAGE
+    if (!user || !user.email) {
+      sessionStorage.setItem("pendingLoanApp", JSON.stringify({
+        loanType,
+        amount,
+        tenure,
+        rate,
+        rateType,
+        selectedLenders: targetLenders,
+        loan_purpose: `${loanName} Application`
+      }));
+      navigate("/login");
+      return;
+    }
+
+    // 2. IF ADMIN OR PARTNER ACCOUNT -> SHOW ACTION RESTRICTED MODAL
+    if (user.role === "admin" || user.role === "partner" || user.role === "broker") {
+      setShowAdminModal(true);
+      return;
+    }
+
+    // 3. IF LOGGED IN BORROWER -> DIRECTLY SUBMIT APPLICATION (NO CHOOSING LENDERS / LOAN PURPOSE)
+    try {
+      setSubmittingApp(true);
+      setApplyError("");
+
+      const token = localStorage.getItem("accessToken");
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await fetch("/api/client/apply-loan", {
+        method: "POST",
+        headers,
+        credentials: "include",
+        body: JSON.stringify({
+          product: loanType,
+          loanAmount: amount,
+          tenure: tenure,
+          selectedLenders: targetLenders,
+          loan_purpose: `${loanName} Application`
+        })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      const appId = data.applicationId || `APP-${Date.now().toString().slice(-5)}`;
+      const lenderNames = targetLenders.map((id) => {
+        const found = filteredAndSortedLenders.find((l) => l.id === id);
+        return found ? found.name : id;
+      });
+
+      navigate("/client-dashboard", {
+        state: {
+          appSubmitted: true,
+          appId,
+          loanName,
+          lenderNames
+        }
+      });
+    } catch (err) {
+      console.error("Error submitting loan application from Calculator:", err);
+      setApplyError(err.message || "Failed to submit loan application. Please try again.");
+    } finally {
+      setSubmittingApp(false);
+    }
+  };
+
+  const loanTypesList = [
+    { id: "home", name: "Home Loan", icon: Home, startingRate: "8.50%" },
+    { id: "lap", name: "LAP (Property)", icon: Building2, startingRate: "9.00%" },
+    { id: "personal", name: "Personal Loan", icon: CreditCard, startingRate: "10.50%" },
+    { id: "business", name: "Business Loan", icon: Briefcase, startingRate: "11.00%" },
+    { id: "vehicle", name: "Vehicle Loan", icon: Car, startingRate: "8.75%" }
+  ];
 
   return (
     <div className="calc-full-page animate-fade-up">
@@ -474,20 +584,59 @@ export default function Calculator() {
 
       {/* ═══ MAIN CONTENT BODY (NO STEPPER) ═══ */}
       <div className="calc-body-wrap">
+        {/* ═══ LOAN TYPES TABS SELECTOR (WITH LIVE RATES) ═══ */}
+        <div className="calc-loan-type-tabs-bar">
+          <div className="clt-header">
+            <div className="clt-label-group">
+              <span className="clt-badge">LOAN CATEGORIES</span>
+              <span className="clt-subtitle">Select a loan type to view rates, adjust amount &amp; tenure, and calculate exact EMIs</span>
+            </div>
+            <div className="clt-active-indicator">
+              <span>Expected Rate:</span>
+              <span className="clt-rate-highlight">{rate}% p.a.</span>
+            </div>
+          </div>
+
+          <div className="clt-tabs-row">
+            {loanTypesList.map((lt) => {
+              const Icon = lt.icon;
+              const isActive = loanType === lt.id;
+              return (
+                <button
+                  key={lt.id}
+                  type="button"
+                  className={`clt-tab-card ${isActive ? "active" : ""}`}
+                  onClick={() => setLoanType(lt.id)}
+                >
+                  <div className="clt-tab-icon-wrap">
+                    <Icon size={18} strokeWidth={2.2} />
+                  </div>
+                  <div className="clt-tab-info">
+                    <div className="clt-tab-name">{lt.name}</div>
+                    <div className="clt-tab-rate">
+                      From <strong>{lt.startingRate}</strong> p.a.
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* ═══ TOP SECTION: SCHEDULE SUMMARY | AMORTIZATION SCHEDULE ═══ */}
-        <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '18px 24px', marginBottom: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
+        <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '12px 18px', marginBottom: '14px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', borderBottom: '1px solid #F1F5F9', paddingBottom: '8px' }}>
             <button
               type="button"
               onClick={() => setSubTab('summary')}
               style={{
-                padding: '6px 18px',
+                padding: '5px 16px',
                 borderRadius: '16px',
                 border: subTab === 'summary' ? '1px solid #0284C7' : '1px solid #E2E8F0',
                 background: subTab === 'summary' ? '#E0F2FE' : '#F8FAFC',
                 color: subTab === 'summary' ? '#0369A1' : '#64748B',
                 fontWeight: 700,
-                fontSize: '0.82rem',
+                fontSize: '0.8rem',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 display: 'inline-flex',
@@ -495,19 +644,19 @@ export default function Calculator() {
                 gap: '6px'
               }}
             >
-              <BarChart3 size={15} /> Schedule Summary
+              <BarChart3 size={14} /> Schedule Summary
             </button>
             <button
               type="button"
               onClick={() => setSubTab('amortization')}
               style={{
-                padding: '6px 18px',
+                padding: '5px 16px',
                 borderRadius: '16px',
                 border: subTab === 'amortization' ? '1px solid #0284C7' : '1px solid #E2E8F0',
                 background: subTab === 'amortization' ? '#E0F2FE' : '#F8FAFC',
                 color: subTab === 'amortization' ? '#0369A1' : '#64748B',
                 fontWeight: 700,
-                fontSize: '0.82rem',
+                fontSize: '0.8rem',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 display: 'inline-flex',
@@ -515,7 +664,7 @@ export default function Calculator() {
                 gap: '6px'
               }}
             >
-              <Calendar size={15} /> Amortization Schedule
+              <Calendar size={14} /> Amortization Schedule
             </button>
           </div>
 
@@ -523,30 +672,25 @@ export default function Calculator() {
             <div>
               {/* 4 Stat Cards */}
               <div className="calc-summary-4cards">
-                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px 14px', textAlign: 'center' }}>
                   <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F2942' }}>{fmtINRFull(emi)}</div>
-                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>MONTHLY EMI</div>
+                  <div style={{ fontSize: '0.66rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>MONTHLY EMI</div>
                 </div>
 
-                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px 14px', textAlign: 'center' }}>
                   <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F2942' }}>{fmtLakhCr(amount)}</div>
-                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>PRINCIPAL</div>
+                  <div style={{ fontSize: '0.66rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>PRINCIPAL</div>
                 </div>
 
-                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px 14px', textAlign: 'center' }}>
                   <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#D97706' }}>{fmtLakhCr(totalInterest)}</div>
-                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>TOTAL INTEREST</div>
+                  <div style={{ fontSize: '0.66rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>TOTAL INTEREST</div>
                 </div>
 
-                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '10px 14px', textAlign: 'center' }}>
                   <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0284C7' }}>{fmtLakhCr(totalPayable)}</div>
-                  <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>TOTAL PAYABLE</div>
+                  <div style={{ fontSize: '0.66rem', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>TOTAL PAYABLE</div>
                 </div>
-              </div>
-
-              {/* Summary Explanatory Banner */}
-              <div style={{ background: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: '10px', padding: '10px 16px', color: '#0369A1', fontSize: '0.82rem', lineHeight: '1.4', fontWeight: 500 }}>
-                Over <strong>{Math.round(tenure / 12)} yrs</strong>, you'll pay <strong>{fmtLakhCr(totalInterest)}</strong> in interest — about <strong>{100 - (totalPayable > 0 ? Math.round((amount / totalPayable) * 100) : 50)}%</strong> of your total outlay. Choosing lower expected ROI or shorter tenure reduces this. Final ROI will be confirmed post credit assessment of the case.
               </div>
             </div>
           ) : (
@@ -584,9 +728,9 @@ export default function Calculator() {
           {/* ═══ LEFT PANEL: LOAN CALCULATOR & EMI READOUT ═══ */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '14px 14px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', boxSizing: 'border-box', width: '100%', overflow: 'hidden' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <div style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.08em', color: '#64748B' }}>
-                  LOAN CALCULATOR
+                  LOAN CALCULATOR · {params.label.toUpperCase()}
                 </div>
                 {/* Floating | Fixed Toggle */}
                 <div style={{ display: 'inline-flex', background: '#F1F5F9', padding: '3px', borderRadius: '20px', border: '1px solid #CBD5E1' }}>
@@ -628,6 +772,12 @@ export default function Calculator() {
                     — Fixed
                   </button>
                 </div>
+              </div>
+
+              {/* Active loan type badge with limits */}
+              <div className="calc-active-loan-info">
+                <span>Selected: <strong>{params.label}</strong></span>
+                <span>ROI: <strong>{params.rateMin}% – {params.rateMax}%</strong> · Tenure: <strong>Up to {Math.round(params.tenureMax / 12)} Yrs</strong></span>
               </div>
 
               {/* 1. Loan Amount */}
@@ -1022,7 +1172,7 @@ export default function Calculator() {
             {filteredAndSortedLenders.length > 0 && (
               <div style={{
                 background: 'linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%)',
-                border: '1.5px solid #BFDBFE',
+                border: selectedLenders.includes(filteredAndSortedLenders[0].id) ? '1.5px solid #0284C7' : '1.5px solid #BFDBFE',
                 borderRadius: '12px',
                 padding: '12px 14px',
                 marginBottom: '14px',
@@ -1030,13 +1180,41 @@ export default function Calculator() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '10px',
-                flexWrap: 'wrap'
+                flexWrap: 'wrap',
+                transition: 'border-color 0.2s ease'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {/* Checkbox on top best-offer card */}
+                  <label
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      margin: 0,
+                      padding: 0
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedLenders.includes(filteredAndSortedLenders[0].id)}
+                      onChange={() => toggleLenderSelection(filteredAndSortedLenders[0].id)}
+                      style={{
+                        width: '18px',
+                        height: '18px',
+                        cursor: 'pointer',
+                        accentColor: '#0284C7',
+                        borderRadius: '4px',
+                        flexShrink: 0
+                      }}
+                      aria-label={`Select ${filteredAndSortedLenders[0].name}`}
+                    />
+                  </label>
                   <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>
                     <Landmark size={20} className="text-slate-600" />
                   </div>
-                  <div>
+                  <div style={{ cursor: 'pointer' }} onClick={() => toggleLenderSelection(filteredAndSortedLenders[0].id)}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0F2942' }}>{filteredAndSortedLenders[0].name}</span>
                       <span style={{ padding: '1px 6px', borderRadius: '8px', background: '#DBEAFE', color: '#1E40AF', fontSize: '0.65rem', fontWeight: 700 }}>
@@ -1061,20 +1239,112 @@ export default function Calculator() {
 
                   <button
                     type="button"
-                    onClick={() => handleApplyToLender(filteredAndSortedLenders[0].id)}
+                    disabled={submittingApp}
+                    onClick={() => {
+                      if (selectedLenders.length >= 2 && selectedLenders.includes(filteredAndSortedLenders[0].id)) {
+                        handleApplyToLender(selectedLenders);
+                      } else {
+                        handleApplyToLender(filteredAndSortedLenders[0].id);
+                      }
+                    }}
                     style={{
                       padding: '8px 14px',
                       borderRadius: '8px',
-                      background: '#0F2942',
+                      background: selectedLenders.length >= 2 && selectedLenders.includes(filteredAndSortedLenders[0].id)
+                        ? 'linear-gradient(135deg, #0F2942 0%, #0284C7 100%)'
+                        : '#0F2942',
                       color: '#FFFFFF',
                       border: 'none',
                       fontWeight: 800,
                       fontSize: '0.8rem',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(15,41,66,0.2)'
+                      cursor: submittingApp ? 'not-allowed' : 'pointer',
+                      boxShadow: '0 2px 8px rgba(15,41,66,0.2)',
+                      transition: 'all 0.2s ease',
+                      opacity: submittingApp ? 0.7 : 1
                     }}
                   >
-                    Apply →
+                    {submittingApp
+                      ? 'Submitting...'
+                      : selectedLenders.length >= 2 && selectedLenders.includes(filteredAndSortedLenders[0].id)
+                      ? `Apply (${selectedLenders.length} Banks) →`
+                      : 'Apply →'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ═══ MULTI-BANK SELECTION BAR (VISIBLE WHEN 2+ BANKS SELECTED) ═══ */}
+            {selectedLenders.length >= 2 && (
+              <div style={{
+                background: 'linear-gradient(135deg, #0F2942 0%, #1E3A8A 100%)',
+                color: '#FFFFFF',
+                borderRadius: '12px',
+                padding: '10px 16px',
+                marginBottom: '14px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '10px',
+                boxShadow: '0 4px 14px rgba(15, 41, 66, 0.15)',
+                border: '1px solid #38BDF8'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  <span style={{
+                    background: '#38BDF8',
+                    color: '#0F2942',
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    padding: '2px 8px',
+                    borderRadius: '12px'
+                  }}>
+                    {selectedLenders.length} BANKS SELECTED
+                  </span>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#E2E8F0' }}>
+                    {selectedLenders
+                      .map(id => filteredAndSortedLenders.find(l => l.id === id)?.name || id)
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedLenders([])}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      fontSize: '0.74rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Clear
+                  </button>
+                  <button
+                    type="button"
+                    disabled={submittingApp}
+                    onClick={() => handleApplyToLender(selectedLenders)}
+                    style={{
+                      background: '#38BDF8',
+                      color: '#0F2942',
+                      border: 'none',
+                      padding: '7px 16px',
+                      borderRadius: '6px',
+                      fontSize: '0.82rem',
+                      fontWeight: 800,
+                      cursor: submittingApp ? 'not-allowed' : 'pointer',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      opacity: submittingApp ? 0.7 : 1
+                    }}
+                  >
+                    {submittingApp ? 'Submitting...' : `Apply to ${selectedLenders.length} Banks →`}
                   </button>
                 </div>
               </div>
@@ -1085,7 +1355,24 @@ export default function Calculator() {
               <table style={{ minWidth: '580px', width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
                 <thead>
                   <tr style={{ background: '#0F2942', color: '#FFFFFF', textAlign: 'left' }}>
-                    <th style={{ padding: '10px 14px', borderRadius: '8px 0 0 0', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.05em' }}>LENDER</th>
+                    <th style={{ padding: '10px 14px', borderRadius: '8px 0 0 0', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.05em' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input
+                          type="checkbox"
+                          checked={filteredAndSortedLenders.length > 0 && selectedLenders.length >= 2 && filteredAndSortedLenders.slice(0, 3).every(l => selectedLenders.includes(l.id))}
+                          onChange={() => {
+                            if (selectedLenders.length >= 2) {
+                              setSelectedLenders([]);
+                            } else {
+                              setSelectedLenders(filteredAndSortedLenders.slice(0, 3).map(l => l.id));
+                            }
+                          }}
+                          title={selectedLenders.length >= 2 ? "Deselect All" : "Select Top 3 Banks"}
+                          style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#38BDF8' }}
+                        />
+                        <span>LENDER</span>
+                      </div>
+                    </th>
                     <th style={{ padding: '10px 14px', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.05em' }}>EXPECTED ROI ({rateType === 'floating' ? 'FLOATING' : 'FIXED'})</th>
                     <th style={{ padding: '10px 14px', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.05em' }}>EST. EMI</th>
                     <th style={{ padding: '10px 14px', borderRadius: '0 8px 0 0', textAlign: 'right', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.05em' }}>ACTION</th>
@@ -1099,21 +1386,72 @@ export default function Calculator() {
                       </td>
                     </tr>
                   ) : (
-                    filteredAndSortedLenders.map((lender) => {
+                    filteredAndSortedLenders.map((lender, idx) => {
                       const lEmi = calcEMI(amount, lender.rate, tenure);
-                      const rowKey = `calc-lender-${lender.name}-${lender.type}-${lenderFilter}-${rateType}-${loanType}`;
-                      const isPsu = lender.type === 'PSU';
-                      const isNbfc = lender.type === 'NBFC/HFC';
-                      const isSfb = lender.type === 'SFB';
+                      const cat = normalizeLenderCategory(lender.type, lender.name);
+                      const rowKey = `calc-lender-${lender.name}-${cat}-${lenderFilter}-${rateType}-${loanType}`;
+                      const isPsu = cat === 'PSU';
+                      const isNbfc = cat === 'NBFC/HFC';
+                      const isSfb = cat === 'SFB';
+                      const isSel = selectedLenders.includes(lender.id);
+
+                      // Check contiguous run logic for 2+ selected lenders
+                      let isFirstInContiguous = false;
+                      let contiguousSpan = 1;
+                      let isSubsequentInContiguous = false;
+
+                      if (selectedLenders.length >= 2) {
+                        if (idx === firstSelectedIdx) {
+                          isFirstInContiguous = true;
+                          contiguousSpan = contiguousCount;
+                        } else if (idx > firstSelectedIdx && idx < firstSelectedIdx + contiguousCount) {
+                          isSubsequentInContiguous = true;
+                        }
+                      }
 
                       return (
-                        <tr key={rowKey} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                        <tr
+                          key={rowKey}
+                          style={{
+                            borderBottom: '1px solid #F1F5F9',
+                            background: isSel ? '#F0F9FF' : '#FFFFFF',
+                            transition: 'background 0.2s ease'
+                          }}
+                        >
                           <td style={{ padding: '10px 14px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <div style={{ width: '30px', height: '30px', borderRadius: '6px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Landmark size={16} className="text-slate-600" />
+                              {/* Checkbox on left side of bank */}
+                              <label
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  cursor: 'pointer',
+                                  margin: 0,
+                                  padding: 0
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isSel}
+                                  onChange={() => toggleLenderSelection(lender.id)}
+                                  style={{
+                                    width: '18px',
+                                    height: '18px',
+                                    cursor: 'pointer',
+                                    accentColor: '#0284C7',
+                                    borderRadius: '4px',
+                                    flexShrink: 0
+                                  }}
+                                  aria-label={`Select ${lender.name}`}
+                                />
+                              </label>
+
+                              <div style={{ width: '30px', height: '30px', borderRadius: '6px', background: isSel ? '#FFFFFF' : '#F8FAFC', border: isSel ? '1px solid #BAE6FD' : '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <Landmark size={16} className={isSel ? "text-sky-600" : "text-slate-600"} />
                               </div>
-                              <div>
+                              <div style={{ cursor: 'pointer' }} onClick={() => toggleLenderSelection(lender.id)}>
                                 <div style={{ fontWeight: 800, color: '#0F2942' }}>{lender.name}</div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '1px' }}>
                                   <span style={{
@@ -1124,7 +1462,7 @@ export default function Calculator() {
                                     padding: '1px 6px',
                                     borderRadius: '4px'
                                   }}>
-                                    {lender.type || 'PRIVATE'}
+                                    {normalizeLenderCategory(lender.type, lender.name)}
                                   </span>
                                 </div>
                               </div>
@@ -1140,25 +1478,112 @@ export default function Calculator() {
                             <div style={{ fontWeight: 800, color: '#0284C7', fontSize: '0.88rem' }}>{fmtINRFull(lEmi)}<span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#64748B' }}>/mo</span></div>
                           </td>
 
-                          <td style={{ padding: '10px 14px', textAlign: 'right' }}>
-                            <button
-                              type="button"
-                              onClick={() => handleApplyToLender(lender.id)}
-                              style={{
-                                padding: '6px 14px',
-                                borderRadius: '6px',
-                                background: '#0F2942',
-                                color: '#FFFFFF',
-                                border: 'none',
-                                fontWeight: 800,
-                                fontSize: '0.78rem',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease'
-                              }}
-                            >
-                              Apply →
-                            </button>
-                          </td>
+                          {/* ACTION COLUMN: Merged single button for 2+ selected banks */}
+                          {selectedLenders.length >= 2 ? (
+                            isFirstInContiguous ? (
+                              <td
+                                rowSpan={contiguousSpan}
+                                style={{
+                                  padding: '10px 14px',
+                                  textAlign: 'right',
+                                  verticalAlign: 'middle',
+                                  background: '#F0F9FF',
+                                  borderLeft: '2px solid #BAE6FD'
+                                }}
+                              >
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                                  <button
+                                    type="button"
+                                    disabled={submittingApp}
+                                    onClick={() => handleApplyToLender(selectedLenders)}
+                                    style={{
+                                      padding: '8px 16px',
+                                      borderRadius: '8px',
+                                      background: 'linear-gradient(135deg, #0F2942 0%, #0284C7 100%)',
+                                      color: '#FFFFFF',
+                                      border: 'none',
+                                      fontWeight: 800,
+                                      fontSize: '0.82rem',
+                                      cursor: submittingApp ? 'not-allowed' : 'pointer',
+                                      boxShadow: '0 4px 12px rgba(2, 132, 199, 0.28)',
+                                      whiteSpace: 'nowrap',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '6px',
+                                      transition: 'all 0.2s ease',
+                                      opacity: submittingApp ? 0.7 : 1
+                                    }}
+                                  >
+                                    {submittingApp ? 'Submitting...' : `Apply (${selectedLenders.length} Banks) →`}
+                                  </button>
+                                  <span style={{ fontSize: '0.67rem', fontWeight: 700, color: '#0369A1' }}>
+                                    1-Click Multi Application
+                                  </span>
+                                </div>
+                              </td>
+                            ) : isSubsequentInContiguous ? null : isSel ? (
+                              <td style={{ padding: '10px 14px', textAlign: 'right', verticalAlign: 'middle', background: '#F0F9FF' }}>
+                                <div style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  fontSize: '0.74rem',
+                                  fontWeight: 700,
+                                  color: '#0369A1',
+                                  background: '#E0F2FE',
+                                  border: '1px solid #BAE6FD',
+                                  padding: '5px 10px',
+                                  borderRadius: '6px'
+                                }}>
+                                  <Check size={12} strokeWidth={3} /> Selected ({selectedLenders.length})
+                                </div>
+                              </td>
+                            ) : (
+                              <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                                <button
+                                  type="button"
+                                  disabled={submittingApp}
+                                  onClick={() => handleApplyToLender(lender.id)}
+                                  style={{
+                                    padding: '6px 14px',
+                                    borderRadius: '6px',
+                                    background: '#0F2942',
+                                    color: '#FFFFFF',
+                                    border: 'none',
+                                    fontWeight: 800,
+                                    fontSize: '0.78rem',
+                                    cursor: submittingApp ? 'not-allowed' : 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    opacity: submittingApp ? 0.7 : 1
+                                  }}
+                                >
+                                  {submittingApp ? 'Submitting...' : 'Apply →'}
+                                </button>
+                              </td>
+                            )
+                          ) : (
+                            <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                              <button
+                                type="button"
+                                disabled={submittingApp}
+                                onClick={() => handleApplyToLender(lender.id)}
+                                style={{
+                                  padding: '6px 14px',
+                                  borderRadius: '6px',
+                                  background: isSel ? '#0284C7' : '#0F2942',
+                                  color: '#FFFFFF',
+                                  border: 'none',
+                                  fontWeight: 800,
+                                  fontSize: '0.78rem',
+                                  cursor: submittingApp ? 'not-allowed' : 'pointer',
+                                  transition: 'all 0.2s ease',
+                                  opacity: submittingApp ? 0.7 : 1
+                                }}
+                              >
+                                {submittingApp ? 'Submitting...' : 'Apply →'}
+                              </button>
+                            </td>
+                          )}
                         </tr>
                       );
                     })
@@ -1169,6 +1594,30 @@ export default function Calculator() {
           </div>
         </div>
       </div>
+
+      {/* ═══ CUSTOM ADMIN MODAL POPUP ═══ */}
+      {showAdminModal && (
+        <div className="custom-modal-backdrop" onClick={() => setShowAdminModal(false)}>
+          <div className="custom-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px', padding: '28px', textAlign: 'center' }}>
+            <div style={{ background: '#FEF2F2', width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px auto', color: '#DC2626' }}>
+              <AlertTriangle size={28} />
+            </div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F2942', marginBottom: '8px' }}>
+              Action Restricted
+            </h3>
+            <p style={{ color: '#64748B', fontSize: '0.88rem', lineHeight: '1.5', marginBottom: '20px' }}>
+              Admin and Partner accounts cannot apply for loans. Only borrower accounts can submit applications.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowAdminModal(false)}
+              style={{ width: '100%', padding: '10px 16px', borderRadius: '8px', background: '#0284C7', color: '#FFFFFF', border: 'none', fontWeight: 800, cursor: 'pointer' }}
+            >
+              Got It
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
